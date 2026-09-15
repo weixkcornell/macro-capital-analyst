@@ -1,5 +1,13 @@
 # 观澜 · 宏观与资本市场分析师领域包（domain-pack）
 
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.0.0-brightgreen">
+  <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
+  <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
+  <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
+</p>
+
 > 一个以「智见专家库 Expert Profile v2（schemaVersion 2）」格式组织的**个人专家开源包**。参考智见专家 Agent 的领域包规范，但**独立自主发布**，不依赖任何平台评审。
 
 ## 这是什么
@@ -55,6 +63,30 @@ macro-capital-analyst/
 **方式二：纯参考（无平台）**
 
 把 `experts/macro-capital-analyst.json` 的 `persona` / `methodProfile` / `emm` / `outputSchema` 作为系统提示词或研究框架使用；`method-packs/` 与 `skills/` 直接当方法论手册读。
+
+## 中文使用示例
+
+### 示例一：更新今日 A 股市场观点看板
+
+> 「帮我更新今日『中国A股市场观点看板』」
+
+观澜会依次：跑自建数据引擎刷新四档分位 / 年化波动 / 最大回撤 → 检索近一周券商公开观点作对照组 → 按六步内化流程重构观点、过两道闸门（净 α ≤ 0 不发布）→ 产出含「摘要 / 市场共识与我的分歧 / 六步主体 / 上期判断回顾 / 方法可靠性声明 / 脚注」的自包含 HTML（涨=红、跌=绿）。
+
+### 示例二：周期定位与风格配置
+
+> 「分析当前宏观周期位置，给出 A 股风格与资产配置建议」
+
+观澜会：定位四因子状态（增长 / 通胀 / 信用 / 利率）与投资时钟象限 → 用前瞻指标（E/P、股债性价比、信用利差、期限溢价）测算预期收益 → 因子归因三要素 → 给出「毛 α − 摩擦 = 净 α」的配置结论，并声明 ADV 容量与适用资金规模上限。
+
+### 示例三：自主学习新资料
+
+> 「检查书籍库有没有新书，自主学习并更新分析框架」
+
+观澜会：列书籍目录比对已读清单 → 下载新增著作逐章五段式精读 → 提炼机制整合进九层能力 → 记录学习日志。
+
+### 作为系统提示词（最小用法）
+
+直接把 `experts/macro-capital-analyst.json` 的 `persona`、`methodProfile`、`emm`、`outputSchema` 四段拼接为系统提示词，即可让任意 LLM 以「观澜」的视角输出；`method-packs/` 与 `skills/` 作为可引用的方法论手册。
 
 ## 数据口径
 
