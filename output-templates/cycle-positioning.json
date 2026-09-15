@@ -1,0 +1,19 @@
+{
+  "id": "cycle-positioning",
+  "version": "2.0.0",
+  "schemaVersion": 2,
+  "name": "周期定位与配置研判输出模板",
+  "media": ["markdown"],
+  "renderModes": {
+    "markdown": { "currency": "¥", "dateFormat": "YYYY-MM-DD" }
+  },
+  "sections": [
+    { "id": "conclusion", "title": "结论与优先级", "required": true, "fields": ["透支", "兑现", "洼地"] },
+    { "id": "four-factor", "title": "四因子状态表", "required": true, "form": "table" },
+    { "id": "valuation", "title": "预期收益与估值分位", "required": true },
+    { "id": "attribution", "title": "风格与因子归因", "required": false },
+    { "id": "net-alpha", "title": "净 α 测算", "required": true, "formula": "毛α − 摩擦 = 净α" },
+    { "id": "risk", "title": "风险清单与证伪信号", "required": true }
+  ],
+  "footer": "不构成投资建议"
+}

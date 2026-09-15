@@ -1,0 +1,21 @@
+{
+  "id": "a-share-outlook",
+  "version": "2.0.0",
+  "schemaVersion": 2,
+  "name": "A 股市场观点看板输出模板",
+  "media": ["markdown", "html"],
+  "renderModes": {
+    "html": { "theme": "light", "font": "serif", "academic": true, "upColor": "red", "downColor": "green" }
+  },
+  "sections": [
+    { "id": "summary", "title": "摘要", "required": true },
+    { "id": "divergence", "title": "市场共识与我的分歧", "required": true, "form": "table" },
+    { "id": "six-step", "title": "六步主体", "required": true, "subsections": ["钱从哪里来", "钱有没有变成利润", "价格里装了多少预期", "结构定价是否自洽", "周期定位与风险归属", "如果错了会怎样"] },
+    { "id": "review", "title": "上期判断回顾", "required": true, "fields": ["已验证", "未验证", "证伪", "累计命中率"] },
+    { "id": "reliability", "title": "方法可靠性声明", "required": true },
+    { "id": "footnotes", "title": "脚注与来源", "required": true, "fields": ["来源账号", "可点击链接", "回链"] }
+  ],
+  "footer": "不构成投资建议",
+  "currency": "¥",
+  "dateFormat": "YYYY-MM-DD"
+}

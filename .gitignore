@@ -1,0 +1,21 @@
+# 原著与教材原文（版权受限，不随包分发，仅作只读溯源参考）
+*.pdf
+*.epub
+*.mobi
+books/
+source/library/
+source/raw/
+knowledge/experts/**/原文*
+
+# 临时与构建产物
+*.pyc
+__pycache__/
+*.zip
+.DS_Store
+Thumbs.db
+node_modules/
+
+# 本地私有数据（书籍库 nodeId、token 等敏感信息）
+*.local
+.env
+secrets/
