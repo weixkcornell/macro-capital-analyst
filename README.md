@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.0.0-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.1.0-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -51,11 +51,17 @@ macro-capital-analyst/
 ├── quality-policies/
 │   ├── a-share-outlook-quality.json   # 看板门禁（五道起步门禁）
 │   └── cycle-positioning-quality.json # 研判门禁
+├── method-packs/
+│   ├── six-step-internalization.json  # 六步内化流程（§0 权威步骤定义）
+│   ├── nine-layer-framework.json      # 九层能力框架
+│   └── dual-gates.json                # 两道横切闸门
 ├── skills/
 │   └── macro-capital-framework/
 │       ├── SKILL.md                   # 工艺规范（§0/§1/§2/§3）
 │       └── references/
-│           └── checklist-template.md  # 交付 checklist
+│           ├── checklist-template.md  # 交付 checklist
+│           └── scripts/
+│               └── i1_collision_check.py  # §3.3 三方对撞参考实现
 ├── data-contracts/
 │   └── capability-contract.csv        # 数据源能力契约表
 ├── source/
@@ -107,6 +113,7 @@ macro-capital-analyst/
 
 ## 版本历史
 
+- **2.1.0 修订**（2026-09-16）：补回 `method-packs/`（六步/九层/双闸门）与 `references/scripts/i1_collision_check.py`，恢复 §2.7 量纲与口径交叉校验、§3.3 摘要—正文—底座三方对撞两条硬规则（2.1.0 模板重排中遗漏）；`SOURCE-MANIFEST.json` 的 `materials[]` 补回 `status` / `distributable` / `fileRef` 字段；修正 README 版本徽章。
 - **2.1.0**（2026-09-16）：按 zhijian-sample-pack 模板重排——目录对齐（`knowledge/` + `data-contracts/`，去除 method-packs/routing）、字段对齐（output-templates 用 `documentStructure`、quality-policies 用 `severity`+`bannedTokens`、SOURCE-MANIFEST 用 `materials[]`）、补 `SUBMISSION-CHECKLIST.md` 与 `capability-contract.csv`。
 - **2.0.0**（2026-09-16）：方法底座扩至十四部著作 + CFA 2025 十三卷；补全完全体实体。
 - 1.0.0（初版）：核心 Profile + pack + 单场景。

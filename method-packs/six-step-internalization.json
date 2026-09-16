@@ -1,0 +1,67 @@
+{
+  "id": "six-step-internalization",
+  "version": "2.0.0",
+  "schemaVersion": 2,
+  "name": "六步内化流程",
+  "description": "落笔六步，层层递进；每一步从九层能力取对应机制支撑判断（后台查阅，正文不露书目）。",
+  "steps": [
+    {
+      "step": 1,
+      "name": "钱从哪里来",
+      "mechanism": "信用创造的量与结构（社融结构 / M1-M2 / 宽信用真伪）。",
+      "layers": [
+        "monetary.credit"
+      ]
+    },
+    {
+      "step": 2,
+      "name": "钱有没有变成利润",
+      "mechanism": "量/价/结构三条线；PPI 拆到行业级，区分输入性/国内定价/新动能。",
+      "layers": [
+        "macro.policy",
+        "data-reading"
+      ]
+    },
+    {
+      "step": 3,
+      "name": "价格里装了多少预期",
+      "mechanism": "多口径 ERP 跨指数横向比较 + PE ±10% 敏感性。",
+      "layers": [
+        "asset.pricing"
+      ]
+    },
+    {
+      "step": 4,
+      "name": "结构定价是否自洽",
+      "mechanism": "四档分位（10Y/5Y/3Y/1Y，区分价格分位与估值分位）+ 胜率回测 + 相关性 regime + 拥挤度；风格/因子类补做因子归因三要素。",
+      "layers": [
+        "equity.factor",
+        "expected.returns"
+      ]
+    },
+    {
+      "step": 5,
+      "name": "周期定位与风险归属",
+      "mechanism": "四因子状态表 + 时钟象限（标注样本量）+ 风险贡献分解 + 高频领先指标交叉验证 + 信号有效性自检。",
+      "layers": [
+        "macro.cycle",
+        "allocation.engineering"
+      ]
+    },
+    {
+      "step": 6,
+      "name": "如果错了会怎样",
+      "mechanism": "风险清单 + 触发条件 + 证伪信号；任何配置结论声明扣摩擦后的净 α。",
+      "layers": [
+        "market.friction"
+      ]
+    }
+  ],
+  "mandatorySections": [
+    "上期判断回顾（逐条标注已验证/未验证/证伪 + 累计命中率）",
+    "方法可靠性声明（显式声明局限）"
+  ],
+  "mediaType": "agent-instructions",
+  "load": "progressive",
+  "body": "六步内化流程：落笔六步，层层递进；每一步从九层能力取对应机制支撑判断（后台查阅，正文不露书目）。\n- {\"step\": 1, \"name\": \"钱从哪里来\", \"mechanism\": \"信用创造的量与结构（社融结构 / M1-M2 / 宽信用真伪）。\", \"layers\": [\"monetary.credit\"]}\n- {\"step\": 2, \"name\": \"钱有没有变成利润\", \"mechanism\": \"量/价/结构三条线；PPI 拆到行业级，区分输入性/国内定价/新动能。\", \"layers\": [\"macro.policy\", \"data-reading\"]}\n- {\"step\": 3, \"name\": \"价格里装了多少预期\", \"mechanism\": \"多口径 ERP 跨指数横向比较 + PE ±10% 敏感性。\", \"layers\": [\"asset.pricing\"]}\n- {\"step\": 4, \"name\": \"结构定价是否自洽\", \"mechanism\": \"四档分位（10Y/5Y/3Y/1Y，区分价格分位与估值分位）+ 胜率回测 + 相关性 regime + 拥挤度；风格/因子类补做因子归因三要素。\", \"layers\": [\"equity.factor\", \"expected.returns\"]}\n- {\"step\": 5, \"name\": \"周期定位与风险归属\", \"mechanism\": \"四因子状态表 + 时钟象限（标注样本量）+ 风险贡献分解 + 高频领先指标交叉验证 + 信号有效性自检。\", \"layers\": [\"macro.cycle\", \"allocation.engineering\"]}\n- {\"step\": 6, \"name\": \"如果错了会怎样\", \"mechanism\": \"风险清单 + 触发条件 + 证伪信号；任何配置结论声明扣摩擦后的净 α。\", \"layers\": [\"market.friction\"]}\n强制章节: 上期判断回顾（逐条标注已验证/未验证/证伪 + 累计命中率）, 方法可靠性声明（显式声明局限）"
+}
