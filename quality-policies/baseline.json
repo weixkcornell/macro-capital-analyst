@@ -1,0 +1,142 @@
+{
+  "id": "baseline",
+  "version": "2.1.0",
+  "schemaVersion": 2,
+  "name": "五道起步门禁",
+  "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
+  "maxRepairRounds": 2,
+  "gates": [
+    {
+      "id": "banned-tokens",
+      "name": "禁例 token 0 命中",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "config": {
+        "bannedTokens": [
+          "某书认为",
+          "本书认为",
+          "书中认为",
+          "作者认为",
+          "根据《",
+          "书名痕迹",
+          "宏观经济学二十五讲",
+          "金融经济学二十五讲",
+          "宏观经济数据分析手册",
+          "中国主要统计指标诠释",
+          "信用创造、货币供求与经济结构",
+          "主动投资组合管理",
+          "量化股票组合管理",
+          "高效的无效",
+          "因子投资：方法与实践",
+          "投资绩效测评",
+          "2020 CFA Program Curriculum",
+          "2025 CFA",
+          "徐高",
+          "李奇霖",
+          "李斌",
+          "伍戈",
+          "Grinold",
+          "Kahn",
+          "钦塞瑞尼",
+          "佩德森",
+          "石川",
+          "Andrew Ang",
+          "Ilmanen",
+          "霍华德·马克斯",
+          "劳顿",
+          "扬科夫斯基",
+          "沃尔特·小哈斯莱特"
+        ]
+      },
+      "description": "委托方要求脱敏的量值、禁用表述逐 token 扫描，0 命中。"
+    },
+    {
+      "id": "number-consistency",
+      "name": "数字一致 + 摘要—正文—底座三方对撞",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "description": "正文所有数字与数据底座逐一对照；摘要、正文、底座三方对撞，关键概括必须能在底座找到同口径证据；改数只改底座一处。",
+      "config": {
+        "rules": [
+          "正文数字与数据底座逐项一致。",
+          "摘要中的每条概括必须在正文找到对应论据、并在底座找到同口径证据。",
+          "三方不一致时不得发布，先回底座查错。"
+        ]
+      }
+    },
+    {
+      "id": "render-overflow",
+      "name": "渲染 0 溢出 + 对比度 AA",
+      "kind": "visual",
+      "severity": "hard",
+      "appliesTo": [
+        "html",
+        "pdf"
+      ],
+      "description": "双视口检查：无溢出、对比度达 WCAG AA。"
+    },
+    {
+      "id": "layout-audit",
+      "name": "排版审计 0 问题",
+      "kind": "visual",
+      "severity": "soft",
+      "appliesTo": [
+        "html",
+        "pdf"
+      ],
+      "description": "排版审计 0 问题（标题层级、表格对齐、脚注回链）。"
+    },
+    {
+      "id": "section-outline",
+      "name": "章节大纲对照输出模板",
+      "kind": "semantic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "description": "PDF/HTML 章节大纲逐项对照 output-templates 定义，强制章节缺一不可。"
+    },
+    {
+      "id": "placeholder-clean",
+      "name": "全文无【替换：…】占位符残留",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "config": {
+        "pattern": "【替换："
+      }
+    },
+    {
+      "id": "net-alpha-required",
+      "name": "配置结论必给「毛 α − 摩擦 = 净 α」，净 α ≤ 0 不发布",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "config": {
+        "requiresNetAlpha": true,
+        "rejectNonPositive": true
+      }
+    }
+  ],
+  "notes": "硬门未过 → 完成被阻断并返回修正指引；软门 → 警告放行（gate_warnings）；通过后产出 0-100 质量分烙进任务标题（质 NN）。建议落盘 GATE 文件（哈希 + 抽样截图）。"
+}

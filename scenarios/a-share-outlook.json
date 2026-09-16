@@ -1,18 +1,31 @@
 {
   "id": "a-share-outlook",
   "name": "中国 A 股市场观点看板",
-  "description": "从一手数据自算与市场共识对照出发，按六步内化流程重构观点、过两道闸门，产出含上期回顾与可靠性声明的 A 股观点看板。",
   "version": "2.1.0",
   "schemaVersion": 2,
   "domain": "equity.strategy",
-  "intents": ["A股看板", "市场观点", "A股策略", "宏观周期定位"],
-  "requiredCapabilities": ["macro.cycle", "equity.strategy", "factor.attribution"],
+  "intents": [
+    "A股看板",
+    "市场观点",
+    "A股策略",
+    "宏观周期定位"
+  ],
+  "requiredCapabilities": [
+    "macro.cycle",
+    "equity.strategy",
+    "factor.attribution"
+  ],
   "routingPolicy": {
-    "candidateHints": ["macro-capital-analyst", "docs-coordinator"]
+    "candidateHints": [
+      "macro-capital-analyst",
+      "docs-coordinator"
+    ]
   },
-  "knowledgePolicy": { "required": [] },
-  "toolPolicy": { "allowed": ["financial.market.data", "structured.market.data", "macro.monitor"] },
-  "experts": ["macro-capital-analyst"],
+  "experts": [
+    "macro-capital-analyst"
+  ],
+  "outputTemplate": "a-share-outlook",
+  "qualityPolicy": "baseline",
   "tasks": [
     {
       "subject": "一手数据自算",
@@ -21,24 +34,47 @@
     },
     {
       "subject": "市场共识检索",
-      "dependsOn": [0],
+      "dependsOn": [
+        0
+      ],
       "description": "检索近一周券商 / 研究号公开观点，逐条标注可点击来源；只作对照组，形成「市场共识与我的分歧」底稿。",
       "expert": "macro-capital-analyst"
     },
     {
       "subject": "六步研判与闸门校验",
-      "dependsOn": [0, 1],
+      "dependsOn": [
+        0,
+        1
+      ],
       "description": "按六步内化流程重构观点（钱从哪来 → 钱变利润 → 价格装多少预期 → 结构定价自洽 → 周期定位风险归属 → 错了会怎样）；落笔前过两道横切闸门（统计可信 + 摩擦可执行，净 α ≤ 0 不发布）；若判定为因子表达周，补做因子归因三要素。动手前先完整阅读 skills/macro-capital-framework/SKILL.md 并按其规范执行。",
       "expert": "macro-capital-analyst"
     },
     {
       "subject": "融合成文与渲染验收",
-      "dependsOn": [2],
+      "dependsOn": [
+        2
+      ],
       "description": "生成自包含 HTML（浅色、学术排版，涨=红、跌=绿），含强制章节：摘要、分歧表、六步主体、上期判断回顾、方法可靠性声明、脚注与来源回链；文末固定「不构成投资建议」。",
       "expert": "macro-capital-analyst"
     }
   ],
   "deliverable": "A 股市场观点看板（HTML + markdown）+ 数据底座表 + GATE 验收文件",
+  "teamTemplate": "a-share-outlook-team",
+  "knowledgePolicy": {
+    "required": [
+      "公开K线",
+      "统计局",
+      "央行"
+    ]
+  },
+  "toolPolicy": {
+    "allowed": [
+      "wind",
+      "zyt",
+      "beike"
+    ]
+  },
+  "description": "从一手数据自算与市场共识对照出发，按六步内化流程重构观点、过两道闸门，产出含上期回顾与可靠性声明的 A 股观点看板。",
   "skill": {
     "id": "macro-capital-framework",
     "purpose": "观澜宏观与 A 股分析的完整工艺规范（行文/用数/门禁）",

@@ -49,12 +49,14 @@ macro-capital-analyst/
 │   ├── a-share-outlook.json           # 看板输出模板（documentStructure/dataRules/rendering）
 │   └── cycle-positioning.json         # 研判输出模板
 ├── quality-policies/
-│   ├── a-share-outlook-quality.json   # 看板门禁（五道起步门禁）
-│   └── cycle-positioning-quality.json # 研判门禁
+│   └── baseline.json                  # 五道起步门禁（+ placeholder-clean / net-alpha-required）
 ├── method-packs/
 │   ├── six-step-internalization.json  # 六步内化流程（§0 权威步骤定义）
 │   ├── nine-layer-framework.json      # 九层能力框架
 │   └── dual-gates.json                # 两道横切闸门
+├── team-templates/
+│   ├── a-share-outlook-team.json      # 看板组队模板（scenarios 引用）
+│   └── cycle-positioning-team.json    # 研判组队模板
 ├── skills/
 │   └── macro-capital-framework/
 │       ├── SKILL.md                   # 工艺规范（§0/§1/§2/§3）
@@ -113,6 +115,7 @@ macro-capital-analyst/
 
 ## 版本历史
 
+- **2.1.0 实体回退**（2026-09-16）：`experts/` / `scenarios/` / `output-templates/` / `quality-policies/` 四类实体统一回退为 Expert Profile v2 本机可用 schema（`proficiency` 整数 1–5、output-templates 保留 `media`/`sections`/`renderModes`、quality-policies 保留 `gates[].kind`/`appliesTo`、scenarios 保留 `outputTemplate`/`qualityPolicy`/`teamTemplate`），同时**保留 v2.1.0 的实体内容**——output-templates 追加 `dataRules`/`documentStructure`/`rendering`，scenarios 追加 `description`/`skill` 与「动手前先读 SKILL.md」约束，quality-policies 新增 `placeholder-clean`、`net-alpha-required` 两道硬门，expert 恢复 `methods` 与含两条硬规则的 `evidenceStandard`。`quality-policies/` 由按场景拆分（2 文件）回到单一 `baseline.json`。
 - **2.1.0 修订**（2026-09-16）：补回 `method-packs/`（六步/九层/双闸门）与 `references/scripts/i1_collision_check.py`，恢复 §2.7 量纲与口径交叉校验、§3.3 摘要—正文—底座三方对撞两条硬规则（2.1.0 模板重排中遗漏）；`SOURCE-MANIFEST.json` 的 `materials[]` 补回 `status` / `distributable` / `fileRef` 字段；修正 README 版本徽章。
 - **2.1.0**（2026-09-16）：按 zhijian-sample-pack 模板重排——目录对齐（`knowledge/` + `data-contracts/`，去除 method-packs/routing）、字段对齐（output-templates 用 `documentStructure`、quality-policies 用 `severity`+`bannedTokens`、SOURCE-MANIFEST 用 `materials[]`）、补 `SUBMISSION-CHECKLIST.md` 与 `capability-contract.csv`。
 - **2.0.0**（2026-09-16）：方法底座扩至十四部著作 + CFA 2025 十三卷；补全完全体实体。

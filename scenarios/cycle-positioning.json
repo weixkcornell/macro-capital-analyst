@@ -1,18 +1,32 @@
 {
   "id": "cycle-positioning",
   "name": "宏观周期定位与风格配置研判",
-  "description": "定位四因子状态与投资时钟象限，用前瞻指标测算预期收益与估值分位，补因子归因，最终给出扣摩擦后的净 α 配置建议。",
   "version": "2.1.0",
   "schemaVersion": 2,
   "domain": "macro.cycle",
-  "intents": ["周期定位", "风格配置", "资产类别", "热点板块", "轮动"],
-  "requiredCapabilities": ["macro.cycle", "asset.allocation", "expected.returns", "factor.attribution"],
+  "intents": [
+    "周期定位",
+    "风格配置",
+    "资产类别",
+    "热点板块",
+    "轮动"
+  ],
+  "requiredCapabilities": [
+    "macro.cycle",
+    "asset.allocation",
+    "expected.returns",
+    "factor.attribution"
+  ],
   "routingPolicy": {
-    "candidateHints": ["macro-capital-analyst"]
+    "candidateHints": [
+      "macro-capital-analyst"
+    ]
   },
-  "knowledgePolicy": { "required": [] },
-  "toolPolicy": { "allowed": ["financial.market.data", "structured.market.data", "macro.monitor"] },
-  "experts": ["macro-capital-analyst"],
+  "experts": [
+    "macro-capital-analyst"
+  ],
+  "outputTemplate": "cycle-positioning",
+  "qualityPolicy": "baseline",
   "tasks": [
     {
       "subject": "四因子状态与时钟定位",
@@ -21,24 +35,47 @@
     },
     {
       "subject": "预期收益与估值分位测算",
-      "dependsOn": [0],
+      "dependsOn": [
+        0
+      ],
       "description": "用前瞻指标（E/P、股债性价比、信用利差、期限溢价）而非历史涨幅定位各类资产/因子的风险溢价分位；叠加预期收益工程（CME 七步 / Grinold–Kroner 拆解 / 收缩估计）。",
       "expert": "macro-capital-analyst"
     },
     {
       "subject": "风格与因子归因",
-      "dependsOn": [0, 1],
+      "dependsOn": [
+        0,
+        1
+      ],
       "description": "风格/因子类判断补做因子归因三要素 σ(R)=Σx·σ(r)·ρ(r,R)；A 股仅规模/换手率/价值/盈利四因子稳定，禁用 β 解释横截面。动手前先完整阅读 skills/macro-capital-framework/SKILL.md 并按其规范执行。",
       "expert": "macro-capital-analyst"
     },
     {
       "subject": "净 α 测算与配置建议",
-      "dependsOn": [2],
+      "dependsOn": [
+        2
+      ],
       "description": "给结论排优先级（透支/兑现/洼地）；任何超配/低配/轮动结论须给出 毛 α − 摩擦 = 净 α，净 α ≤ 0 不发布；声明 ADV 容量与适用资金规模上限。",
       "expert": "macro-capital-analyst"
     }
   ],
   "deliverable": "周期定位与配置研判报告（markdown）+ 四因子状态表 + 净 α 测算 + GATE 验收文件",
+  "teamTemplate": "cycle-positioning-team",
+  "knowledgePolicy": {
+    "required": [
+      "公开K线",
+      "统计局",
+      "央行"
+    ]
+  },
+  "toolPolicy": {
+    "allowed": [
+      "wind",
+      "zyt",
+      "beike"
+    ]
+  },
+  "description": "定位四因子状态与投资时钟象限，用前瞻指标测算预期收益与估值分位，补因子归因，最终给出扣摩擦后的净 α 配置建议。",
   "skill": {
     "id": "macro-capital-framework",
     "purpose": "观澜宏观与 A 股分析的完整工艺规范（行文/用数/门禁）",

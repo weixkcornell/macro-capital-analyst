@@ -1,24 +1,110 @@
 {
-  "id": "cycle-positioning.output",
+  "id": "cycle-positioning",
   "version": "2.1.0",
   "schemaVersion": 2,
-  "appliesToScenario": "cycle-positioning",
-  "documentStructure": {
-    "pattern": "总-分-总",
-    "sections": [
-      { "name": "结论与优先级", "required": true, "notes": "透支/兑现/洼地三级排序，结论先行" },
-      { "name": "四因子状态表", "required": true, "notes": "增长/通胀/信用/利率 + 时钟象限，标注样本量" },
-      { "name": "预期收益与估值分位", "required": true, "notes": "前瞻指标（E/P、股债性价比、信用利差、期限溢价），非历史涨幅" },
-      { "name": "风格与因子归因", "required": false, "notes": "因子归因三要素 σ(R)=Σx·σ(r)·ρ(r,R)" },
-      { "name": "净 α 测算", "required": true, "notes": "毛 α − 摩擦 = 净 α；净 α ≤ 0 不发布；声明 ADV 容量与资金规模上限" },
-      { "name": "风险清单与证伪信号", "required": true, "notes": "触发条件 + 证伪信号 + 退出条件" }
-    ]
+  "name": "周期定位与配置研判输出模板",
+  "media": [
+    "markdown"
+  ],
+  "renderModes": {
+    "markdown": {
+      "currency": "¥",
+      "dateFormat": "YYYY-MM-DD",
+      "anonymize": true
+    }
   },
+  "sections": [
+    {
+      "id": "conclusion",
+      "title": "结论与优先级",
+      "required": true,
+      "fields": [
+        "透支",
+        "兑现",
+        "洼地"
+      ],
+      "notes": "透支/兑现/洼地三级排序，结论先行"
+    },
+    {
+      "id": "four-factor",
+      "title": "四因子状态表",
+      "required": true,
+      "form": "table",
+      "notes": "增长/通胀/信用/利率 + 时钟象限，标注样本量"
+    },
+    {
+      "id": "valuation",
+      "title": "预期收益与估值分位",
+      "required": true,
+      "notes": "前瞻指标（E/P、股债性价比、信用利差、期限溢价），非历史涨幅"
+    },
+    {
+      "id": "attribution",
+      "title": "风格与因子归因",
+      "required": false,
+      "notes": "因子归因三要素 σ(R)=Σx·σ(r)·ρ(r,R)"
+    },
+    {
+      "id": "net-alpha",
+      "title": "净 α 测算",
+      "required": true,
+      "formula": "毛α − 摩擦 = 净α",
+      "notes": "毛 α − 摩擦 = 净 α；净 α ≤ 0 不发布；声明 ADV 容量与资金规模上限"
+    },
+    {
+      "id": "risk",
+      "title": "风险清单与证伪信号",
+      "required": true,
+      "notes": "触发条件 + 证伪信号 + 退出条件"
+    }
+  ],
+  "footer": "不构成投资建议",
+  "appliesToScenario": "cycle-positioning",
   "dataRules": {
-    "annotationLevels": ["测算", "估算", "研判推断", "待补"],
+    "annotationLevels": [
+      "测算",
+      "估算",
+      "研判推断",
+      "待补"
+    ],
     "sourceFormat": "（来源，机构，截至 年-月）",
     "forbidFabricatedNumbers": true,
     "notes": "t 阈值分档（时序≥3.8 / FM≥3.4 / 单检验≥3.0）；样本 <10 年仅写提示性观察；海外锚须重标定"
+  },
+  "documentStructure": {
+    "pattern": "总-分-总",
+    "sections": [
+      {
+        "name": "结论与优先级",
+        "required": true,
+        "notes": "透支/兑现/洼地三级排序，结论先行"
+      },
+      {
+        "name": "四因子状态表",
+        "required": true,
+        "notes": "增长/通胀/信用/利率 + 时钟象限，标注样本量"
+      },
+      {
+        "name": "预期收益与估值分位",
+        "required": true,
+        "notes": "前瞻指标（E/P、股债性价比、信用利差、期限溢价），非历史涨幅"
+      },
+      {
+        "name": "风格与因子归因",
+        "required": false,
+        "notes": "因子归因三要素 σ(R)=Σx·σ(r)·ρ(r,R)"
+      },
+      {
+        "name": "净 α 测算",
+        "required": true,
+        "notes": "毛 α − 摩擦 = 净 α；净 α ≤ 0 不发布；声明 ADV 容量与资金规模上限"
+      },
+      {
+        "name": "风险清单与证伪信号",
+        "required": true,
+        "notes": "触发条件 + 证伪信号 + 退出条件"
+      }
+    ]
   },
   "rendering": {
     "format": "markdown → HTML5",

@@ -1,0 +1,107 @@
+{
+  "id": "a-share-outlook-team",
+  "version": "2.0.0",
+  "schemaVersion": 2,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "string",
+        "description": "行情与宏观数据上下文"
+      },
+      "period": {
+        "type": "string",
+        "description": "看板期"
+      }
+    }
+  },
+  "slots": [
+    {
+      "id": "macro-lead",
+      "capabilities": [
+        "macro.cycle",
+        "equity.strategy",
+        "factor.attribution"
+      ],
+      "cardinality": {
+        "min": 1,
+        "max": 1
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "data-selfcalc",
+      "role": "macro-lead",
+      "dependsOn": [],
+      "inputs": [],
+      "allowedCapabilities": [
+        "macro.cycle",
+        "equity.strategy",
+        "factor.attribution"
+      ],
+      "retryPolicy": "quality-repair"
+    },
+    {
+      "id": "consensus-scan",
+      "role": "macro-lead",
+      "dependsOn": [
+        "data-selfcalc"
+      ],
+      "inputs": [],
+      "allowedCapabilities": [
+        "macro.cycle",
+        "equity.strategy",
+        "factor.attribution"
+      ],
+      "retryPolicy": "quality-repair"
+    },
+    {
+      "id": "six-step-gate",
+      "role": "macro-lead",
+      "dependsOn": [
+        "consensus-scan"
+      ],
+      "inputs": [],
+      "allowedCapabilities": [
+        "macro.cycle",
+        "equity.strategy",
+        "factor.attribution"
+      ],
+      "retryPolicy": "quality-repair"
+    },
+    {
+      "id": "fusion-render",
+      "role": "macro-lead",
+      "dependsOn": [
+        "six-step-gate"
+      ],
+      "inputs": [],
+      "allowedCapabilities": [
+        "macro.cycle",
+        "equity.strategy",
+        "factor.attribution"
+      ],
+      "retryPolicy": "quality-repair"
+    }
+  ],
+  "gates": [
+    {
+      "policy": "baseline",
+      "gate": "banned-tokens"
+    },
+    {
+      "policy": "baseline",
+      "gate": "number-consistency"
+    },
+    {
+      "policy": "baseline",
+      "gate": "section-outline"
+    }
+  ],
+  "deliverables": [
+    "看板（HTML + markdown）",
+    "数据底座表",
+    "GATE 验收文件"
+  ]
+}
