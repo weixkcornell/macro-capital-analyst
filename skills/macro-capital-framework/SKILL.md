@@ -17,7 +17,7 @@ metadata:
 
 - 权威附件：`references/checklist-template.md`（交付前逐项打勾）。
 - 输出骨架：`output-templates/a-share-outlook.json` / `cycle-positioning.json`。
-- 门禁细则：`quality-policies/a-share-outlook-quality.json` / `cycle-positioning-quality.json`。
+- 门禁细则：`quality-policies/baseline.json`（五道起步门禁 + `placeholder-clean` / `net-alpha-required`）。
 - 方法包：`method-packs/six-step-internalization.json`（六步内化流程）/ `nine-layer-framework.json`（九层能力框架）/ `dual-gates.json`（两道横切闸门）——三者的权威步骤定义。
 - 三方对撞参考实现：`references/scripts/i1_collision_check.py --md <report.md> --pool <data.json> ... --out <i1-report.json>`。
 
@@ -44,7 +44,7 @@ metadata:
 ## §3 质量门禁（怎么过关）
 
 1. **两道横切闸门**（硬门，所有结论强制生效）：闸门 A 统计可信（t 阈值分档 / 样本量 / 夏普 50% 折 / 肥尾禁用正态外推）；闸门 B 摩擦可执行（毛 α − 摩擦 = 净 α，净 α ≤ 0 不发布）。
-2. **五道起步门禁**（见 `quality-policies/*.json`）：禁例 token 0 命中、数字逐 token 一致、渲染 0 溢出 + 对比度 AA、排版审计 0 问题、章节大纲对照输出模板。
+2. **起步门禁**（见 `quality-policies/baseline.json`）：禁例 token 0 命中、占位符 0 残留、数字逐 token 一致、渲染 0 溢出 + 对比度 AA、排版审计 0 问题、章节大纲对照输出模板、配置结论净 α > 0。
 3. **摘要—正文—底座三方对撞**：摘要中的每条概括必须在正文找到对应论据、并在数据底座找到同口径证据；三方不一致时不得发布，先回底座查错。参考实现：`references/scripts/i1_collision_check.py --md <report.md> --pool <data.json> ... --out <i1-report.json>`。
 4. **合规红线**：对外匿名呈现（领域·首字母）；文末固定「不构成投资建议」；未发布官方数据显式标注「尚未发布」；渲染产物发布为公网外链前，先确认内容不涉密、可公开。
 5. **交付前逐项过** `references/checklist-template.md`。
