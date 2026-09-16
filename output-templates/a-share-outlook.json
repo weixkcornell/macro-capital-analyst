@@ -1,21 +1,27 @@
 {
-  "id": "a-share-outlook",
-  "version": "2.0.0",
+  "id": "a-share-outlook.output",
+  "version": "2.1.0",
   "schemaVersion": 2,
-  "name": "A 股市场观点看板输出模板",
-  "media": ["markdown", "html"],
-  "renderModes": {
-    "html": { "theme": "light", "font": "serif", "academic": true, "upColor": "red", "downColor": "green" }
+  "appliesToScenario": "a-share-outlook",
+  "documentStructure": {
+    "pattern": "总-分-总",
+    "sections": [
+      { "name": "摘要", "required": true, "notes": "结论先行，3-5 条核心判断，每条挂一个量化锚" },
+      { "name": "市场共识与我的分歧", "required": true, "notes": "表格呈现，逐条标注认同/保留/反对及理由" },
+      { "name": "六步主体", "required": true, "notes": "钱从哪来→钱变利润→价格装多少预期→结构定价自洽→周期定位风险归属→错了会怎样" },
+      { "name": "上期判断回顾", "required": true, "notes": "逐条标注已验证/未验证/证伪 + 累计命中率" },
+      { "name": "方法可靠性声明", "required": true, "notes": "显式声明局限、海外锚重标定、数据缺失代理" },
+      { "name": "脚注与来源", "required": true, "notes": "来源账号 + 可点击链接 + 回链" }
+    ]
   },
-  "sections": [
-    { "id": "summary", "title": "摘要", "required": true },
-    { "id": "divergence", "title": "市场共识与我的分歧", "required": true, "form": "table" },
-    { "id": "six-step", "title": "六步主体", "required": true, "subsections": ["钱从哪里来", "钱有没有变成利润", "价格里装了多少预期", "结构定价是否自洽", "周期定位与风险归属", "如果错了会怎样"] },
-    { "id": "review", "title": "上期判断回顾", "required": true, "fields": ["已验证", "未验证", "证伪", "累计命中率"] },
-    { "id": "reliability", "title": "方法可靠性声明", "required": true },
-    { "id": "footnotes", "title": "脚注与来源", "required": true, "fields": ["来源账号", "可点击链接", "回链"] }
-  ],
-  "footer": "不构成投资建议",
-  "currency": "¥",
-  "dateFormat": "YYYY-MM-DD"
+  "dataRules": {
+    "annotationLevels": ["测算", "估算", "研判推断", "待补"],
+    "sourceFormat": "（来源，机构，截至 年-月）",
+    "forbidFabricatedNumbers": true,
+    "notes": "改数只改数据底座一处，全文同步；两源冲突显式说明，不得静默择优；海外实证数值须重标定"
+  },
+  "rendering": {
+    "format": "markdown → HTML5",
+    "notes": "浅色、衬线、学术排版；涨=红、跌=绿；货币 ¥；日期 YYYY-MM-DD；文末固定「不构成投资建议」"
+  }
 }

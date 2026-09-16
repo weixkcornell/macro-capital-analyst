@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "schemaVersion": 2,
 
   "display": {
@@ -88,16 +88,12 @@
     ]
   },
 
-  "methods": [
-    "six-step-internalization",
-    "nine-layer-framework",
-    "dual-gates"
-  ],
+  "methods": [],
 
   "knowledgeBindings": [
     {
       "providerId": "macro-capital-analyst-library",
-      "scope": "knowledge/experts/macro-capital-analyst"
+      "scope": "experts/macro-capital-analyst"
     }
   ],
 

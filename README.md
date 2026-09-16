@@ -34,23 +34,32 @@
 
 ```
 macro-capital-analyst/
-├── pack.json                          # 包清单 + 口径声明（caliberDeclarations）
-├── experts/macro-capital-analyst.json # Expert Profile v2（核心，全字段）
+├── README.md
+├── SUBMISSION-CHECKLIST.md            # 提交物验收清单
+├── pack.json                          # 包清单（id/version/schemaVersion/口径声明）
+├── experts/
+│   └── macro-capital-analyst.json     # 专家 Profile v2（全字段）
+├── knowledge/
+│   └── experts/
+│       └── macro-capital-analyst/     # 知识底座（原著不随包分发）
 ├── scenarios/
 │   ├── a-share-outlook.json           # 「A股观点看板」任务 DAG
 │   └── cycle-positioning.json         # 「周期定位与配置研判」任务 DAG
-├── method-packs/
-│   ├── six-step-internalization.json  # 六步内化流程
-│   ├── nine-layer-framework.json      # 九层能力框架
-│   └── dual-gates.json                # 两道横切闸门
-├── skills/macro-capital-framework/SKILL.md  # 工艺规范
 ├── output-templates/
-│   ├── a-share-outlook.json           # 看板输出模板
+│   ├── a-share-outlook.json           # 看板输出模板（documentStructure/dataRules/rendering）
 │   └── cycle-positioning.json         # 研判输出模板
-├── quality-policies/baseline.json     # 五道起步门禁
-├── knowledge-providers/book-library.json   # 知识供给声明
-├── routing/routing.json               # 路由表
-├── source/SOURCE-MANIFEST.json        # 溯源与授权登记
+├── quality-policies/
+│   ├── a-share-outlook-quality.json   # 看板门禁（五道起步门禁）
+│   └── cycle-positioning-quality.json # 研判门禁
+├── skills/
+│   └── macro-capital-framework/
+│       ├── SKILL.md                   # 工艺规范（§0/§1/§2/§3）
+│       └── references/
+│           └── checklist-template.md  # 交付 checklist
+├── data-contracts/
+│   └── capability-contract.csv        # 数据源能力契约表
+├── source/
+│   └── SOURCE-MANIFEST.json           # 溯源清单（19 份材料）
 └── LICENSE                            # MIT
 ```
 
@@ -62,7 +71,7 @@ macro-capital-analyst/
 
 **方式二：纯参考（无平台）**
 
-把 `experts/macro-capital-analyst.json` 的 `persona` / `methodProfile` / `emm` / `outputSchema` 作为系统提示词或研究框架使用；`method-packs/` 与 `skills/` 直接当方法论手册读。
+把 `experts/macro-capital-analyst.json` 的 `persona` / `methodProfile` / `emm` / `outputSchema` 作为系统提示词或研究框架使用；`skills/` 直接当方法论手册读。
 
 ## 中文使用示例
 
@@ -86,7 +95,7 @@ macro-capital-analyst/
 
 ### 作为系统提示词（最小用法）
 
-直接把 `experts/macro-capital-analyst.json` 的 `persona`、`methodProfile`、`emm`、`outputSchema` 四段拼接为系统提示词，即可让任意 LLM 以「观澜」的视角输出；`method-packs/` 与 `skills/` 作为可引用的方法论手册。
+直接把 `experts/macro-capital-analyst.json` 的 `persona`、`methodProfile`、`emm`、`outputSchema` 四段拼接为系统提示词，即可让任意 LLM 以「观澜」的视角输出；`skills/` 作为可引用的方法论手册。
 
 ## 数据口径
 
@@ -98,5 +107,6 @@ macro-capital-analyst/
 
 ## 版本历史
 
-- **2.0.0**（2026-09-16）：方法底座扩至十四部著作 + CFA 2025 十三卷；补全完全体实体（方法包 ×3、场景 ×2、输出模板 ×2、质量门禁、知识供给、路由、溯源清单）。
+- **2.1.0**（2026-09-16）：按 zhijian-sample-pack 模板重排——目录对齐（`knowledge/` + `data-contracts/`，去除 method-packs/routing）、字段对齐（output-templates 用 `documentStructure`、quality-policies 用 `severity`+`bannedTokens`、SOURCE-MANIFEST 用 `materials[]`）、补 `SUBMISSION-CHECKLIST.md` 与 `capability-contract.csv`。
+- **2.0.0**（2026-09-16）：方法底座扩至十四部著作 + CFA 2025 十三卷；补全完全体实体。
 - 1.0.0（初版）：核心 Profile + pack + 单场景。
