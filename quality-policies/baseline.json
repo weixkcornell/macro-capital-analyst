@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -50,7 +50,24 @@
           "霍华德·马克斯",
           "劳顿",
           "扬科夫斯基",
-          "沃尔特·小哈斯莱特"
+          "沃尔特·小哈斯莱特",
+          "Harvey",
+          "Bailey",
+          "López de Prado",
+          "Frazzini",
+          "Damodaran",
+          "Moreira",
+          "Khandani",
+          "Greenwood",
+          "Koijen",
+          "Barroso",
+          "Lou",
+          "Maillard",
+          "Kerry Back",
+          "Karolyi",
+          "Bali",
+          "东证期货",
+          "开源证券"
         ]
       },
       "description": "委托方要求脱敏的量值、禁用表述逐 token 扫描，0 命中。"
@@ -123,8 +140,8 @@
       }
     },
     {
-      "id": "net-alpha-required",
-      "name": "配置结论必给「毛 α − 摩擦 = 净 α」，净 α ≤ 0 不发布",
+      "id": "net-active-return-required",
+      "name": "配置结论必给「E[R_A] − 实施成本 = 净预期主动收益」，净额 ≤ 0 不发布",
       "kind": "deterministic",
       "severity": "hard",
       "appliesTo": [
@@ -133,9 +150,28 @@
         "pdf"
       ],
       "config": {
-        "requiresNetAlpha": true,
+        "requiresERAReturn": true,
+        "requiresImplementCost": true,
+        "requiresActiveWeightVector": true,
         "rejectNonPositive": true
       }
+    },
+    {
+      "id": "active-risk-budget",
+      "name": "主动风险须在事前额度内（协方差口径，禁简单加总）",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "config": {
+        "covarianceBasedTE": true,
+        "forbidSimpleSum": true,
+        "requireBudgetDeclaration": true
+      },
+      "description": "任何偏离须用协方差口径 σ_A 精算并对照事前档位额度；超额度只能缩幅度或降级观察，不得放宽额度，不得用各主动头寸 σ_A 简单加总代替。"
     }
   ],
   "notes": "硬门未过 → 完成被阻断并返回修正指引；软门 → 警告放行（gate_warnings）；通过后产出 0-100 质量分烙进任务标题（质 NN）。建议落盘 GATE 文件（哈希 + 抽样截图）。"
