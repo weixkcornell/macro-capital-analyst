@@ -1,0 +1,28 @@
+{
+  "id": "macro-capital-tools",
+  "version": "2.2.0",
+  "schemaVersion": 2,
+  "name": "观澜分析工具集",
+  "description": "包内可执行工具。数据获取走平台 provider 层（wind / zyt / beike）与公开口径自算，本包不自建数据引擎。",
+  "capabilities": [
+    {
+      "capability": "macro.collision.check",
+      "operation": "collisionCheck",
+      "transportId": "collision-cli",
+      "readOnly": true,
+      "description": "摘要—正文—底座三方对撞校验（SKILL.md §3.3 的参考实现）"
+    }
+  ],
+  "transports": [
+    {
+      "id": "collision-cli",
+      "kind": "local-cli",
+      "command": "python3",
+      "args": [
+        "skills/macro-capital-framework/references/scripts/i1_collision_check.py"
+      ],
+      "readOnly": true,
+      "timeoutMs": 120000
+    }
+  ]
+}

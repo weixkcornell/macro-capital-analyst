@@ -88,18 +88,81 @@
   "gates": [
     {
       "policy": "baseline",
-      "gate": "banned-tokens"
+      "gate": "banned-tokens",
+      "appliesTo": [
+        "deliverable"
+      ]
     },
     {
       "policy": "baseline",
-      "gate": "number-consistency"
+      "gate": "number-consistency",
+      "appliesTo": [
+        "deliverable"
+      ]
     },
     {
       "policy": "baseline",
-      "gate": "section-outline"
+      "gate": "render-overflow",
+      "appliesTo": [
+        "deliverable"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "layout-audit",
+      "appliesTo": [
+        "deliverable"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "section-outline",
+      "appliesTo": [
+        "deliverable"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "placeholder-clean",
+      "appliesTo": [
+        "deliverable"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "net-active-return-required",
+      "appliesTo": [
+        "net-alpha"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "active-risk-budget",
+      "appliesTo": [
+        "net-alpha"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "collision-check",
+      "appliesTo": [
+        "deliverable"
+      ]
     }
   ],
   "deliverables": [
+    {
+      "id": "cycle-positioning.deliverable",
+      "outputTemplate": "cycle-positioning",
+      "fromTasks": [
+        "factor-state",
+        "expected-return",
+        "style-attribution",
+        "net-alpha"
+      ]
+    }
+  ],
+  "deliverableNotes": [
     "看板（HTML + markdown）",
     "数据底座表",
     "GATE 验收文件"

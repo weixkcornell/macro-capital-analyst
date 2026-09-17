@@ -12,10 +12,22 @@
     "轮动"
   ],
   "requiredCapabilities": [
-    "macro.cycle",
-    "asset.allocation",
-    "expected.returns",
-    "factor.attribution"
+    {
+      "capability": "macro.cycle",
+      "minProficiency": 4
+    },
+    {
+      "capability": "asset.allocation",
+      "minProficiency": 1
+    },
+    {
+      "capability": "expected.returns",
+      "minProficiency": 4
+    },
+    {
+      "capability": "factor.attribution",
+      "minProficiency": 4
+    }
   ],
   "routingPolicy": {
     "candidateHints": [
@@ -31,7 +43,8 @@
     {
       "subject": "四因子状态与时钟定位",
       "description": "构建增长/通胀/信用/利率四因子状态表 → 投资时钟象限 → 资产权重分数；标注样本量，低频事件须警示。",
-      "expert": "macro-capital-analyst"
+      "expert": "macro-capital-analyst",
+      "id": "factor-state"
     },
     {
       "subject": "预期收益与估值分位测算",
@@ -39,7 +52,8 @@
         0
       ],
       "description": "用前瞻指标（E/P、股债性价比、信用利差、期限溢价）而非历史涨幅定位各类资产/因子的风险溢价分位；叠加预期收益工程（CME 七步 / Grinold–Kroner 拆解 / 收缩估计）。",
-      "expert": "macro-capital-analyst"
+      "expert": "macro-capital-analyst",
+      "id": "expected-return"
     },
     {
       "subject": "风格与因子归因",
@@ -48,7 +62,8 @@
         1
       ],
       "description": "风格/因子类判断补做因子归因三要素 σ(R)=Σx·σ(r)·ρ(r,R)；A 股仅规模/换手率/价值/盈利四因子稳定，禁用 β 解释横截面。动手前先完整阅读 skills/macro-capital-framework/SKILL.md 并按其规范执行。",
-      "expert": "macro-capital-analyst"
+      "expert": "macro-capital-analyst",
+      "id": "style-attribution"
     },
     {
       "subject": "净 α 测算与配置建议",
@@ -56,16 +71,15 @@
         2
       ],
       "description": "给结论排优先级（透支/兑现/洼地）；任何超配/低配/轮动结论须给出 毛 α − 摩擦 = 净 α，净 α ≤ 0 不发布；声明 ADV 容量与适用资金规模上限。",
-      "expert": "macro-capital-analyst"
+      "expert": "macro-capital-analyst",
+      "id": "net-alpha"
     }
   ],
   "deliverable": "周期定位与配置研判报告（markdown）+ 四因子状态表 + 净 α 测算 + GATE 验收文件",
   "teamTemplate": "cycle-positioning-team",
   "knowledgePolicy": {
     "required": [
-      "公开K线",
-      "统计局",
-      "央行"
+      "macro-capital-analyst-library:source-materials"
     ]
   },
   "toolPolicy": {
@@ -79,6 +93,7 @@
   "skill": {
     "id": "macro-capital-framework",
     "purpose": "观澜宏观与 A 股分析的完整工艺规范（行文/用数/门禁）",
-    "appliesToTaskIndex": 2
+    "appliesToTaskIndex": 2,
+    "appliesToTaskId": "style-attribution"
   }
 }

@@ -1,0 +1,111 @@
+{
+  "id": "macro-capital-analyst-kb",
+  "version": "2.2.0",
+  "schemaVersion": 2,
+  "name": "观澜宏观与资本市场本体",
+  "domain": "macro.capital",
+  "boundary": "仅收「方法论内化摘要层」（观澜自有提炼与框架，MIT）。原著/教材原文版权归原作者与出版方，不随包分发、不入库；涉密材料只入库摘要层。",
+  "ontology": {
+    "entities": [
+      {
+        "id": "layer0-benchmark",
+        "description": "第 0 层基准与目标函数：沪深300（价格指数口径）+ 绝对收益风险约束（回撤 −20%、现金 20%）+ 事前风控档位表 → 主动风险额度"
+      },
+      {
+        "id": "active-return",
+        "description": "主动收益框架：主动权重向量 w_a → σ_A（协方差口径）→ MCTR/CTR 欧拉分解 → E[R_A] 三项分解 → IR=IC×√BR → IC*"
+      },
+      {
+        "id": "six-step",
+        "description": "六步内化流程：钱从哪来 → 钱变利润 → 价格装多少预期 → 结构定价自洽 → 周期定位风险归属 → 错了会怎样"
+      },
+      {
+        "id": "nine-layer",
+        "description": "九层能力：数据读数 → 货币信用 → 宏观骨架 → 金融定价 → 预期收益 → 组合管理 → 宏观因子周期 → 横截面因子 → 摩擦可执行"
+      },
+      {
+        "id": "gate-a",
+        "description": "闸门 A 统计可信：t 阈值分档（时序 3.8 / FM 3.4 / 单向 3.0）+ 多重检验校正（BH-FDR q=0.10 + Bonferroni）+ Haircut/Deflated Sharpe 双口径 + 凯利一致性"
+      },
+      {
+        "id": "gate-b",
+        "description": "闸门 B 实施成本与可执行：E[R_A] − 实施成本 = 净预期主动收益，净额 ≤ 0 不发布"
+      },
+      {
+        "id": "implementation-cost",
+        "description": "实施成本五度量法：佣金 + 买卖价差 + 价格冲击（平方根律，主导项）+ 延迟/机会成本 + 税费，落账 IS=TC+OC"
+      },
+      {
+        "id": "source-material",
+        "description": "溯源材料：专著 / 论文 / 教材 / 研报 / 标准，逐条登记出处与授权状态"
+      }
+    ],
+    "relations": [
+      {
+        "id": "layer0-governs-active-return",
+        "from": "layer0-benchmark",
+        "to": "active-return"
+      },
+      {
+        "id": "gate-a-guards-active-return",
+        "from": "gate-a",
+        "to": "active-return"
+      },
+      {
+        "id": "gate-b-guards-active-return",
+        "from": "gate-b",
+        "to": "active-return"
+      },
+      {
+        "id": "implementation-cost-feeds-gate-b",
+        "from": "implementation-cost",
+        "to": "gate-b"
+      },
+      {
+        "id": "six-step-organises-nine-layer",
+        "from": "six-step",
+        "to": "nine-layer"
+      },
+      {
+        "id": "source-material-grounds-nine-layer",
+        "from": "source-material",
+        "to": "nine-layer"
+      }
+    ]
+  },
+  "collections": [
+    {
+      "id": "source-materials",
+      "root": "knowledge/experts/macro-capital-analyst"
+    }
+  ],
+  "snapshot": {
+    "id": "source-manifest-2.2.0",
+    "takenAt": "2026-09-17",
+    "digest": "28ddb3aa442528d86e8b701b00399ba3b6b15500a49f7ed26e27c179085ce5cc",
+    "recordCount": 33
+  },
+  "retrievalProfiles": [
+    {
+      "id": "citation-lookup",
+      "method": "keyword"
+    },
+    {
+      "id": "methodology-recall",
+      "method": "semantic"
+    },
+    {
+      "id": "framework-graph",
+      "method": "graph"
+    },
+    {
+      "id": "full-read",
+      "method": "full-read"
+    }
+  ],
+  "policies": {
+    "citation": "required",
+    "freshness": "static",
+    "access": "readonly"
+  }
+}

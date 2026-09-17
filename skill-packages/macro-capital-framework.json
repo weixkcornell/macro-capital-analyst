@@ -1,0 +1,42 @@
+{
+  "id": "macro-capital-framework",
+  "version": "2.2.0",
+  "schemaVersion": 2,
+  "name": "宏观与资本市场分析工艺",
+  "description": "观澜的分析工艺规范：先定基准、结论先行、层层递进、逐条可核验。",
+  "source": {
+    "kind": "workspace",
+    "root": "skills/macro-capital-framework",
+    "digest": "fcf4cf147646ac1e1d390f6b68dc0db530b69322676f5c8cb7c8846e1847d6bf",
+    "license": "MIT"
+  },
+  "contributions": {
+    "methodPacks": [
+      "six-step-internalization",
+      "nine-layer-framework",
+      "dual-gates"
+    ],
+    "knowledgeProviders": [
+      "macro-capital-analyst-library"
+    ],
+    "outputTemplates": [
+      "a-share-outlook",
+      "cycle-positioning"
+    ],
+    "qualityPolicies": [
+      "baseline"
+    ],
+    "toolRequirements": [
+      "macro.collision.check"
+    ],
+    "teamTemplates": [
+      "a-share-outlook-team",
+      "cycle-positioning-team"
+    ]
+  },
+  "permissions": {
+    "execScripts": [
+      "references/scripts/i1_collision_check.py"
+    ]
+  }
+}

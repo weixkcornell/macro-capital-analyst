@@ -91,6 +91,14 @@
       ]
     },
     {
+      "capability": "asset.allocation",
+      "proficiency": 4,
+      "coverage": "medium",
+      "evidenceRefs": [
+        "macro-capital-analyst:allocation-engineering"
+      ]
+    },
+    {
       "capability": "allocation.engineering",
       "proficiency": 4,
       "coverage": "medium",

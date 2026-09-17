@@ -1,0 +1,19 @@
+{
+  "id": "macro-capital-analyst-library",
+  "version": "2.2.0",
+  "schemaVersion": 2,
+  "name": "观澜知识底座",
+  "description": "33 源 / 38 份精读的方法论内化摘要层。原著与教材原文版权受限，不随包分发、不入库。",
+  "kind": "files",
+  "capabilities": [
+    "read",
+    "cite",
+    "search"
+  ],
+  "freshness": "static",
+  "scopes": [
+    "experts/macro-capital-analyst",
+    "source-materials"
+  ],
+  "source": "./source/SOURCE-MANIFEST.json"
+}

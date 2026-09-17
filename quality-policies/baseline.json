@@ -172,6 +172,29 @@
         "requireBudgetDeclaration": true
       },
       "description": "任何偏离须用协方差口径 σ_A 精算并对照事前档位额度；超额度只能缩幅度或降级观察，不得放宽额度，不得用各主动头寸 σ_A 简单加总代替。"
+    },
+    {
+      "id": "collision-check",
+      "name": "摘要—正文—底座三方对撞 0 不一致",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "config": {
+        "toolCapability": "macro.collision.check",
+        "args": [
+          "--md",
+          "<report.md>",
+          "--pool",
+          "<data.json>",
+          "--out",
+          "<i1-report.json>"
+        ]
+      },
+      "description": "摘要中的每条概括必须在正文找到对应论据、并在数据底座找到同口径证据；三方不一致不得发布。由 toolProviders/macro-capital-tools 的 macro.collision.check 执行（SKILL.md §3.3）。"
     }
   ],
   "notes": "硬门未过 → 完成被阻断并返回修正指引；软门 → 警告放行（gate_warnings）；通过后产出 0-100 质量分烙进任务标题（质 NN）。建议落盘 GATE 文件（哈希 + 抽样截图）。"
