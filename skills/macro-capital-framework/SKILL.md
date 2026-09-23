@@ -1,7 +1,7 @@
 ---
 name: macro-capital-framework
 description: '观澜宏观与资本市场分析工艺：第 0 层定基准与额度、九层能力取机制、六步内化组织行文、两道闸门把关统计可信与实施成本、五道起步门禁验收。Triggers on "宏观研判", "A股策略", "周期定位", "风格配置", "资产配置", "因子归因", "市场观点看板", "净预期主动收益", "预期收益", "主动收益"'
-version: 2.2.0
+version: 2.3.0
 user-invocable: true
 argument-hint: "[写/审] 中国宏观与 A 股 [主题]"
 license: MIT
@@ -17,7 +17,7 @@ metadata:
 
 - 权威附件：`references/checklist-template.md`（交付前逐项打勾）。
 - 输出骨架：`output-templates/a-share-outlook.json` / `cycle-positioning.json`。
-- 门禁细则：`quality-policies/baseline.json`（五道起步门禁 + `placeholder-clean` / `net-active-return-required` / `active-risk-budget`）。
+- 门禁细则：`quality-policies/baseline.json`（起步门禁 10 道 + `gate-a-double-calibration` / `placeholder-clean` / `net-active-return-required` / `active-risk-budget`）。
 - 方法包：`method-packs/six-step-internalization.json`（六步内化流程）/ `nine-layer-framework.json`（九层能力框架）/ `dual-gates.json`（两道横切闸门）——三者的权威步骤定义。
 - 三方对撞参考实现：`references/scripts/i1_collision_check.py --md <report.md> --pool <data.json> ... --out <i1-report.json>`。
 
@@ -47,7 +47,7 @@ metadata:
 ## §3 质量门禁（怎么过关）
 
 1. **两道横切闸门**（硬门，所有结论强制生效）：
-   - **闸门 A · 统计可信**：t 阈值按检验类型分档（时序回归 ≥3.8 / Fama-MacBeth ≥3.4 / 单向检验 ≥3.0，2.0 不可用）；同一数据多假设须做**多重检验校正（BH-FDR q=0.10 + Bonferroni）**并报「假设总数 / 原始 p<0.05 数 / 校正后存活数」；校正后不显著只写「证据不足，两个方向都不支持」，**禁止反向解读**；样本 <10 年降级为提示性观察；回测夏普按 **Haircut Sharpe + Deflated Sharpe 双口径**取较严者；胜率断言须同报原始/非重叠/月频单期重叠三类样本数；**凯利一致性**（无显著胜率时单观点下注上限为 0）。
+   - **闸门 A · 统计可信**：t 阈值按检验类型分档（时序回归 ≥3.8 / Fama-MacBeth ≥3.4 / 单向检验 ≥3.0，2.0 不可用）；同一数据多假设须做**多重检验校正（BH-FDR q=0.10 + Bonferroni）**并报「假设总数 / 原始 p<0.05 数 / 校正后存活数」；校正后不显著只写「证据不足，两个方向都不支持」，**禁止反向解读**；样本 <10 年降级为提示性观察；回测夏普按 **Haircut Sharpe + Deflated Sharpe 双口径**取较严者；胜率断言须同报原始/非重叠/月频单期重叠三类样本数；**闸门 A 正反双校准**（v24 起）——正向按 Haircut/Deflated Sharpe 双口径取较严者，反向依发表偏误仅需收缩 10–15%（FDR<10%），**未过校正只写「证据不足，两个方向都不支持」，禁止反向宣称因子无效／反向信号成立**；**分层凯利**——下注上限 2P−1 的 P 按可预测性聚类取用，高可预测聚类用实证分层 P，低可预测资产 P 收敛 0.50（上限 0）。
    - **闸门 B · 实施成本与可执行**：任何超配/低配/轮动/调仓须给出 `E[R_A] __ bp − 实施成本 __ bp = 净预期主动收益 __ bp`，**净额 ≤ 0 不发布**；成本五度量法（佣金/价差/冲击/延迟/税费，IS=TC+OC）；声明 ADV 容量（10%）与适用资金规模上限；多空因子按不能做空折损 50%–60% 打折；拥挤度三条腿极端时附退出触发条件；**主动风险须在事前档位额度内（协方差口径精算，禁止简单加总），超额度只能缩幅度或降级观察**。
 2. **起步门禁**（见 `quality-policies/baseline.json`）：禁例 token 0 命中、占位符 0 残留、数字逐 token 一致、渲染 0 溢出 + 对比度 AA、排版审计 0 问题、章节大纲对照输出模板、配置结论净预期主动收益 > 0。
 3. **摘要—正文—底座三方对撞**：摘要中的每条概括必须在正文找到对应论据、并在数据底座找到同口径证据；三方不一致时不得发布，先回底座查错。参考实现：`references/scripts/i1_collision_check.py --md <report.md> --pool <data.json> ... --out <i1-report.json>`。

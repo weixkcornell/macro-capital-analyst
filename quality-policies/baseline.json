@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -67,7 +67,18 @@
           "Karolyi",
           "Bali",
           "东证期货",
-          "开源证券"
+          "开源证券",
+          "Gagliardone",
+          "Gertler",
+          "Kekre",
+          "Lenel",
+          "Fernández-Villaverde",
+          "Mineyama",
+          "Chen",
+          "Zimmermann",
+          "Cong",
+          "Mosaics",
+          "Publication Bias"
         ]
       },
       "description": "委托方要求脱敏的量值、禁用表述逐 token 扫描，0 命中。"
@@ -90,6 +101,28 @@
           "三方不一致时不得发布，先回底座查错。"
         ]
       }
+    },
+    {
+      "id": "gate-a-double-calibration",
+      "name": "闸门 A 正反双校准（未过校正 ≠ 反向成立）",
+      "kind": "semantic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "config": {
+        "forwardCalibration": [
+          "haircut-sharpe",
+          "deflated-sharpe"
+        ],
+        "reverseCalibration": "publication-bias-shrinkage-10-15pct",
+        "forbidReverseInference": true,
+        "forbidClaimingFactorInvalid": true,
+        "requiredWording": "证据不足，两个方向都不支持"
+      },
+      "description": "任何「因子有效/无效」「信号成立/反向成立」的断言须同时过正向折半（Haircut/Deflated Sharpe 双口径取较严者）与反向校准（发表偏误收缩仅 10–15%，FDR<10%）。未过校正的结论只允许写「证据不足，两个方向都不支持」，禁止反向解读。凯利下注上限按可预测性分层取 P。"
     },
     {
       "id": "render-overflow",

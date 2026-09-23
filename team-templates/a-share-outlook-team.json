@@ -1,6 +1,6 @@
 {
   "id": "a-share-outlook-team",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "schemaVersion": 2,
   "parameters": {
     "type": "object",
@@ -131,6 +131,13 @@
     {
       "policy": "baseline",
       "gate": "collision-check",
+      "appliesTo": [
+        "deliverable"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "gate-a-double-calibration",
       "appliesTo": [
         "deliverable"
       ]

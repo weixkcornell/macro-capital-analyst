@@ -1,39 +1,543 @@
 {
   "pack": "macro-capital-analyst",
-  "note": "观澜知识底座溯源清单（v2.2.0，对应 macro-capital-market-analysis v21）。开源原则：仅开放「方法论内化摘要层」（观澜本人的提炼与框架，MIT），原著/教材/论文原文版权归原作者/出版方、不随包分发、仅作只读溯源参考；无授权来源不入库。",
+  "note": "观澜知识底座溯源清单（2.3.0，对应 macro-capital-market-analysis v24）。开源原则：仅开放「方法论内化摘要层」（观澜本人的提炼与框架，MIT），原著/教材/论文原文版权归原作者/出版方、不随包分发、仅作只读溯源参考；无授权来源不入库。",
   "materials": [
-    { "id": "mat-001", "type": "book", "title": "宏观经济学二十五讲：中国视角", "author": "徐高", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "xugao_macro_framework.md + xugao_macro_25lectures.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-002", "type": "book", "title": "金融经济学二十五讲", "author": "徐高", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "xugao_finance_framework.md + xugao_finance_25lectures.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-003", "type": "book", "title": "宏观经济数据分析手册", "author": "李奇霖", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "liqilin_data_analysis_framework.md + liqilin_14chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-004", "type": "standard", "title": "中国主要统计指标诠释", "author": "国家统计局（编）", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "statistical_indicators_reference.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-005", "type": "book", "title": "信用创造、货币供求与经济结构", "author": "李斌、伍戈", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "monetary_economics_framework.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-006", "type": "book", "title": "主动投资组合管理", "author": "Grinold & Kahn", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "portfolio_management_framework.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-007", "type": "book", "title": "量化股票组合管理", "author": "钦塞瑞尼", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "chincarini_17chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-008", "type": "book", "title": "预期收益：投资者获利指南", "author": "Ilmanen", "source": "本地（D:\\wb_db\\dlq database\\kb_automation\\books\\）", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "ilmanen_expected_returns.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-009", "type": "book", "title": "高效的无效：行家如何投资与市场如何定价", "author": "佩德森", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "pedersen_16chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-010", "type": "book", "title": "因子投资：方法与实践", "author": "石川、刘洋溢、连祥斌", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "shichuan_7chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-011", "type": "book", "title": "Asset Management", "author": "Andrew Ang", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "ang_18chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-012", "type": "book", "title": "周期", "author": "霍华德·马克斯", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "marks_cycle_18chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-013", "type": "book", "title": "投资绩效测评：评估和结果呈报", "author": "劳顿 & 扬科夫斯基", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "lawton_perf_eval_17chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-014", "type": "book", "title": "风险管理", "author": "沃尔特·小哈斯莱特（编）", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "haslett_risk_management_53chapters.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-015", "type": "curriculum", "title": "CFA 2020 L1 六卷（57 篇 Reading）", "author": "CFA Institute", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "cfa_l1_2020_readings.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-016", "type": "curriculum", "title": "CFA 2025 L1/L2/L3 十三卷（102 个 Learning Module）", "author": "CFA Institute", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "cfa_2025_l1_readings.md + cfa_2025_l2_readings.md + cfa_2025_l3_asset_allocation.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-017", "type": "report", "title": "大类资产配置系列（一）（二）", "author": "东证期货", "source": "公开研报", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "macro_factor_asset_allocation_lectures.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-018", "type": "report", "title": "大类资产配置研究系列（7）", "author": "开源证券", "source": "公开研报", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "macro_factor_asset_allocation_lectures.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-019", "type": "paper", "title": "Backtesting（Haircut Sharpe Ratios）", "author": "Harvey & Liu 2015", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "harvey_liu_2015_backtesting.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-020", "type": "paper", "title": "The Deflated Sharpe Ratio", "author": "Bailey & López de Prado 2014", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "bailey_lopezdeprado_2014_deflated_sharpe.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-021", "type": "paper", "title": "...and the Cross-Section of Expected Returns（t>3.0 出处）", "author": "Harvey, Liu & Zhu 2016", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "harvey_liu_zhu_2016_tstat.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-022", "type": "paper", "title": "Trading Costs（成本五度量法）", "author": "Frazzini, Israel & Moskowitz 2018", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "frazzini_2018_trading_costs.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-023", "type": "paper", "title": "Equity Risk Premiums: Determinants, Estimation, Implications", "author": "Damodaran 2025", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "damodaran_2025_erp.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-024", "type": "paper", "title": "Volatility Managed Portfolios", "author": "Moreira & Muir 2017", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "moreira_muir_2017_volatility.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-025", "type": "paper", "title": "What Happened to the Quants in August 2007?", "author": "Khandani & Lo 2011", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "khandani_lo_2011_quant_crash.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-026", "type": "paper", "title": "Stock Price Fragility（持有人结构拥挤）", "author": "Greenwood & Thesmar 2011", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "greenwood_thesmar_2011_fragility.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-027", "type": "paper", "title": "Carry", "author": "Koijen, Moskowitz, Pedersen & Vrugt 2018", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "koijen_2018_carry.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-028", "type": "paper", "title": "Momentum Has Its Moments（风险管理动量）", "author": "Barroso & Santa-Clara 2015", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "barroso_santaclara_2015_momentum.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-029", "type": "paper", "title": "Comomentum（收益同步拥挤）", "author": "Lou & Polk 2022", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "lou_polk_2022_comomentum.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-030", "type": "paper", "title": "Equal Risk Contribution (ERC) Portfolios", "author": "Maillard, Roncalli & Teiletche 2010", "source": "学术论文", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "maillard_2010_erc.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-031", "type": "book", "title": "Asset Pricing and Portfolio Choice Theory", "author": "Kerry Back", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "kerry_back_asset_pricing.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-032", "type": "book", "title": "Cracking the Emerging Markets Enigma", "author": "Karolyi", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "karolyi_emerging_markets.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false },
-    { "id": "mat-033", "type": "book", "title": "Empirical Asset Pricing: The Cross Section of Stock Returns", "author": "Bali, Engle & Murray 2016", "source": "书籍资料库", "authorization": "内部使用（仅内化摘要层开源）", "fileRef": "bali_2016_empirical_asset_pricing.md", "boundExperts": ["macro-capital-analyst"], "status": "已精读", "distributable": false }
+    {
+      "id": "mat-001",
+      "type": "book",
+      "title": "宏观经济学二十五讲：中国视角",
+      "author": "徐高",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "xugao_macro_framework.md + xugao_macro_25lectures.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-002",
+      "type": "book",
+      "title": "金融经济学二十五讲",
+      "author": "徐高",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "xugao_finance_framework.md + xugao_finance_25lectures.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-003",
+      "type": "book",
+      "title": "宏观经济数据分析手册",
+      "author": "李奇霖",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "liqilin_data_analysis_framework.md + liqilin_14chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-004",
+      "type": "standard",
+      "title": "中国主要统计指标诠释",
+      "author": "国家统计局（编）",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "statistical_indicators_reference.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-005",
+      "type": "book",
+      "title": "信用创造、货币供求与经济结构",
+      "author": "李斌、伍戈",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "monetary_economics_framework.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-006",
+      "type": "book",
+      "title": "主动投资组合管理",
+      "author": "Grinold & Kahn",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "portfolio_management_framework.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-007",
+      "type": "book",
+      "title": "量化股票组合管理",
+      "author": "钦塞瑞尼",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "chincarini_17chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-008",
+      "type": "book",
+      "title": "预期收益：投资者获利指南",
+      "author": "Ilmanen",
+      "source": "本地（D:\\wb_db\\dlq database\\kb_automation\\books\\）",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "ilmanen_expected_returns.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-009",
+      "type": "book",
+      "title": "高效的无效：行家如何投资与市场如何定价",
+      "author": "佩德森",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "pedersen_16chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-010",
+      "type": "book",
+      "title": "因子投资：方法与实践",
+      "author": "石川、刘洋溢、连祥斌",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "shichuan_7chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-011",
+      "type": "book",
+      "title": "Asset Management",
+      "author": "Andrew Ang",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "ang_18chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-012",
+      "type": "book",
+      "title": "周期",
+      "author": "霍华德·马克斯",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "marks_cycle_18chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-013",
+      "type": "book",
+      "title": "投资绩效测评：评估和结果呈报",
+      "author": "劳顿 & 扬科夫斯基",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "lawton_perf_eval_17chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-014",
+      "type": "book",
+      "title": "风险管理",
+      "author": "沃尔特·小哈斯莱特（编）",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "haslett_risk_management_53chapters.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-015",
+      "type": "curriculum",
+      "title": "CFA 2020 L1 六卷（57 篇 Reading）",
+      "author": "CFA Institute",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "cfa_l1_2020_readings.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-016",
+      "type": "curriculum",
+      "title": "CFA 2025 L1/L2/L3 十三卷（102 个 Learning Module）",
+      "author": "CFA Institute",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "cfa_2025_l1_readings.md + cfa_2025_l2_readings.md + cfa_2025_l3_asset_allocation.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-017",
+      "type": "report",
+      "title": "大类资产配置系列（一）（二）",
+      "author": "东证期货",
+      "source": "公开研报",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "macro_factor_asset_allocation_lectures.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-018",
+      "type": "report",
+      "title": "大类资产配置研究系列（7）",
+      "author": "开源证券",
+      "source": "公开研报",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "macro_factor_asset_allocation_lectures.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-019",
+      "type": "paper",
+      "title": "Backtesting（Haircut Sharpe Ratios）",
+      "author": "Harvey & Liu 2015",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "harvey_liu_2015_backtesting.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-020",
+      "type": "paper",
+      "title": "The Deflated Sharpe Ratio",
+      "author": "Bailey & López de Prado 2014",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "bailey_lopezdeprado_2014_deflated_sharpe.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-021",
+      "type": "paper",
+      "title": "...and the Cross-Section of Expected Returns（t>3.0 出处）",
+      "author": "Harvey, Liu & Zhu 2016",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "harvey_liu_zhu_2016_tstat.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-022",
+      "type": "paper",
+      "title": "Trading Costs（成本五度量法）",
+      "author": "Frazzini, Israel & Moskowitz 2018",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "frazzini_2018_trading_costs.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-023",
+      "type": "paper",
+      "title": "Equity Risk Premiums: Determinants, Estimation, Implications",
+      "author": "Damodaran 2025",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "damodaran_2025_erp.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-024",
+      "type": "paper",
+      "title": "Volatility Managed Portfolios",
+      "author": "Moreira & Muir 2017",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "moreira_muir_2017_volatility.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-025",
+      "type": "paper",
+      "title": "What Happened to the Quants in August 2007?",
+      "author": "Khandani & Lo 2011",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "khandani_lo_2011_quant_crash.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-026",
+      "type": "paper",
+      "title": "Stock Price Fragility（持有人结构拥挤）",
+      "author": "Greenwood & Thesmar 2011",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "greenwood_thesmar_2011_fragility.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-027",
+      "type": "paper",
+      "title": "Carry",
+      "author": "Koijen, Moskowitz, Pedersen & Vrugt 2018",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "koijen_2018_carry.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-028",
+      "type": "paper",
+      "title": "Momentum Has Its Moments（风险管理动量）",
+      "author": "Barroso & Santa-Clara 2015",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "barroso_santaclara_2015_momentum.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-029",
+      "type": "paper",
+      "title": "Comomentum（收益同步拥挤）",
+      "author": "Lou & Polk 2022",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "lou_polk_2022_comomentum.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-030",
+      "type": "paper",
+      "title": "Equal Risk Contribution (ERC) Portfolios",
+      "author": "Maillard, Roncalli & Teiletche 2010",
+      "source": "学术论文",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "maillard_2010_erc.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-031",
+      "type": "book",
+      "title": "Asset Pricing and Portfolio Choice Theory",
+      "author": "Kerry Back",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "kerry_back_asset_pricing.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-032",
+      "type": "book",
+      "title": "Cracking the Emerging Markets Enigma",
+      "author": "Karolyi",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "karolyi_emerging_markets.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-033",
+      "type": "book",
+      "title": "Empirical Asset Pricing: The Cross Section of Stock Returns",
+      "author": "Bali, Engle & Murray 2016",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "bali_2016_empirical_asset_pricing.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-034",
+      "type": "paper",
+      "title": "Oil Prices, Monetary Policy and Inflation Surges",
+      "author": "Gagliardone & Gertler (2023)",
+      "source": "学术论文库",
+      "authorization": "公开发表论文（仅内化摘要层开源）",
+      "fileRef": "gagliardone_gertler_2023_oil_inflation.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false,
+      "note": "补第 ①③⑤ 层宏观冲击传导：油价-劳动强互补放大边际成本；2021–22 通胀由油价冲击 + 宽松货币驱动；实际工资粘性→短期失业-通胀权衡。美国 DSGE 估计锚，参数须本地重估。"
+    },
+    {
+      "id": "mat-035",
+      "type": "paper",
+      "title": "The Flight to Safety and International Risk Sharing",
+      "author": "Kekre & Lenel (2021)",
+      "source": "学术论文库",
+      "authorization": "公开发表论文（仅内化摘要层开源）",
+      "fileRef": "kekre_lenel_2021_flight_safety.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false,
+      "note": "补第 ④⑤⑨ 层美元避险定价与跨境传导：避险→美元升值→全球产出下降；美元债负风险溢价；美国作为「世界保险公司」；美元互换额度与全球刺激。全球样本锚。"
+    },
+    {
+      "id": "mat-036",
+      "type": "paper",
+      "title": "Are We Fragmented Yet?",
+      "author": "Fernández-Villaverde, Mineyama & Song (2024)",
+      "source": "学术论文库",
+      "authorization": "公开发表论文（仅内化摘要层开源）",
+      "fileRef": "fernandez_villaverde_2024_fragmentation.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false,
+      "note": "补第 ③⑦ 层地缘风险量化：动态分层因子模型构造碎片化指数；1σ → GDP −0.4%；新兴市场受害更重；即时成本与延迟收益；板块异质性。全球锚。"
+    },
+    {
+      "id": "mat-037",
+      "type": "paper",
+      "title": "Publication Bias in Asset Pricing Research",
+      "author": "Chen & Zimmermann (2022)",
+      "source": "学术论文库",
+      "authorization": "公开发表论文（仅内化摘要层开源）",
+      "fileRef": "chen_zimmermann_2022_publication_bias.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false,
+      "note": "闸门 A 反方向校准（防滑向虚无）：发表偏误并非主导；对已发表结论的收缩校正仅 10–15%；FDR<10%；t>3.0。海外/全球元分析锚。"
+    },
+    {
+      "id": "mat-038",
+      "type": "paper",
+      "title": "Mosaics of Predictability",
+      "author": "Cong, Feng, He & Wang (2026)",
+      "source": "学术论文库",
+      "authorization": "公开发表论文（仅内化摘要层开源）",
+      "fileRef": "cong_etal_2026_mosaics_predictability.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false,
+      "note": "补第 ⑧ 层可预测性异质性：Panel Tree；可预测性资产特定 + 状态依赖；集中于大盈利超预期/高 E-P/低换手；逆周期；高可预测聚类 Sharpe≈1.88。美股锚，A 股须本地重标定。"
+    }
   ]
 }
