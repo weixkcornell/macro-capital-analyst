@@ -1,5 +1,7 @@
 {
   "pack": "macro-capital-analyst",
+  "fileRefRoot": "knowledge/experts/macro-capital-analyst",
+  "fileRefNote": "materials[].fileRef 是【相对 fileRefRoot 的裸文件名】，指向本地私有知识底座（版权的原著/教材/论文原文），本仓不分发 ⇒ 在开源仓里这些 fileRef 一律不可解析，这是设计而非缺陷（38/38 条 distributable=false）。+ 号表示同一材料的多个文件。禁止写绝对路径、URL 或内网地址（由 scripts/check-pack.mjs 的 fileRef-unsafe 检查把关）。",
   "note": "观澜知识底座溯源清单（包版本见 pack.json 的 version；内容对应 macro-capital-market-analysis v24）。开源原则：仅开放「方法论内化摘要层」（观澜本人的提炼与框架，MIT），原著/教材/论文原文版权归原作者/出版方、不随包分发、仅作只读溯源参考；无授权来源不入库。",
   "materials": [
     {

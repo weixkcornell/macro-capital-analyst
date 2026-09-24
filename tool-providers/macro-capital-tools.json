@@ -1,9 +1,10 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
   "description": "包内可执行工具。数据获取走平台 provider 层（wind / zyt / beike）与公开口径自算，本包不自建数据引擎。",
+  "note": "两种「能力」是不同口径，别当成同一张表：①【本包声明的能力】＝下面 capabilities（须带 transport 才能被调度，故只有三方对撞一条）；②【数据引擎契约】＝data-contracts/capability-contract.csv（public.kline.self-compute、macro.official.verify），描述自建数据引擎的输入输出契约，不是包内可调度能力；③ 场景 toolPolicy 里的 wind / zyt / beike 由【平台 provider 层】解析，本包不声明其能力、也不持有其凭据。scripts/check-pack.mjs 会对①②做对照并给出 note（不同口径，非缺陷）。",
   "capabilities": [
     {
       "capability": "macro.collision.check",

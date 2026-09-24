@@ -1,0 +1,13 @@
+# 行尾一律 LF：digest 目标是 sha256(SKILL.md) 等，CRLF 会让 digest 全体错位
+# （在 Windows 检出时尤其如此，且现象是"digest 不符"而原因不可见）。
+* text=auto eol=lf
+*.py  text eol=lf
+*.mjs text eol=lf
+*.js  text eol=lf
+*.json text eol=lf
+*.md  text eol=lf
+*.csv text eol=lf
+# 二进制/大文件不走文本转换（当前仓内无，留作口径声明）
+*.pdf binary
+*.epub binary
+*.png binary

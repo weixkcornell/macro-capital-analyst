@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -78,8 +78,54 @@
           "Zimmermann",
           "Cong",
           "Mosaics",
-          "Publication Bias"
-        ]
+          "Publication Bias",
+          "刘洋溢",
+          "连祥斌",
+          "CFA 2020 L1 六卷",
+          "CFA Institute",
+          "CFA 2025 L1/L2/L3 十三卷",
+          "大类资产配置系列",
+          "大类资产配置研究系列",
+          "The Deflated Sharpe Ratio",
+          "...and the Cross-Section of Expected Returns",
+          "Liu & Zhu 2016",
+          "Israel & Moskowitz 2018",
+          "Volatility Managed Portfolios",
+          "What Happened to the Quants in August 2007?",
+          "Stock Price Fragility",
+          "Moskowitz",
+          "Pedersen & Vrugt 2018",
+          "Momentum Has Its Moments",
+          "Comomentum",
+          "Equal Risk Contribution  Portfolios",
+          "Roncalli & Teiletche 2010",
+          "Asset Pricing and Portfolio Choice Theory",
+          "Cracking the Emerging Markets Enigma",
+          "Empirical Asset Pricing",
+          "Engle & Murray 2016",
+          "Oil Prices, Monetary Policy and Inflation Surges",
+          "The Flight to Safety and International Risk Sharing",
+          "Are We Fragmented Yet?",
+          "Feng",
+          "He & Wang"
+        ],
+        "bannedTokensAllowlist": [
+          "国家统计局",
+          "预期收益",
+          "风险管理",
+          "Asset Management",
+          "Backtesting",
+          "Carry"
+        ],
+        "bannedTokensReview": [
+          "Trading Costs",
+          "Equity Risk Premiums"
+        ],
+        "bannedTokensPolicy": {
+          "maxStrictGaps": 0,
+          "maxReviewPending": 5,
+          "why": "Allowlist＝通用术语，明确【不得】入禁例（入了会让合法散文误报）；Review＝题意含糊、须人工判定；Strict＝其余未覆盖的专名/篇名，为真缺口，超阈值即 FAIL。"
+        }
       },
       "description": "委托方要求脱敏的量值、禁用表述逐 token 扫描，0 命中。"
     },

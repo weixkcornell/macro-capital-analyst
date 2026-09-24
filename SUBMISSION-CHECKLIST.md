@@ -2,7 +2,7 @@
 
 > 平台评审按此逐项打勾；先自检再提交。
 
-- [x] `pack.json`（id=macro-capital-analyst / version=2.4.2 / schemaVersion=2 / caliberDeclarations 四类口径）
+- [x] `pack.json`（id=macro-capital-analyst / version=2.4.3 / schemaVersion=2 / caliberDeclarations 四类口径）
 - [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，38 份材料）
 - [x] `scenarios/*.json`（DAG 依赖无环、专家 id 全部可解析、deliverable 明确；共 2 个）
 - [x] `output-templates/` + `quality-policies/`（起步门禁 10 道覆盖数字一致与禁例 token；含 `gate-a-double-calibration` / `net-active-return-required` / `active-risk-budget` 硬门，且每道门均有 team template 绑定）
@@ -11,9 +11,11 @@
 - [x] 数据契约表（`data-contracts/capability-contract.csv`，自建数据引擎契约）
 - [x] 本体（`domain-knowledge/macro-capital-analyst-kb.json`，recordCount=38，digest = `sha256(source/SOURCE-MANIFEST.json)`，已声明 `digestTarget`/`digestAlgorithm` 并由 `check-pack.mjs` 当场复算）
 - [x] 知识供给 / 技能包 / 工具集（`knowledge-providers/` + `skill-packages/` + `tool-providers/`）
-- [x] 自检脚本（`scripts/check-pack.mjs`：version lockstep + 文档版本 lockstep + 门禁绑定 + DAG 完整性 + digest 可复现性 + 三方对撞目标；`--json` 供脚本/CI 读）
-- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：7 例负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget`；任一未被抓住即 exit 1）—— 提交前跑一次，替代"手工在临时目录里验一遍"
-- [x] 技能脚本自检（`skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest`：8 例含负向样本，覆盖指数名吞数字／千分位／小数边界）
+- [x] 自检脚本（`scripts/check-pack.mjs`：version lockstep + 文档版本 lockstep + 门禁绑定 + DAG 完整性 + digest 可复现性 + 占位符残留 + fileRef 安全 + bannedTokens 阈值 + 三方对撞目标；`--json` 供脚本/CI 读；平台校验器缺失时以 skip note 声明并继续跑其余检查）
+- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**11 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
+- [x] 技能脚本自检（`skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest`：8 例含负向样本，覆盖指数名吞数字／千分位／小数边界；报告另含 `caliber` 声明容差与池口径）
+- [x] **发布流程脚本化**（`scripts/bump-version.mjs` 一处改版本号同步 4 类载位并重钉 digest ／ `scripts/repin-digests.mjs` ／ `scripts/install-to-profile.sh` 安装副本同步［先备份、保留安装侧 `routing/`、副本内自检］／ `scripts/release-check.sh` 发布前四件套）＋ **`RELEASING.md`**
+- [x] **CI**（`.github/workflows/check.yml`：push/PR 跑包自检 ＋ 门禁自校准 ＋ digest dry-run ＋ i1 自检）＋ **`.gitattributes`**（`eol=lf`，保 digest 跨平台稳定）
 - [x] **试运行记录（首单，2026-09-17）：端到端一单 = 「观澜 · A股观点看板」** —— 一手数据自算 → 市场共识对照（22 条一手 URL 全部 HTTP 200 复核）→ 六步研判 + 两道横切闸门 → 定稿 → HTML5 渲染 → 质量门禁 → 公网发布。
   - **GATE 文件**：门禁脚本 **11 件全部钉扎 sha256**（`final.md.freeze#toolchain_pins`，逐件对磁盘复算 11/11 一致）；摘要—正文—底座三方对撞 **47/47 PASS**；对比度 **1542 节点 0 失败**（抽样口径曾漏 12 处，见该单记录）；判决语白名单 6 态 + 逐字溯源 PASS。
   - **匿名化对外样本**：公网看板 `https://yy.meizu.life/render/观澜-a股观点看板/a-share-outlook-20260915.html` —— 对外只列「领域 · 首字母」，无真实人名、无内网地址；团队活动面板快照另发布一份（仅本团队、已排除其他团队内容）。

@@ -13,38 +13,67 @@
  * notes 里含"人工清单落后于知识底座"这类**可行动**告警，全量给出、不截断。
  */
 import { createRequire } from 'node:module'
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { resolve, join } from 'node:path'
 
 const LIB = process.env.EXPERT_LIB_ROOT ?? '/root/zhijian/dsh-expert-library'
 const ARGV = process.argv.slice(2)
 const AS_JSON = ARGV.includes('--json')
 const dir = resolve(ARGV.find(a => !a.startsWith('--')) ?? '.')
 
-if (!existsSync(resolve(LIB, 'lib/v2/index.js'))) {
-  console.error(`✗ cannot find expert-library at ${LIB}\n  set EXPERT_LIB_ROOT to the plugin checkout`)
-  process.exit(2)
-}
+/** 统一剥离 UTF-8 BOM。CSV/JSON 带 BOM 时，第一个键名会变成 "\uFEFFxxx"（静默错名）。 */
+const readText = p => readFileSync(p, 'utf8').replace(/^\uFEFF/, '')
 
-const require = createRequire(LIB + '/')
-const v2 = require(resolve(LIB, 'lib/v2/index.js'))
+const DIMENSIONS = ['experts', 'teamTemplates', 'outputTemplates', 'qualityPolicies',
+  'scenarios', 'methodPacks', 'toolProviders', 'knowledgeProviders', 'domainKnowledge', 'skillPackages']
 
 const problems = []
 const notes = []
-let absentBannedTokens = []   // 供 --json 全量给出（人读输出只示前 6 条）
+let absentBannedTokens = []   // strict：真缺口（供 --json 全量给出）
+let allowlistedTokens = []    // 通用术语：明确【不得】写入禁例，故不计入缺口
+let reviewPendingTokens = []  // 待人工判定的"疑似通用"词干
 const fail = (code, where, msg) => problems.push(`${code} @ ${where} :: ${msg}`)
 
-// ---------------------------------------------------------------- 1. validator
-const res = v2.loadPackFromDirSync(dir, { layer: 'domain-pack', label: dir })
-for (const d of res.diagnostics) {
-  if (d.severity === 'error') fail(d.code, d.path, d.message)
-  else notes.push(`warn ${d.code} @ ${d.path} :: ${d.message}`)
+/** 维度键是 camelCase，目录名是 kebab-case（knowledgeProviders ↔ knowledge-providers）。 */
+const dirNameOf = key => key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+
+/** 直接从 JSON 文件装包：与平台校验器无关，故第三方/CI 无私有库也能跑完这些检查。 */
+function loadRawPack(root) {
+  const out = { pack: JSON.parse(readText(join(root, 'pack.json'))) }
+  for (const k of DIMENSIONS) {
+    const d = resolve(root, dirNameOf(k))
+    out[k] = []
+    if (!existsSync(d)) continue
+    for (const f of readdirSync(d).filter(n => n.endsWith('.json')).sort()) {
+      try { out[k].push(JSON.parse(readText(resolve(d, f)))) }
+      catch (e) { fail('json-unparseable', `${k}/${f}`, e.message) }
+    }
+  }
+  return out
 }
-if (!res.pack) {
-  report()
-  process.exit(1)
+
+// ---------------------------------------------------------------- 1. 平台校验器（可选）
+// 私有平台库只在本地/平台侧存在 ⇒ 缺失时【跳过并声明】，不再 exit 2。
+// 这样 CI 与第三方贡献者仍能跑完 2/7/8/9/10/11/12 全部与平台无关的检查。
+let validatorRan = false
+let validatorPack = null
+if (!existsSync(resolve(LIB, 'lib/v2/index.js'))) {
+  notes.push(`skip 平台校验器未运行：未找到 ${LIB}（检查 3/4/5/6 依赖它；其余检查照跑）—— 设 EXPERT_LIB_ROOT 可启用`)
+} else {
+  const require = createRequire(LIB + '/')
+  const v2 = require(resolve(LIB, 'lib/v2/index.js'))
+  const res = v2.loadPackFromDirSync(dir, { layer: 'domain-pack', label: dir })
+  for (const d of res.diagnostics) {
+    if (d.severity === 'error') fail(d.code, d.path, d.message)
+    else notes.push(`warn ${d.code} @ ${d.path} :: ${d.message}`)
+  }
+  validatorRan = Boolean(res.pack)
+  validatorPack = res.pack ?? null
+  if (!res.pack) notes.push('skip 平台校验器未能装包（诊断见上）⇒ 3/4/5/6 未运行；其余检查照跑')
 }
-const pack = res.pack
+
+// 包对象：优先用校验器归一化后的包（保持与历史行为一致）；缺失时回落到"直接读 JSON"。
+const pack = validatorPack ?? loadRawPack(dir)
 const num = key => (pack[key] ?? []).length
 
 // ---------------------------------------------------------------- 2. version lockstep
@@ -190,9 +219,14 @@ for (const s of pack.scenarios ?? []) {
 }
 
 // ---------------------------------------------------------------- 7. bannedTokens derived from knowledge manifest
+// 三类分开算，缺一类都会让这条检查失真：
+//   covered   —— 已被禁例 token 覆盖（按词干重叠判定）
+//   allowlist —— 通用术语，明确【不得】入禁例（入了会让合法散文误报）
+//   review    —— 题意含糊、待人工判定（有上限）
+//   strict    —— 其余未覆盖的专名/篇名 = 真缺口（阈值 0，超了即 FAIL）
 const manifestPath = resolve(dir, 'source/SOURCE-MANIFEST.json')
 if (existsSync(manifestPath)) {
-  const manifest = JSON.parse((await import('node:fs')).readFileSync(manifestPath, 'utf8').replace(/^\uFEFF/, ''))
+  const manifest = JSON.parse(readText(manifestPath))
   // Normalise both sides the way a human would: drop subtitles and parentheticals,
   // keep the distinctive stem, then compare.
   const stem = s => String(s ?? '')
@@ -208,16 +242,30 @@ if (existsSync(manifestPath)) {
       if (v.length >= 2) expected.add(v)
     }
   }
-  // bannedTokens is written at surname/stem granularity ("Grinold" for "Grinold & Kahn"),
-  // so treat a manifest value as covered when it and a declared token overlap.
-  const declared = [...new Set(
-    (pack.qualityPolicies ?? []).flatMap(p => (p.gates ?? []).flatMap(g => g.config?.bannedTokens ?? [])).map(t => String(t).trim())
-  )]
-  const covered = v => declared.some(t => t.length >= 2 && (t.includes(v) || v.includes(t)))
-  const absent = [...expected].filter(v => !covered(v))
-  absentBannedTokens = absent
-  if (absent.length > 0) {
-    notes.push(`note ${absent.length}/${expected.size} manifest title/author stem(s) have no overlapping bannedTokens entry (manual list lags the knowledge base): ${absent.slice(0, 6).join(' | ')}${absent.length > 6 ? ' …' : ''}`)
+  const cfg = (pack.qualityPolicies ?? []).flatMap(p => (p.gates ?? [])).find(g => g.config?.bannedTokens)?.config ?? {}
+  const declared = [...new Set((cfg.bannedTokens ?? []).map(t => String(t).trim()))]
+  const allow = (cfg.bannedTokensAllowlist ?? []).map(t => String(t).trim())
+  const review = (cfg.bannedTokensReview ?? []).map(t => String(t).trim())
+  const policy = cfg.bannedTokensPolicy ?? {}
+  const maxStrict = Number.isInteger(policy.maxStrictGaps) ? policy.maxStrictGaps : 0
+  const maxReview = Number.isInteger(policy.maxReviewPending) ? policy.maxReviewPending : 5
+  const hit = (list, v) => list.some(t => t.length >= 2 && (t.includes(v) || v.includes(t)))
+  const covered = v => hit(declared, v)
+  const inAllow = v => hit([...allow, ...review], v)   // review 项同样不计入 strict
+  const strict = [...expected].filter(v => !covered(v) && !inAllow(v))
+  absentBannedTokens = strict
+  allowlistedTokens = [...expected].filter(v => !covered(v) && hit(allow, v))
+  reviewPendingTokens = [...expected].filter(v => !covered(v) && hit(review, v))
+  if (strict.length > maxStrict) {
+    fail('banned-tokens-gap', 'qualityPolicies.banned-tokens',
+      `${strict.length} 个专名/篇名词干未被禁例覆盖（阈值 ${maxStrict}）：${strict.slice(0, 6).join(' | ')}${strict.length > 6 ? ' …' : ''}`)
+  }
+  if (reviewPendingTokens.length > maxReview) {
+    fail('banned-tokens-review-backlog', 'qualityPolicies.banned-tokens',
+      `待人工判定的 token 有 ${reviewPendingTokens.length} 项超过上限 ${maxReview}：${reviewPendingTokens.join(' | ')}`)
+  }
+  if (strict.length === 0) {
+    notes.push(`note bannedTokens 覆盖 ${expected.size}/${expected.size} 词干（禁例 ${declared.length} 条 / 通用术语豁免 ${allowlistedTokens.length} 条 / 待判定 ${reviewPendingTokens.length} 条）`)
   }
 }
 
@@ -225,12 +273,10 @@ if (existsSync(manifestPath)) {
 // pack.json 不是版本的唯一载位：README 徽章、README 版本历史首条、SUBMISSION-CHECKLIST
 // 各写一份。此前靠人工同步（README 徽章曾落后于 pack.json）⇒ 改成机器核对。
 if (pack.pack?.version) {
-  const fs = await import('node:fs')
-  const readText = p => fs.readFileSync(resolve(dir, p), 'utf8')
   const declared = pack.pack.version
 
   if (existsSync(resolve(dir, 'README.md'))) {
-    const md = readText('README.md')
+    const md = readText(resolve(dir, 'README.md'))
     const badge = md.match(/badge\/Version-([^-\s]+)-/)
     if (!badge) fail('missing-version-badge', 'README.md', 'no shields.io Version badge found')
     else if (badge[1] !== declared) fail('doc-version-drift', 'README.md', `badge "${badge[1]}" != pack.json "${declared}"`)
@@ -238,14 +284,20 @@ if (pack.pack?.version) {
     const hIdx = md.search(/^##\s*版本历史\s*$/m)
     if (hIdx < 0) fail('missing-version-history', 'README.md', 'no "## 版本历史" section')
     else {
-      const head = md.slice(hIdx).match(/^- \*\*([0-9]+\.[0-9]+\.[0-9]+)\*\*/m)
+      const hist = md.slice(hIdx)
+      const head = hist.match(/^- \*\*([0-9]+\.[0-9]+\.[0-9]+)\*\*/m)
       if (!head) fail('missing-version-history', 'README.md', 'version history has no "- **X.Y.Z**" entry')
       else if (head[1] !== declared) fail('doc-version-drift', 'README.md', `history head "${head[1]}" != pack.json "${declared}"`)
+      // bump-version.mjs 会插入占位条目，逼作者补发布说明；留着即 FAIL。
+      const headLine = (hist.match(/^- \*\*[0-9]+\.[0-9]+\.[0-9]+\*\*.*$/m) ?? [''])[0]
+      if (/待补发布说明/.test(headLine)) {
+        fail('release-note-placeholder', 'README.md', `版本历史首条仍是占位（bump-version 生成）：${headLine.slice(0, 60)}`)
+      }
     }
   } else fail('missing-readme', 'README.md', 'not found')
 
   if (existsSync(resolve(dir, 'SUBMISSION-CHECKLIST.md'))) {
-    const cl = readText('SUBMISSION-CHECKLIST.md')
+    const cl = readText(resolve(dir, 'SUBMISSION-CHECKLIST.md'))
     const m = cl.match(/version=([0-9]+\.[0-9]+\.[0-9]+)/)
     if (!m) fail('missing-checklist-version', 'SUBMISSION-CHECKLIST.md', 'no "version=X.Y.Z" found')
     else if (m[1] !== declared) fail('doc-version-drift', 'SUBMISSION-CHECKLIST.md', `version=${m[1]} != pack.json "${declared}"`)
@@ -290,6 +342,77 @@ if (pack.pack?.version) {
   }
 }
 
+// ---------------------------------------------------------------- 10. 占位符残留（包自身，不只产物）
+// 记法 vs 残留（本文件自己就写着这条规则，故必须能区分"提及"与"使用"）：
+//   记法：空体 ／ 省略号 `…` ／ 含正则元字符（`(?!…)`、`[^】]` 这类模式写法）／ 尖括号体 `<具体内容>`
+//   残留：其余 —— 即"写着具体内容却没被替换掉"。注入实测：`【替换：在此填来源】` 必被抓。
+{
+  const RESIDUE = /【替换：([^】]*)】/g
+  // 引述域只认反引号与中文引号：**不能把 `"` 也算进来** —— JSON 的字符串值就包在 `"` 里，
+  // 那会把"每个 JSON 里的残留"都豁免掉，门禁等于死掉（本版实测踩过一次）。
+  const QUOTE_PAIRS = [['`', '`'], ['「', '」'], ['『', '』']]
+
+  const isNotation = (text, m) => {
+    const body = m[0].slice(4, -1)
+    if (body === '' || body === '…') return true
+    if (/[()\[\]{}\\*+?|^$.]/.test(body)) return true            // 正则模式写法，如 (?!…) / [^】]
+    if (/^[<＜][^>＞]*[>＞]$/.test(body)) return true            // 尖括号占位写法，如 <具体内容>
+    const before = text[m.index - 1], after = text[m.index + m[0].length]
+    return QUOTE_PAIRS.some(([o, c]) => before === o && after === c)   // 引述域：被引号/反引号包住的"提及"
+  }
+  const SKIP_DIRS = new Set(['.git', 'engine', '__pycache__', 'node_modules'])
+  const EXT = /\.(json|md|mjs|js|cjs|csv|ya?ml|py|sh|txt)$/
+  // 显式豁免：文件里写了 `check-pack-allow: placeholder-residue` 即整文件跳过，并【打印一条 note】
+  // ——豁免必须是声明的、可 grep 的、可见的；不做模式猜测（谁需要豁免谁写明）。
+  const EXEMPT = /check-pack-allow:\s*placeholder-residue/
+  const walk = d => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name)) walk(join(d, e.name)); continue }
+      if (!EXT.test(e.name)) continue
+      const abs = join(d, e.name)
+      const rel = abs.slice(dir.length + 1)
+      const text = readText(abs)
+      if (EXEMPT.test(text)) { notes.push(`note ${rel} 声明了 placeholder-residue 豁免（该文件按设计含残留样本）；引用其检查结论时须带上这一条`); continue }
+      const hits = [...text.matchAll(RESIDUE)].filter(m => !isNotation(m.input, m)).map(m => m[0])
+      if (hits.length) fail('placeholder-residue', rel, `占位符残留 ${hits.length} 处：${hits.slice(0, 3).join(' ')}`)
+    }
+  }
+  if (existsSync(dir)) walk(dir)
+}
+
+// ---------------------------------------------------------------- 11. fileRef 安全口径
+// 不查存在性：38/38 材料按版权设计不随包分发（实测 fileRef 无一在仓内可解析）。
+// 查的是"可解析规则是否声明"与"有没有把绝对路径/URL/内网地址写进包"。
+{
+  if (existsSync(manifestPath)) {
+    const manifest = JSON.parse(readText(manifestPath))
+    if (!manifest.fileRefRoot) {
+      fail('fileRef-root-undeclared', 'source/SOURCE-MANIFEST.json', '未声明 fileRefRoot ⇒ 读者无法知道 fileRef 相对哪个根解析')
+    }
+    const UNSAFE = /(^\/|^[A-Za-z]:\\|\\\\|https?:\/\/|(?:^|[^\d])(?:10|127|172\.(?:1[6-9]|2\d|3[01])|192\.168)\.)/
+    for (const m of manifest.materials ?? []) {
+      for (const ref of String(m.fileRef ?? '').split('+').map(t => t.trim()).filter(Boolean)) {
+        if (UNSAFE.test(ref)) fail('fileRef-unsafe', `materials.${m.id}`, `fileRef 含绝对路径/URL/内网地址：${ref}`)
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------- 12. 数据契约表 ↔ toolProviders（对照）
+{
+  const csvPath = resolve(dir, 'data-contracts/capability-contract.csv')
+  if (existsSync(csvPath)) {
+    const lines = readText(csvPath).split('\n').filter(l => l.trim())
+    const csvCaps = lines.slice(1).map(l => l.split(',')[0].replace(/^\uFEFF/, '').trim()).filter(Boolean)
+    const declaredCaps = new Set((pack.toolProviders ?? []).flatMap(p => (p.capabilities ?? []).map(c => c.capability)))
+    const onlyCsv = csvCaps.filter(c => !declaredCaps.has(c))
+    const onlyPack = [...declaredCaps].filter(c => !csvCaps.includes(c))
+    if (onlyCsv.length || onlyPack.length) {
+      notes.push(`note 数据契约表与 toolProviders 的 capability 名不完全对应（不同口径，非缺陷）：表内 ${csvCaps.length} 条（${onlyCsv.length} 条走平台层解析）／包内声明 ${declaredCaps.size} 条（${onlyPack.length} 条未入表）—— 关系见 tool-providers 的 note 字段`)
+    }
+  }
+}
+
 // ---------------------------------------------------------------- report
 function report() {
   const sections = [
@@ -299,10 +422,13 @@ function report() {
     console.log(JSON.stringify({
       pack: dir,
       version: pack.pack?.version ?? null,
+      validatorRan,
       dimensions: Object.fromEntries(sections[0].map(k => [k, num(k)])),
       problems,
       notes,
-      absentBannedTokens,   // 全量，不截断：这是"人工清单落后于知识底座"的可行动列表
+      absentBannedTokens,      // strict：真缺口（专名/篇名，未覆盖）
+      allowlistedTokens,       // 通用术语：明确不得入禁例
+      reviewPendingTokens,     // 待人工判定
     }, null, 1))
     return
   }

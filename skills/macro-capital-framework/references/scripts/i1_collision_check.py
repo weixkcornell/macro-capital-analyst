@@ -89,8 +89,17 @@ def walk_numeric(obj, path=''):
             out.append((float(obj), path))
     return out
 
-def close(a,b,tol):
-    return abs(a-b) <= abs(a)*tol + 1e-9 or abs(a-b) < 0.0051
+def close(a, b, tol, abs_tol=0.0051):
+    """同值判定：相对容差（以 a 为基准）或绝对下限。
+
+    ⚠ 口径（改动即改门禁结论，故写进函数并逐条写进报告 caliber）：
+      |a-b| <= |a|*tol + 1e-9  或  |a-b| < abs_tol
+    - 相对项以【左值 a】为基准 ⇒ **不对称**（a 小 b 大时更宽松）。保持原行为，不静默改语义。
+    - abs_tol 原为硬编码 0.0051，现由 --abs-tol 暴露，默认值不变。
+    - 池侧默认不做键过滤：底座 JSON 内【所有】数值（含版本号/计数/日期）都进池 ⇒ 存在弱匹配风险，
+      可用 --pool-exclude 排除（如 --pool-exclude 'version|count|date|Rev'）。首单实测 0/47 未爆。
+    """
+    return abs(a-b) <= abs(a)*tol + 1e-9 or abs(a-b) < abs_tol
 
 def main():
     ap = argparse.ArgumentParser()
@@ -99,7 +108,12 @@ def main():
     ap.add_argument('--out')
     ap.add_argument('--selftest', action='store_true',
                     help='只跑解析层自检（正向+负向样本），不读取任何报告')
-    ap.add_argument('--tol', type=float, default=0.005)
+    ap.add_argument('--tol', type=float, default=0.005,
+                    help='相对容差（以摘要值为基准，默认 0.5%%）')
+    ap.add_argument('--abs-tol', dest='abs_tol', type=float, default=0.0051,
+                    help='绝对容差下限（默认 0.0051；原为硬编码，改动即改门禁结论）')
+    ap.add_argument('--pool-exclude', dest='pool_exclude', default=None,
+                    help='正则：底座 JSON 中键路径命中该模式的数值不进池（用于排除版本号/计数/日期类弱匹配）')
     ap.add_argument('--summary-heading', default=None,
                     help='摘要章节标题前缀；缺省取第一个二级标题（## ...）')
     args = ap.parse_args()
@@ -124,12 +138,17 @@ def main():
     body = '\n'.join(p for p in h2 if p is not summary)
 
     pool = {}
+    pool_excluded = 0
+    ex = re.compile(args.pool_exclude) if args.pool_exclude else None
     for f in args.pool:
         p = Path(f)
         if not p.exists():
             print(f'WARN: 底座文件不存在，跳过 {p}', file=sys.stderr)
             continue
         for v, key in walk_numeric(json.loads(p.read_text(encoding='utf-8'))):
+            if ex and ex.search(key):
+                pool_excluded += 1
+                continue
             pool.setdefault(v, []).append(f'{p.name}{key}')
 
     sn = sorted(extract_numbers(summary))
@@ -137,8 +156,8 @@ def main():
     rows = []
     fails = []
     for x in sn:
-        in_body = any(close(x, y, args.tol) for y in bn)
-        hits = [(v, keys) for v, keys in pool.items() if close(x, v, args.tol)]
+        in_body = any(close(x, y, args.tol, args.abs_tol) for y in bn)
+        hits = [(v, keys) for v, keys in pool.items() if close(x, v, args.tol, args.abs_tol)]
         in_pool = bool(hits)
         ok = in_body and in_pool
         row = {
@@ -158,6 +177,14 @@ def main():
         'summary_numbers_checked': len(sn),
         'summary_numbers_passed': len(sn) - len(fails),
         'verdict': 'pass' if not fails else 'fail',
+        # 口径三条：容差怎么算、池里放了什么、排除了什么。缺任一条，本门禁的 PASS 都不可复核。
+        'caliber': {
+            'tolerance': f'|a-b| <= |a|*{args.tol} + 1e-9 或 |a-b| < {args.abs_tol}（相对项以摘要值为基准，不对称）',
+            'pool': f'{len(pool)} 个不同数值，来自 {len(args.pool)} 个底座文件；口径＝底座 JSON 内【全部】数值（含版本号/计数/日期）',
+            'pool_exclude': args.pool_exclude or None,
+            'pool_excluded_values': pool_excluded,
+            'summary_selector': '指定 --summary-heading，缺省取第一个二级标题',
+        },
         'detail': rows,
     }
     text = json.dumps(report, ensure_ascii=False, indent=1)

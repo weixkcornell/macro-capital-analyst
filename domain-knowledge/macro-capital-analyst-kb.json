@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst-kb",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "schemaVersion": 2,
   "name": "观澜宏观与资本市场本体",
   "domain": "macro.capital",
@@ -107,14 +107,15 @@
   "collections": [
     {
       "id": "source-materials",
-      "root": "knowledge/experts/macro-capital-analyst"
+      "root": "knowledge/experts/macro-capital-analyst",
+      "note": "该 root 在本仓内**只有 README**：38 份材料本体（原著/教材/论文原文）受版权约束、不随包分发，故开源仓中此 collection 读不到实体 —— 这是设计，不是缺文件。可分发的只有「方法论内化摘要层」与 source/SOURCE-MANIFEST.json 的溯源账本（fileRef 的解析根见其 fileRefRoot）。"
     }
   ],
   "snapshot": {
     "id": "source-manifest-38",
     "renamedFrom": "source-manifest-2.3.0",
     "takenAt": "2026-09-23",
-    "digest": "ff61f70230644def37f5e355bee97b5b40c5aa7b2806c8dfd0dee43bca0bb6aa",
+    "digest": "7a95c691f3338c203d143955ba04a6677ef7f2bc8db5e56934919667844b54e0",
     "digestAlgorithm": "sha256",
     "digestTarget": "source/SOURCE-MANIFEST.json",
     "digestNote": "digest = sha256(原文件字节)。id 只写内容特征（38 份材料），不写包版本号 —— 包版本会随每次发布漂移，写进 id 会让同一个快照在下一版里显示成'过期快照'（与 v2.3.0 修 skill-packages digest 同源的第二例）。",

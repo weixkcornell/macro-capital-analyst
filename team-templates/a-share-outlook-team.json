@@ -1,6 +1,6 @@
 {
   "id": "a-share-outlook-team",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "schemaVersion": 2,
   "parameters": {
     "type": "object",

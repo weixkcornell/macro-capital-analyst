@@ -1,3 +1,3 @@
-﻿capability,method,input_schema,output_schema,caliber,unit,frequency,lag,dataView,auth,rate_limit,sla,notes
+capability,method,input_schema,output_schema,caliber,unit,frequency,lag,dataView,auth,rate_limit,sla,notes
 public.kline.self-compute,read,"{""symbol"": ""string""}","{""percentiles"": ""number[]"", ""volatility"": ""number"", ""drawdown"": ""number""}",新浪/腾讯公开K线自算口径,元·指数,日更,T+1,internal,公开接口(无需凭据),10 QPS,尽力而为,自建数据引擎：四档分位/年化波动/最大回撤/相关矩阵/拥挤度/风险贡献分解
 macro.official.verify,read,"{""indicator"": ""string""}","{""value"": ""number"", ""caliber"": ""string""}",统计局/央行官方口径,元·%,月更,T+1,internal,公开(无需凭据),—,—,官方口径核验：社零/M层次/GDP平减等口径锚定

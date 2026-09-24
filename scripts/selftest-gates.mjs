@@ -98,6 +98,44 @@ const CASES = [
       replaceOnce(r, f, /,\s*"digestTarget": "[^"]*"/, '')
     },
   },
+  {
+    name: '包内出现未替换的占位符残留',
+    expectCode: 'placeholder-residue',
+    // check-pack-allow: placeholder-residue —— 本文件按设计必须写出"残留长什么样"，
+    // 否则这条门禁无从被校准。豁免是显式声明并可 grep 的（check-pack 会为此打印一条 note）。
+    mutate: r => write(r, 'data-contracts/_selftest_ph.json', '{"x":"【替换：在此填来源】"}\n'),
+  },
+  {
+    name: 'fileRef 写了绝对路径',
+    expectCode: 'fileRef-unsafe',
+    mutate: r => {
+      const f = 'source/SOURCE-MANIFEST.json'
+      const o = JSON.parse(read(r, f))
+      o.materials[0].fileRef = '/etc/passwd'
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '版本历史首条仍是"待补发布说明"',
+    expectCode: 'release-note-placeholder',
+    mutate: r => {
+      const s = read(r, 'README.md')
+      const i = s.search(/^##\s*版本历史\s*$/m)
+      const m = s.slice(i).match(/^- \*\*([0-9]+\.[0-9]+\.[0-9]+)\*\*（[^）]*）：.*$/m)
+      if (!m) throw new Error('注入失败：找不到版本历史首条')
+      write(r, 'README.md', s.replace(m[0], `- **${m[1]}**（2026-01-01）：（待补发布说明）`))
+    },
+  },
+  {
+    name: '禁例覆盖出现缺口（删掉通用术语豁免表 ⇒ 那些词干变严格缺口）',
+    expectCode: 'banned-tokens-gap',
+    mutate: r => {
+      const f = firstJson(r, 'quality-policies', o => o?.gates?.some(g => g.config?.bannedTokensAllowlist))
+      const o = JSON.parse(read(r, f))
+      delete o.gates.find(x => x.config?.bannedTokensAllowlist).config.bannedTokensAllowlist
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
 ]
 
 let bad = 0

@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.2-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.3-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -128,6 +128,14 @@ macro-capital-analyst/
 
 ## 版本历史
 
+- **2.4.3**（2026-09-24）：**门禁可被第三方/CI 复跑 ＋ 修三处真缺陷 ＋ 手工步骤脚本化** ——
+  ① **修真缺陷**：(a) `check-pack.mjs` 在包加载失败时**崩栈**（`Cannot access 'pack' before initialization`，该路径自 2.3.0 既有）⇒ 改为打印诊断；(b) `data-contracts/capability-contract.csv` 带 **UTF-8 BOM**，列名实际是 `\uFEFFcapability` ⇒ 去 BOM 并统一 BOM 安全读取；(c) **`bannedTokens` 判据过宽**：原先把「预期收益／风险管理／国家统计局／Backtesting／Carry」等**通用术语**也算成"应入禁例"⇒ 该告警永不收敛。现拆为 **covered ／ allowlist（通用术语，明确不得入禁例）／ review（待人工判定，有上限）／ strict（真缺口，阈值 0）**，并补齐 29 条专名/篇名 ⇒ **覆盖 85/85**。
+  ② **平台校验器改为可选**（缺 `EXPERT_LIB_ROOT` 时 skip 并声明，其余检查照跑）⇒ 新增 **CI**（`.github/workflows/check.yml` 跑包自检／门禁自校准／digest dry-run／i1 自检）与 **`.gitattributes`**（强制 `eol=lf`：digest 目标是 `sha256(SKILL.md)`，CRLF 会让 digest 全体错位且现象不可见）。
+  ③ **新增三处门禁**：**占位符残留**（`【替换：…】` 省略号形态＝记法不计；写了具体内容才算。含引述域豁免与显式 `check-pack-allow: placeholder-residue` 声明）、**fileRef 安全口径**（须声明 `fileRefRoot`；禁止绝对路径/URL/内网地址；**不查存在性**——38/38 材料按版权设计不分发）、**数据契约表 ↔ toolProviders 对照**（不同口径，给 note 不给判）。
+  ④ **把手工步骤脚本化**：`bump-version.mjs`（一处改版本号 → 4 类载位同步 + 自动重钉 digest + 插入待补的发布说明条目）、`repin-digests.mjs`、`install-to-profile.sh`（备份 + 保留安装侧 `routing/` + 副本内自检）、`release-check.sh`（发布前四件套）＋ **`RELEASING.md`**。
+  ⑤ `selftest-gates.mjs` 由 7 例扩到 **11 例**（新门禁各配负向对照；`check-pack` 的这套对照本身也成了 CI 的一步）。
+  ⑥ `i1_collision_check.py`：暴露 `--abs-tol` 与 `--pool-exclude`，报告新增 **`caliber`**（容差算法／池口径／排除项／摘要选择器）—— 原先容差下限写死、池含版本号等弱匹配项，**口径不写出来，PASS 就不可复核**。
+  ⑦ `check-pack --json` 增 `validatorRan` 与三类 token 数组；`domain-knowledge` 的 collection 补 note（说明该 root 在本仓只有 README 是设计）；`tool-providers` 补 note 说明三种"能力"口径。
 - **2.4.2**（2026-09-24）：**门禁可复跑化 ＋ 检查输出机器可读** —— ① 新增 **`scripts/selftest-gates.mjs`**：把 v2.4.1 两道新门禁的**负向对照固化成可复跑套件**（7 例：基线 ＋ README 徽章／README 版本历史首条／清单三处版本漂移 ＋ 实体版本漂移 ＋ digest 不符 ＋ 缺 `digestTarget`），任一未被抓住即 exit 1。v2.4.1 那批对照是在临时目录里**手工**做的 —— 属「当时为真、事后不可复核」，本版把它变成一次命令。② **`check-pack.mjs` 增 `--json`**：机读输出 `problems`/`notes`，并**全量**给出 `absentBannedTokens`（现 37 条，不再截断到 6 条）—— 「人工清单落后于知识底座」这条告警由此从提示变成**可行动清单**。③ **审计了首单的 I1 三方对撞报告**（47 个通过值）：**无一例仅靠版本号／计数／日期类池键命中（0/47）** ⇒ 未发现"弱匹配"缺陷，故**不改池口径**（不为一个不存在的缺陷加机制）。④ 版本口径复查：`SOURCE-MANIFEST.json` 的 `note` 在 2.4.1 已改为**指针式**（不再内嵌包版本号）⇒ 本版只需同步 **17 个实体/配置文件 ＋ README ＋ 清单**，且 bump 后被门禁当场拦下 4 处（三处文档版本 + 一处 `SKILL.md` digest）—— **"版本 bump 的检查单"由机器执行，不再靠人记得**。
 - **2.4.1**（2026-09-24）：**工程补丁版** —— 不改任何方法论结论、不改判据阈值，只修「会静默失效」的部位。① **修复 `i1_collision_check.py` 三处解析缺陷**：**指数名吞数字**（`沪深300 年化超额` 曾被解析成「300 + 单位 年」；在真实报告上实测多出 1 个伪值 300.0）、**千分位**（`16,143.03` 曾被截成 `143.03`）、**小数边界**（`(?<![\d.,])`）；并新增 **`--selftest`（8 例，含负向样本）** 与**容差口径声明**（相对 0.5% ＋ 绝对下限 0.0051 —— 两者混用使小数值实际容差更宽，改动即改结论，故写进 docstring）。② **digest 可复现性补齐第二例**：`domain-knowledge` 的 `snapshot` 补 `digestTarget`/`digestAlgorithm`（实测 `sha256(source/SOURCE-MANIFEST.json)` 相符）；并把 `snapshot.id` 由含包版本号的 `source-manifest-2.3.0` 改为含内容特征的 `source-manifest-38`（保留 `renamedFrom`）—— 包版本号随每次发布漂移，写进 id 会让同一快照在下一版里显示成「过期快照」。③ **`check-pack.mjs` 新增两道门禁，且都用负向对照校准过**：**doc-version lockstep**（`pack.json` / README 徽章 / README 版本历史首条 / `SUBMISSION-CHECKLIST` 四处必须同版本 —— 此前靠人工同步，徽章曾落后）与 **digest reproducibility**（凡声明 digest 必须有 `digestTarget` 且当场复算相符）。④ `.gitignore` 增补 `engine/`（数据引擎运行目录：防运行数据被误提交进开源仓）。⑤ 回填 `SUBMISSION-CHECKLIST` 的**试运行记录**（端到端一单）。⑥ **新门禁上线当场抓出并修好一处既有静默漂移**：`skills/macro-capital-framework/SKILL.md` 的 frontmatter 里也有 `version`，改版本号即改该文件 sha256 ⇒ `skill-packages` 的 `source.digest` **必须同批重钉**（本轮已重钉为 `sha256(SKILL.md)`），否则「声明漂移」会再次静默发生 —— 这是新门禁的第一个真实产出，也说明**三处版本口径（pack / README / 清单）与两处 digest 口径（skill / 本体快照）必须同批更新**。
 - **2.3.0**（2026-09-23）：同步 macro-capital-market-analysis **v24**——① **闸门 A 整合为正反双校准**（正向 Haircut/Deflated Sharpe 折半 + 反向依 Chen-Zimmermann 2022 发表偏误仅需收缩 10–15%，明确「未过校正 ≠ 反向信号成立」红线），新增门禁 `gate-a-double-calibration`；② **凯利一致性加入分层 P**（依 Cong et al. 2026 可预测性资产特定 + 状态依赖，下注上限按可预测性聚类取 P）；③ 新增 5 篇论文精读（油价-货币通胀分解、美元避险定价、地缘碎片化量化、发表偏误再校准、可预测性异质性），知识底座 **33→38 源 / 38→43 份精读**；④ 本体补 4 实体 + 3 关系，`pack.json` 描述改为按账本口径的准确分类（17 专著 + 2 教材 + 2 研报 + 17 论文）；⑤ `skill-packages` 的 `source.digest` 改为可复现的 `sha256(SKILL.md)` 并显式声明 `digestTarget`（原 digest 无法用任何可复现算法对应现有内容，属声明漂移）。
