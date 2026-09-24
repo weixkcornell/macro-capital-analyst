@@ -3,6 +3,7 @@
 
 用法：
   python3 i1_collision_check.py --md <report.md> --pool <a.json> <b.json> ... [--out report.json]
+  python3 i1_collision_check.py --selftest      # 只跑解析层自检，不读任何报告
 
 规则：
   1. 摘要中出现的每个数值，必须同时满足：
@@ -10,21 +11,72 @@
      - 底座 JSON 数值池中存在同口径同值（容差 tol）。
   2. 任一项不满足即返回非零退出码，并输出失败明细。
   3. 本脚本只做数值层三方对撞；claim 级语义对撞仍需人工/模型复核。
+
+容差口径（必须显式声明，否则同一份报告在不同口径下会得到不同结论）：
+  close(a,b,tol) = |a-b| <= |a|*tol + 1e-9  或  |a-b| < 0.0051
+  —— 前一项是【相对容差】，后一项是【绝对下限】。两者混用时，小数值的实际容差
+  比大数值宽（如 t=0.31 时 0.0051 相当 1.6%，而 tol=0.5%）。这是刻意的：
+  报告里存在大量两位小数读数，纯相对容差会因四舍五入而误报。改动 tol 或 0.0051
+  即改变门禁结论，须与产物一并记录。
+
+解析层已知边界（v2.4.1 修）：
+  - 指数名吞数字：`沪深300 年化超额` 曾被解析成「300 + 单位 年」；
+  - 千分位：`16,143.03` 曾被截成 `143.03`（旧式 `\d+\.\d+` 从逗号后起匹配）；
+  - 这些边界由下方的 --selftest 覆盖（含负向样本），改解析器必须同时跑它。
 """
 import argparse, json, re, sys
 from pathlib import Path
 
-NUM_RE = re.compile(r'([-−–]?\d+(?:\.\d+)?)\s*(%|pp|bp|倍|亿元|亿美元|美元/桶|个交易日|个月|年|季度)')
+# 指数名前缀负向后视：避免把「沪深300 年化超额」解析成「数字 300 + 单位 年」。
+# 仅当数字紧跟在指数名前缀之后时排除；带空格或量词的正常计量不受影响。
+_IDX_PREFIX = r'(?<!\d)(?<![\d,])(?<!沪深)(?<!中证)(?<!上证)(?<!深证)(?<!国证)(?<!科创)'
+NUM_RE = re.compile(_IDX_PREFIX + r'([-−–]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(%|pp|bp|倍|亿元|亿美元|美元/桶|个交易日|个月|年|季度)')
+BARE_RE = re.compile(r'(?<![\d.,])([-−–]?(?:\d{1,3}(?:,\d{3})+|\d+)\.\d+)(?![\d])')
+
+
+def _to_float(text: str) -> float:
+    """Parse one extracted literal, tolerating thousands separators and unicode minus."""
+    return float(text.replace('−', '-').replace('–', '-').replace(',', ''))
+
 
 def extract_numbers(text: str):
     out = set()
     for m in NUM_RE.finditer(text):
-        try: out.add(float(m.group(1).replace('−','-').replace('–','-')))
+        try: out.add(_to_float(m.group(1)))
         except ValueError: pass
-    for m in re.finditer(r'(?<![\d.])([-−–]?\d+\.\d+)(?![\d])', text):
-        try: out.add(float(m.group(1).replace('−','-').replace('–','-')))
+    for m in BARE_RE.finditer(text):
+        try: out.add(_to_float(m.group(1)))
         except ValueError: pass
     return out
+
+# 解析层自检样本：正向（必须取到）+ 负向（必须不取到）。负向样本取自本轮实测缺陷。
+SELFTEST = [
+    ('沪深300 年化超额 t = 0.31',                      {0.31}),
+    ('沪深300 的 PE 为 12.5 倍',                        {12.5}),
+    ('中证红利全样本年化超额 t = 0.31（月度 0.27）',      {0.31, 0.27}),
+    ('两市成交额 16,143.03 亿元',                       {16143.03}),
+    ('多空年化 −2.35 bp、季度 +16.8bp',                 {-2.35, 16.8}),
+    ('样本 6.7 年、回撤 −12.4%',                        {6.7, -12.4}),
+    ('科创50 指数、上证50 指数',                         set()),          # 指数名不是计量
+    ('三年前、2026-09-15',                              set()),          # 无单位整数与日期不取
+]
+
+
+def run_selftest(verbose=True):
+    """解析层双向校准：正向必须全取到，负向必须一个都不多取。"""
+    bad = 0
+    for text, expected in SELFTEST:
+        got = extract_numbers(text)
+        ok = got == expected
+        if not ok:
+            bad += 1
+        if verbose:
+            mark = 'ok  ' if ok else 'FAIL'
+            print(f'{mark} {text!r} -> {sorted(got)}  (期望 {sorted(expected)})')
+    if verbose:
+        print(f'\n{"PASS" if bad == 0 else "FAIL"}: {len(SELFTEST) - bad}/{len(SELFTEST)} 自检样本通过')
+    return 0 if bad == 0 else 1
+
 
 def walk_numeric(obj, path=''):
     out = []
@@ -42,13 +94,20 @@ def close(a,b,tol):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--md', required=True)
+    ap.add_argument('--md')
     ap.add_argument('--pool', nargs='*', default=[])
     ap.add_argument('--out')
+    ap.add_argument('--selftest', action='store_true',
+                    help='只跑解析层自检（正向+负向样本），不读取任何报告')
     ap.add_argument('--tol', type=float, default=0.005)
     ap.add_argument('--summary-heading', default=None,
                     help='摘要章节标题前缀；缺省取第一个二级标题（## ...）')
     args = ap.parse_args()
+
+    if args.selftest:
+        return run_selftest()
+    if not args.md:
+        ap.error('--md 为必填（除非使用 --selftest）')
 
     md = Path(args.md).read_text(encoding='utf-8')
     parts = re.split(r'\n(?=## )', md)

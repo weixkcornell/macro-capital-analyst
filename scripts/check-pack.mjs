@@ -214,6 +214,75 @@ if (existsSync(manifestPath)) {
   }
 }
 
+// ---------------------------------------------------------------- 8. doc version lockstep
+// pack.json 不是版本的唯一载位：README 徽章、README 版本历史首条、SUBMISSION-CHECKLIST
+// 各写一份。此前靠人工同步（README 徽章曾落后于 pack.json）⇒ 改成机器核对。
+if (pack.pack?.version) {
+  const fs = await import('node:fs')
+  const readText = p => fs.readFileSync(resolve(dir, p), 'utf8')
+  const declared = pack.pack.version
+
+  if (existsSync(resolve(dir, 'README.md'))) {
+    const md = readText('README.md')
+    const badge = md.match(/badge\/Version-([^-\s]+)-/)
+    if (!badge) fail('missing-version-badge', 'README.md', 'no shields.io Version badge found')
+    else if (badge[1] !== declared) fail('doc-version-drift', 'README.md', `badge "${badge[1]}" != pack.json "${declared}"`)
+
+    const hIdx = md.search(/^##\s*版本历史\s*$/m)
+    if (hIdx < 0) fail('missing-version-history', 'README.md', 'no "## 版本历史" section')
+    else {
+      const head = md.slice(hIdx).match(/^- \*\*([0-9]+\.[0-9]+\.[0-9]+)\*\*/m)
+      if (!head) fail('missing-version-history', 'README.md', 'version history has no "- **X.Y.Z**" entry')
+      else if (head[1] !== declared) fail('doc-version-drift', 'README.md', `history head "${head[1]}" != pack.json "${declared}"`)
+    }
+  } else fail('missing-readme', 'README.md', 'not found')
+
+  if (existsSync(resolve(dir, 'SUBMISSION-CHECKLIST.md'))) {
+    const cl = readText('SUBMISSION-CHECKLIST.md')
+    const m = cl.match(/version=([0-9]+\.[0-9]+\.[0-9]+)/)
+    if (!m) fail('missing-checklist-version', 'SUBMISSION-CHECKLIST.md', 'no "version=X.Y.Z" found')
+    else if (m[1] !== declared) fail('doc-version-drift', 'SUBMISSION-CHECKLIST.md', `version=${m[1]} != pack.json "${declared}"`)
+  } else fail('missing-checklist', 'SUBMISSION-CHECKLIST.md', 'not found')
+}
+
+// ---------------------------------------------------------------- 9. digest reproducibility
+// 凡声明 digest 的实体，必须同时声明 digestTarget（用哪个文件算的），且当场复算相符。
+// 缺 digestTarget ⇒ 该 digest 无法用任何可复现算法对应到现有内容 = 声明漂移
+// （v2.3.0 修 skill-packages、v2.4.1 修 domain-knowledge snapshot，同一族两例）。
+{
+  const fs = await import('node:fs')
+  const crypto = await import('node:crypto')
+  const pairs = []
+  const collect = (dim, pred, pick) => {
+    const d = resolve(dir, dim)
+    if (!existsSync(d)) return
+    for (const f of fs.readdirSync(d).filter(n => n.endsWith('.json'))) {
+      let obj
+      try { obj = JSON.parse(fs.readFileSync(resolve(d, f), 'utf8')) } catch { continue }
+      if (!pred(obj)) continue
+      const p = pick(obj)
+      pairs.push([`${dim}/${f}`, p.digest, p.digestTarget, p.digestAlgorithm])
+    }
+  }
+  collect('skill-packages', o => o?.source?.digest, o => o.source)
+  collect('domain-knowledge', o => o?.snapshot?.digest, o => o.snapshot)
+
+  for (const [where, digest, target, algo] of pairs) {
+    if (!target) {
+      fail('digest-without-target', where, `digest ${String(digest).slice(0, 12)}… 未声明 digestTarget ⇒ 不可复算`)
+      continue
+    }
+    const abs = resolve(dir, target)
+    if (!existsSync(abs)) { fail('digest-target-missing', where, `digestTarget "${target}" 不存在`); continue }
+    let got
+    try { got = crypto.createHash(algo ?? 'sha256').update(fs.readFileSync(abs)).digest('hex') }
+    catch (e) { fail('digest-algorithm-invalid', where, `digestAlgorithm "${algo}" 不可用: ${e.message}`); continue }
+    if (got !== digest) {
+      fail('digest-mismatch', where, `${target} 实算 ${got.slice(0, 12)}… != 声明 ${String(digest).slice(0, 12)}…`)
+    }
+  }
+}
+
 // ---------------------------------------------------------------- report
 function report() {
   const sections = [
