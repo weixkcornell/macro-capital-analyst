@@ -6,15 +6,20 @@
  * binding checks that `validateDomainPack` deliberately leaves to later
  * binding resolution — the gaps that let broken references ship silently.
  *
- * Usage:  node scripts/check-pack.mjs [packDir]
+ * Usage:  node scripts/check-pack.mjs [packDir] [--json]
  * Env:    EXPERT_LIB_ROOT  path to @deepseek-ai/dsh-expert-library (default below)
+ *
+ * `--json` 只把 {version, problems, notes} 打到 stdout（供脚本/CI 读），人读输出关闭。
+ * notes 里含"人工清单落后于知识底座"这类**可行动**告警，全量给出、不截断。
  */
 import { createRequire } from 'node:module'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const LIB = process.env.EXPERT_LIB_ROOT ?? '/root/zhijian/dsh-expert-library'
-const dir = resolve(process.argv[2] ?? '.')
+const ARGV = process.argv.slice(2)
+const AS_JSON = ARGV.includes('--json')
+const dir = resolve(ARGV.find(a => !a.startsWith('--')) ?? '.')
 
 if (!existsSync(resolve(LIB, 'lib/v2/index.js'))) {
   console.error(`✗ cannot find expert-library at ${LIB}\n  set EXPERT_LIB_ROOT to the plugin checkout`)
@@ -26,6 +31,7 @@ const v2 = require(resolve(LIB, 'lib/v2/index.js'))
 
 const problems = []
 const notes = []
+let absentBannedTokens = []   // 供 --json 全量给出（人读输出只示前 6 条）
 const fail = (code, where, msg) => problems.push(`${code} @ ${where} :: ${msg}`)
 
 // ---------------------------------------------------------------- 1. validator
@@ -209,6 +215,7 @@ if (existsSync(manifestPath)) {
   )]
   const covered = v => declared.some(t => t.length >= 2 && (t.includes(v) || v.includes(t)))
   const absent = [...expected].filter(v => !covered(v))
+  absentBannedTokens = absent
   if (absent.length > 0) {
     notes.push(`note ${absent.length}/${expected.size} manifest title/author stem(s) have no overlapping bannedTokens entry (manual list lags the knowledge base): ${absent.slice(0, 6).join(' | ')}${absent.length > 6 ? ' …' : ''}`)
   }
@@ -288,6 +295,17 @@ function report() {
   const sections = [
     ['experts', 'teamTemplates', 'outputTemplates', 'qualityPolicies', 'scenarios', 'methodPacks', 'toolProviders', 'knowledgeProviders', 'domainKnowledge', 'skillPackages'],
   ]
+  if (AS_JSON) {
+    console.log(JSON.stringify({
+      pack: dir,
+      version: pack.pack?.version ?? null,
+      dimensions: Object.fromEntries(sections[0].map(k => [k, num(k)])),
+      problems,
+      notes,
+      absentBannedTokens,   // 全量，不截断：这是"人工清单落后于知识底座"的可行动列表
+    }, null, 1))
+    return
+  }
   console.log(`pack: ${dir}`)
   console.log(`version: ${pack.pack?.version ?? '?'}`)
   console.log('dimensions: ' + sections[0].map(k => `${k}=${num(k)}`).join(' '))
