@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.10-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.11-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -137,6 +137,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.11**（2026-09-25）：**把"声明了却没有工具"的三处补齐 —— 产物侧门禁现在能真的跑起来**（这批不是凭空加的：是为一次真实交付补的，且每一件都拿**已知合格的首单产物**做过校准） —— ① **`scripts/check-sections.mjs`**（`section-outline` 的执行工具）：markdown 取 H2／HTML 取 h2，逐项对照输出模板的 required 章节并检查顺序；**顺带修一处判据缺陷** —— 原先按严格名字比对，会把「**一、**摘要」这类带编号的标题全判成"缺章节"（首单 6 章全缺）⇒ 判据补 `normalization`（比较前去掉可选编号前缀与空白）。② **`scripts/audit-render.py`**（`render-overflow` 的执行工具，playwright）：五档视口＋WCAG AA 全节点穷举；**判据补三条显式排除**（可横滚容器内的宽表／`.sr-only` 无障碍隐藏元素／"元素超出视口"本身）—— 第一版漏掉前两条与第三条时，在首单产物上分别**误报 7–42 个/视口**与**每视口 1 个**，补齐后归零。③ **`scripts/render-report.mjs`**（渲染器）：包此前**声明了渲染规格却没有渲染器**；现按模板的 `rendering`/`renderModes` 声明渲染**自包含** HTML5（浅色／衬线／学术排版、涨=红跌=绿、¥、YYYY-MM-DD、文末「不构成投资建议」）。**它上线第一次渲染就被自己的门禁抓到真缺陷**：320px 宽时页面横溢 20px（长链接/长代码串撑宽）⇒ 全面加 `overflow-wrap:anywhere` 后归零。 ④ **`scripts/audit-delivery.sh`**：产物侧五道硬门的**统一入口**（number-consistency／section-outline／placeholder-clean／banned-tokens／render-overflow），**判据全部从包里读**，不写死在工具里。 ⑤ **校准证据（判据与工具互验）**：把首单产物跑一遍 —— i1 三方对撞 **47/47**、章节 **6/6**、占位符 **0**、禁例 **0**、五档视口 **0 溢出**、对比度 **1079/1079**（渲染器自渲染同一份报告：**1038/1038**、0 溢出）。 ⑥ 文档同步：`RELEASING.md` 增「交付级门禁」一节（含渲染器与自包含要求），`CONTRIBUTING.md` 增"改产物侧判据"一节，`SUBMISSION-CHECKLIST.md` 增条目。 ⑦ 另修：`install-to-profile.sh` 在安装副本被平台停用（`.disabled-by-center`）时给出明确诊断，且**不擅自改名恢复**。
 
 - **2.4.10**（2026-09-25）：**修一个"只有装上去才看得见"的缺陷** —— ① **包自己的门禁自校准在【安装副本】里跑不过（45/46）**：安装时不带 `.github/`（那是仓库侧设施，不属于包），而 `workflow 缺 jobs:` 那条对照样本要去改 `.github/workflows/check.yml` ⇒ ENOENT 崩溃，报成"样本自身出错"。**在开发者签出目录里全绿、在用户实际安装的那份里失败**，正是最难发现的一类。修法：测试写入时**自动建父目录**（测试不该假设仓库里恰好有 `.github/`）。 ② **顺带把安装时自检改为并发**（46 例串行会超时，`SELFTEST_CONCURRENCY=8`）—— 这次就是它先超时、暴露了上面那条缺陷。 ③ 教训入册：**"仓库里能过"不等于"装上能过"**；`install-to-profile.sh` 会在副本内跑四件自检，因此这类缺陷从今往后会在同步当场暴露。
 
