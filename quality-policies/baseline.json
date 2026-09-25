@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.4.5",
+  "version": "2.4.6",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -115,16 +115,16 @@
           "风险管理",
           "Asset Management",
           "Backtesting",
-          "Carry"
-        ],
-        "bannedTokensReview": [
+          "Carry",
           "Trading Costs",
           "Equity Risk Premiums"
         ],
+        "bannedTokensReview": [],
         "bannedTokensPolicy": {
           "maxStrictGaps": 0,
-          "maxReviewPending": 5,
-          "why": "Allowlist＝通用术语，明确【不得】入禁例（入了会让合法散文误报）；Review＝题意含糊、须人工判定；Strict＝其余未覆盖的专名/篇名，为真缺口，超阈值即 FAIL。"
+          "maxReviewPending": 0,
+          "why": "allowlist＝通用术语，明确【不得】入禁例（入了会让合法散文误报）；strict＝其余未覆盖的专名/篇名，为真缺口；review＝待人工判定，上限 0 ⇒ 不允许出现'挂着的未决项'，有疑问必须当场判定并写进 allowlist 或 bannedTokens。",
+          "allowlistDecisionNote": "`Trading Costs` 与 `Equity Risk Premiums`（2.4.6 由 review 落定为 allowlist）：二者是通用英文金融短语，中文报告写「交易成本」「股权风险溢价」；把它们当禁例会误伤合法的英文引述。若将来要以来源身份拦截，应禁更具体的完整篇名，而不是这两个通用短语。"
         }
       },
       "description": "委托方要求脱敏的量值、禁用表述逐 token 扫描，0 命中。"

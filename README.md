@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.5-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.6-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -128,6 +128,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.6**（2026-09-25）：**收口：不许有"挂着的未决项"** —— ① `bannedTokens` 的两条 **review（待人工判定）落定为 allowlist**：`Trading Costs` 与 `Equity Risk Premiums` 都是**通用英文金融短语**（中文报告写「交易成本」「股权风险溢价」），把它们当禁例会**误伤合法的英文引述**；若将来要以"来源身份"拦截，应禁**更具体的完整篇名**，而不是这两个通用短语。判定理由写进策略字段 `allowlistDecisionNote`，不留在人的记忆里。 ② **`maxReviewPending` 由 5 收紧为 0** ⇒ 该门禁从此**不允许存在未决项**：有疑问必须当场判定并落进 `allowlist` 或 `bannedTokens`。**"待办"不是状态，是欠账。** ③ 现值：禁例 90 条／通用术语豁免 8 条／待判定 0 条，**覆盖 85/85**。
 
 - **2.4.5**（2026-09-25）：**把"盲区"从感觉变成计量：覆盖率报表 ＋ 内容层结构判据** —— ① **新增覆盖率计量**（`check-pack --coverage`）：登记"哪个检查读过哪个文件"，输出**有针对性判据／仅通用扫描／没人读**三类。**第一次跑就暴露：27 个内容文件（experts／method-packs／output-templates／domain-knowledge…）此前只被"读入 + 占位符扫描"碰过、2 个文件没人读** —— 这正是"三道门禁全 PASS"那种话最容易掩盖的地方。 ② **新增内容结构判据（平台无关）**：按维度声明"必须有什么"（10 个维度的必需字段与非空列表、门禁四要素 `id/kind/severity/appliesTo`、`documentStructure.sections[]` 的 `name/required`、方法包步骤编号不重复、kb `collections[].root` 不存在时须显式声明、`.gitattributes` 必须 `eol=lf`）。**契约按实测写**：三个方法包的内容字段名各不相同（gates／layers／steps）⇒ 契约只能是"至少一个非空数组"，**改契约而不是改内容**。 ③ **新增脚本/文档/杂项完整性**：`scripts/*` 与技能脚本**语法可编译**（`node --check`／`bash -n`／`compile()`）；`*.md` 与 workflow 点名的 `scripts/` 路径**必须存在**（**当场抓到 `SUBMISSION-CHECKLIST.md` 一处不可解析的旧路径**，已改为全路径）；workflow 必须有 `on:`/`jobs:`；`.gitignore` 必须忽略 `engine/` 与 `__pycache__`；`LICENSE` 必须与包内 license 声明一致。 ④ **覆盖率 22／12／2 → 36／0／0**（新增判据后盲区为零，且每条覆盖都登记了负责的检查名）。 ⑤ **门禁自校准 15 → 19 例**（结构／脚本语法／文档引用／gitignore 各配负向对照）。 ⑥ **修一处不准确的范围声明**：skip note 原写"检查 3/4/5/6 依赖平台校验器"，实际它们改用"直读 JSON"照跑 —— **范围声明必须准确，否则读者会以为这些检查没跑**。 ⑦ 覆盖率接入 `release-check.sh` 与 CI（报表步，附在五件套之后）。
 
