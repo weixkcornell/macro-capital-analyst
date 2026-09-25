@@ -84,6 +84,9 @@ bash scripts/audit-delivery.sh --md <final.md> --html <index.html> \
 | banned-tokens（禁例 token） | 内联扫描 | `.../banned-tokens`（含通用术语豁免表） |
 | render-overflow（五档视口溢出 + WCAG AA 对比度） | `scripts/audit-render.py`（playwright） | `.../render-overflow` 的 `config` |
 
+渲染这一步由 `scripts/render-report.mjs` 执行：markdown → **自包含** HTML5，版式规格（浅色/衬线/学术、涨=红跌=绿、¥、YYYY-MM-DD、文末「不构成投资建议」）**从输出模板的 `rendering` 声明读**。
+自包含是硬要求：审核要在 `file://` 下用无头浏览器逐视口测，任何外链都会让读数依赖网络。
+
 **这两把工具（`check-sections.mjs`／`audit-render.py`）是本包为"已声明但此前无执行工具"的两道硬门补的**，
 并已在首单产物上校准通过（五档视口 0 溢出、对比度 1079/1079、章节 6/6）。
 
