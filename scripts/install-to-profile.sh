@@ -14,7 +14,15 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="${1:-$(cd "$REPO/.." && pwd)/main/bank/domain-packs/macro-capital-analyst}"
 BACKUP_DIR="${BACKUP_DIR:-$(cd "$REPO/.." && pwd)/.install-bak}"
 
-[ -f "$TARGET/pack.json" ] || { echo "✗ 目标不是领域包目录：$TARGET"; exit 2; }
+if [ ! -f "$TARGET/pack.json" ]; then
+  echo "✗ 目标不是领域包目录：$TARGET"
+  # 平台可能把安装副本停用（改名加 .disabled-by-center 后缀）——这是中心侧的决定，本脚本不擅自恢复
+  if [ -d "${TARGET}.disabled-by-center" ]; then
+    echo "  ⇒ 发现 ${TARGET}.disabled-by-center：安装副本已被【中心侧停用】（改名后缀 .disabled-by-center）。"
+    echo "     本脚本不擅自改名恢复；同步前请先确认该包已重新启用。"
+  fi
+  exit 2
+fi
 command -v rsync >/dev/null || { echo "✗ 需要 rsync"; exit 2; }
 
 SRC_VER="$(node -e "process.stdout.write(require('$REPO/pack.json').version)")"
