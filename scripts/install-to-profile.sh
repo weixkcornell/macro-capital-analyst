@@ -44,6 +44,7 @@ NEW_VER="$(node -e "process.stdout.write(require('$TARGET/pack.json').version)")
 echo "③ 版本核对通过：$NEW_VER"
 ( cd "$TARGET" && node scripts/check-pack.mjs >/dev/null && echo "   · check-pack ✓" \
   && node scripts/selftest-gates.mjs >/dev/null && echo "   · selftest-gates ✓" \
+  && node scripts/smoke-test.mjs >/dev/null && echo "   · smoke-test ✓" \
   && python3 skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest >/dev/null && echo "   · i1 --selftest ✓" )
 rm -rf "$TARGET/skills/macro-capital-framework/references/scripts/__pycache__"
 echo "④ 安装副本自检全通过"
