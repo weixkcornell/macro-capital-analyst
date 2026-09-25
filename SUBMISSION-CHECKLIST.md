@@ -14,6 +14,7 @@
 - [x] 自检脚本（`scripts/check-pack.mjs`：version lockstep + 文档版本 lockstep + 门禁绑定 + DAG 完整性 + digest 可复现性 + 占位符残留 + fileRef 安全 + bannedTokens 阈值 + **引用完整性四门**（contributions／scenario 引用／SKILL.md 点名文件／transport 路径）+ 三方对撞目标；`--json` 供脚本/CI 读；平台校验器缺失时以 skip note 声明并继续跑其余检查）
 - [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**46 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
 - [x] **判据 × 负向对照矩阵**（`negative-controls` 硬门：自有 code 必须 100% 有负向对照，未覆盖即 FAIL；平台校验器自带的 16 个 code 显式排除。现 **自有 39/39**）
+- [x] **交付级门禁可一条命令跑完**（`scripts/audit-delivery.sh`：number-consistency／section-outline／placeholder-clean／banned-tokens／render-overflow；判据全部从包里读）。为此补了两把此前缺失的执行工具：`scripts/check-sections.mjs`、`scripts/audit-render.py`；两者已在首单产物上校准（章节 6/6、五档视口 0 溢出、对比度 1079/1079）
 - [x] **交付物门禁均有可执行判据**（10 道门全部带 `config`；`structure-gate-no-config` 判据保证今后不会出现"只有声明、没有判据"的门。`render-overflow` 的五档视口/溢出判据/WCAG AA 阈值、`section-outline` 的大纲抽取与对照口径、`layout-audit` 的三项检查均取自首单实测口径）
 - [x] **判据登记表**（`CRITERIA.md`，19 条：id／强度 hard·structural·advisory／对象／量程／**不查什么**／可报出的 code；由 `check-pack --criteria-md` 生成，`criteria-doc` 判据逐字比对防漂移）
 - [x] **覆盖率报表**（`scripts/check-pack.mjs --coverage`：登记"哪个判据读过哪个文件"，输出「有针对性判据／仅通用扫描／没人读」三类；当前 **36 文件：36／0／0**）｜**禁例覆盖 85/85（禁例 90 条／通用术语豁免 8 条／待判定 0 条，`maxReviewPending=0`）**

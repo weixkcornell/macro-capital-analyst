@@ -54,6 +54,12 @@ node scripts/check-pack.mjs --criteria-md CRITERIA.md
 - 改 `skills/macro-capital-framework/SKILL.md`（改版本号也算）之后要重钉 digest：
   `node scripts/repin-digests.mjs`（`bump-version.mjs` 会自动做）。
 
+## 四b、改到"产物侧"判据时
+
+产物侧门禁的入口是 `scripts/audit-delivery.sh`（用法见 [`RELEASING.md`](RELEASING.md) 的「交付级门禁」一节）。
+两条约定：**判据必须写在包里**（工具只执行、不内置阈值）；**改判据要同时改 `config` 与文档**，
+否则同一份产物在不同执行者手里会得到不同结论。
+
 ## 五、发布
 
 见 [`RELEASING.md`](RELEASING.md)：`bump-version` → 补发布说明 → `release-check` → 同步安装副本 → 提交推送 → 打 tag / 建 Release。

@@ -64,6 +64,29 @@ bash scripts/install-to-profile.sh          # 默认同步到 ../main/bank/domai
 它会**先备份**（默认 `<仓>/../.install-bak/`）→ rsync 增量同步（**保留安装侧独有的 `routing/`**，
 删除他人版本遗留物属"回溯删除"，不在脚本权限内）→ 核对版本 → **在副本内**跑三件自检。
 
+## 4b. 交付级门禁（针对"产物"，不是针对"包"）
+
+包自身的检查（上面四步）管的是"包对不对"；**产物**的门禁另有入口，一条命令跑完：
+
+```bash
+bash scripts/audit-delivery.sh --md <final.md> --html <index.html> \
+                               --template output-templates/a-share-outlook.json \
+                               --pool "data/computed.json data/alpha.json data/cycle-inputs.json"
+```
+
+它跑五件（判据全部**从包里读**，不写死在工具里）：
+
+| 门禁 | 工具 | 判据来源 |
+|---|---|---|
+| number-consistency（摘要—正文—底座三方对撞） | `skills/.../i1_collision_check.py` | `quality-policies` 的 `number-consistency` |
+| section-outline（章节齐备与顺序） | `scripts/check-sections.mjs` | `.../section-outline` 的 `config`（含**规范化规则**） |
+| placeholder-clean（占位符残留） | 内联扫描 | `.../placeholder-clean` |
+| banned-tokens（禁例 token） | 内联扫描 | `.../banned-tokens`（含通用术语豁免表） |
+| render-overflow（五档视口溢出 + WCAG AA 对比度） | `scripts/audit-render.py`（playwright） | `.../render-overflow` 的 `config` |
+
+**这两把工具（`check-sections.mjs`／`audit-render.py`）是本包为"已声明但此前无执行工具"的两道硬门补的**，
+并已在首单产物上校准通过（五档视口 0 溢出、对比度 1079/1079、章节 6/6）。
+
 ## 5. 提交与推送
 
 ```bash
