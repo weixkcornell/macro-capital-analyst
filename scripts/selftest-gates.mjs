@@ -369,6 +369,36 @@ const CASES = [
     },
   },
   {
+    name: '模板两处章节表不一致（title vs name）',
+    expectCode: 'template-sections-misaligned',
+    mutate: r => {
+      const f = firstJson(r, 'output-templates', o => o?.sections?.length && o?.documentStructure?.sections?.length)
+      const o = JSON.parse(read(r, f))
+      o.documentStructure.sections[0].name = '被改过的章节名'
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'pack.json 缺元数据（repository）',
+    expectCode: 'pack-metadata-missing',
+    mutate: r => {
+      const o = JSON.parse(read(r, 'pack.json'))
+      delete o.repository
+      write(r, 'pack.json', JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '数据契约里的口径未声明',
+    expectCode: 'caliber-undeclared',
+    mutate: r => replaceOnce(r, 'data-contracts/capability-contract.csv', /统计局\/央行官方口径/, '某个没声明过的口径'),
+  },
+  {
+    name: 'note 数超过预算（--max-notes 0）',
+    expectCode: 'notes-budget-exceeded',
+    args: ['--max-notes', '0'],
+    mutate: () => {},
+  },
+  {
     name: 'CRITERIA.md 与代码登记表不一致',
     expectCode: 'criteria-doc-drift',
     mutate: r => replaceOnce(r, 'CRITERIA.md', /  "id": "validator",\n  "level": "hard",/, '  "id": "validator",\n  "level": "soft",'),
@@ -401,7 +431,7 @@ function runCase(c) {
     cpSync(PACK, tmp, { recursive: true, filter: s => !/[/\\](\\.git|engine|__pycache__)$/.test(s) })
     c.mutate(tmp)
     try {
-      out = execFileSync('node', [CHECK, tmp], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+      out = execFileSync('node', [CHECK, tmp, ...(c.args ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
     } catch (e) {
       out = `${e.stdout ?? ''}${e.stderr ?? ''}`
       code = typeof e.status === 'number' ? e.status : 1

@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.8-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.9-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -126,8 +126,19 @@ macro-capital-analyst/
 
 本包为方法论与提示词工艺的开源发布，**不构成任何投资建议**。过往分析不预示未来表现；海外实证数值仅作数量级参考，A 股须重新标定。
 
+## 知识底座与自建说明
+
+本仓**只含「方法论内化摘要层」**：38 份源材料（原著／教材／论文）受版权约束、**不随包分发** ——
+`source/SOURCE-MANIFEST.json` 里每一条 `materials[].fileRef` 在本仓**都解析不到**，这是设计（38/38 条 `distributable: false`），
+解析根见该文件的 `fileRefRoot` 字段。**怎么自建你自己的知识底座**（准备材料／写内化摘要／改 `fileRefRoot`／版权边界）见
+[`knowledge/experts/macro-capital-analyst/README.md`](knowledge/experts/macro-capital-analyst/README.md)。
+
+英文概览见 [`README.en.md`](README.en.md)，贡献与提交前检查见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
+
 ## 版本历史
 
+
+- **2.4.9**（2026-09-25）：**把上一轮列出的八条优化一次做完**（补检查 4 条 ＋ 上限 1 条 ＋ 文档 3 条） —— ① **模板两处章节表对齐判据**（`template-sections-misaligned`）：`sections[].title` 必须逐项等于 `documentStructure.sections[].name`、数量一致 —— 此前靠手工维持，一旦漂移会"渲染按结构走、清单按 sections 走"，章节被悄悄漏掉。 ② **`pack.json` 补元数据**（`license`／`repository`／`homepage`／`keywords`／`author`）并加判据 `pack-metadata-missing` —— 此前这些信息只在 README/LICENSE 里，机器消费者拿不到。 ③ **口径映射显式化**：新增 `pack.json.caliberAliases`（把数据契约里的写法与声明键显式对应），并加判据 `caliber-undeclared` —— 数据契约里出现"未声明口径"从此会 FAIL（原先靠子串巧合）。 ④ **能力引用可见化**：给 4 项仅供平台使用的能力显式标 `scope: 'platform'`，其余未被包内引用的能力改为出 note（**"故意对外"与"id 拼错"从此可区分**）。 ⑤ **note 预算**（`--max-notes`，CI 与发布前检查用 10）—— note 不拦截但会累积成噪声（本仓历史上曾从 4 涨到 12）。 ⑥ **`README.en.md`**（英文概览：结构／自检／版本策略／知识底座边界／许可）。 ⑦ **`CONTRIBUTING.md`**（改之前先读判据登记表；提交前必须全绿；**新增判据必须同时补负向对照**；生成物不许手改）。 ⑧ **知识底座自建说明**：`knowledge/experts/macro-capital-analyst/README.md` 从占位改成完整说明（材料本体按版权不分发是设计、怎么准备自己的材料、怎么写内化摘要、版权边界），中文 README 增一节指向它。 ⑨ 判据登记表 20 → **23 条**、自有 code 对照 **43/43**、门禁自校准 **46 例**。
 
 - **2.4.8**（2026-09-25）：**修"声明与可执行之间的缝"** —— ① **判据 × 负向对照矩阵**（新判据 `negative-controls`，**硬门**）：扫描 `selftest-gates.mjs` 算出"每个可报出的 code 有没有被负向对照证明抓得住"，**自有 code 未覆盖即 FAIL**（平台校验器自带的 16 个 code 显式列白名单排除，不假装我们能给它配对照）。接入时实测 **54 个 code 只有 18 个有对照**，其中**自有 19 个从未被证明抓得住** —— 这类"死门禁"与"通过的门禁"观感完全一样（本仓库已真实发生过三次：占位符正则写坏、引述域豁免吞掉全部 JSON、CSV 用了 `split(',')` 误报）。**现已补齐到 39/39**，并把它设成硬门，防止再出现。 ② **三条"纸上硬门"补上可执行判据**：`render-overflow`（**五档视口** 320/390/768/1280/1920；溢出＝`scrollWidth − clientWidth > 1px`；对比度 WCAG AA，正文 ≥4.5:1、大字 ≥3.0:1；**全节点穷举禁止抽样**）、`section-outline`（从 md 取 H2 / html 取 h2 大纲，对照 `output-templates[].documentStructure.sections` 的 required 章节，缺一不可）、`layout-audit`（标题层级不跳级／表头列数＝行数／脚注有回链）。**这些阈值不是新发明的，是把首单里已经跑过的口径搬回包里**（首单实测：对比度 1079/1079、全节点 1542 节点 0 失败、五档视口 0 溢出）。并新增判据 `structure-gate-no-config`：**任何门禁没有 config 即 FAIL** —— 从此不允许存在"只有声明、没有判据"的门。 ③ **门禁自校准 21 → 42 例**（新增 21 例覆盖此前所有自有未覆盖 code），并把 runner 改为**并发**（`SELFTEST_CONCURRENCY`，默认 4）—— 42 例串行已到分钟级。 ④ **打上版本标签**：仓库此前 7 个版本**没有任何 git tag 或 Release**，外部无法精确定位"哪次提交是 2.4.x"，也没有按版本归档的不可变产物；本版为 **v2.4.1 … v2.4.8** 逐版打**附注 tag**（指向各自提交），版本第一次成为可被机器定位的东西。
 

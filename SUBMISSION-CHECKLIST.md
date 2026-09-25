@@ -2,7 +2,7 @@
 
 > 平台评审按此逐项打勾；先自检再提交。
 
-- [x] `pack.json`（id=macro-capital-analyst / version=2.4.8 / schemaVersion=2 / caliberDeclarations 四类口径）
+- [x] `pack.json`（id=macro-capital-analyst / version=2.4.9 / schemaVersion=2 / caliberDeclarations 四类口径）
 - [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，38 份材料）
 - [x] `scenarios/*.json`（DAG 依赖无环、专家 id 全部可解析、deliverable 明确；共 2 个）
 - [x] `output-templates/` + `quality-policies/`（起步门禁 10 道覆盖数字一致与禁例 token；含 `gate-a-double-calibration` / `net-active-return-required` / `active-risk-budget` 硬门，且每道门均有 team template 绑定）
@@ -12,7 +12,7 @@
 - [x] 本体（`domain-knowledge/macro-capital-analyst-kb.json`，recordCount=38，digest = `sha256(source/SOURCE-MANIFEST.json)`，已声明 `digestTarget`/`digestAlgorithm` 并由 `check-pack.mjs` 当场复算）
 - [x] 知识供给 / 技能包 / 工具集（`knowledge-providers/` + `skill-packages/` + `tool-providers/`）
 - [x] 自检脚本（`scripts/check-pack.mjs`：version lockstep + 文档版本 lockstep + 门禁绑定 + DAG 完整性 + digest 可复现性 + 占位符残留 + fileRef 安全 + bannedTokens 阈值 + **引用完整性四门**（contributions／scenario 引用／SKILL.md 点名文件／transport 路径）+ 三方对撞目标；`--json` 供脚本/CI 读；平台校验器缺失时以 skip note 声明并继续跑其余检查）
-- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**42 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
+- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**46 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
 - [x] **判据 × 负向对照矩阵**（`negative-controls` 硬门：自有 code 必须 100% 有负向对照，未覆盖即 FAIL；平台校验器自带的 16 个 code 显式排除。现 **自有 39/39**）
 - [x] **交付物门禁均有可执行判据**（10 道门全部带 `config`；`structure-gate-no-config` 判据保证今后不会出现"只有声明、没有判据"的门。`render-overflow` 的五档视口/溢出判据/WCAG AA 阈值、`section-outline` 的大纲抽取与对照口径、`layout-audit` 的三项检查均取自首单实测口径）
 - [x] **判据登记表**（`CRITERIA.md`，19 条：id／强度 hard·structural·advisory／对象／量程／**不查什么**／可报出的 code；由 `check-pack --criteria-md` 生成，`criteria-doc` 判据逐字比对防漂移）
@@ -26,6 +26,7 @@
   - **匿名化对外样本**：公网看板 `https://yy.meizu.life/render/观澜-a股观点看板/a-share-outlook-20260915.html` —— 对外只列「领域 · 首字母」，无真实人名、无内网地址；团队活动面板快照另发布一份（仅本团队、已排除其他团队内容）。
   - **放行判定**：**报告层 GO**；**报告内配置结论（超配/低配/轮动）不发布** —— 闸门 A 不通过（红利相对沪深300 全样本年化超额 t=0.31 ≪ 3.0，样本 6.7 年，BH-FDR/Bonferroni 存活 0），闸门 B 不通过（实施成本篮子不完整且类别错配）。
   - **版本口径（诚实声明）**：该单运行在**本机 `domain-packs/` 的 v2.2.0 安装副本**上 ⇒ 它验证的是 **v2.2.0** 的场景/组队/门禁链端到端可用；**v2.3.0 与 v2.4.1 的增补（含本版 `i1_collision_check.py` 修复）尚未经端到端实跑**（本版修复的缺陷正是由该单发现的）。
+- [x] **文档与元数据完整**（`README.en.md` 英文概览／`CONTRIBUTING.md` 贡献指南／`knowledge/experts/macro-capital-analyst/README.md` 知识底座自建说明；`pack.json` 含 `license`/`repository`/`homepage`/`keywords`/`author`，由 `pack-metadata-missing` 判据把关）
 - [x] 全部 JSON 可解析（`python3 -m json.tool`）
 - [x] 全部【替换：…】占位符已清除
 - [x] 无凭据 / 密钥 / 内网地址 / 真实个人信息（publicLabel 仅「领域·首字母」）

@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: '22'
       - name: 包自检（平台无关检查；平台校验器在 CI 中不可得，会以 skip note 声明）
-        run: node scripts/check-pack.mjs
+        run: node scripts/check-pack.mjs --max-notes 10
       - name: 门禁自校准（42 例负向对照，必须全部按预期）
         run: SELFTEST_CONCURRENCY=4 node scripts/selftest-gates.mjs
       - name: digest 可复现性（dry-run：只报是否需要重钉）

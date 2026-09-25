@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "schemaVersion": 2,
   "display": {
     "internalName": "观澜",
@@ -24,7 +24,8 @@
       "coverage": "high",
       "evidenceRefs": [
         "macro-capital-analyst:roster"
-      ]
+      ],
+      "scope": "platform"
     },
     {
       "capability": "portfolio.policy",
@@ -32,7 +33,8 @@
       "coverage": "high",
       "evidenceRefs": [
         "macro-capital-analyst:benchmark-objective"
-      ]
+      ],
+      "scope": "platform"
     },
     {
       "capability": "active.return",
@@ -40,7 +42,8 @@
       "coverage": "high",
       "evidenceRefs": [
         "macro-capital-analyst:active-return-framework"
-      ]
+      ],
+      "scope": "platform"
     },
     {
       "capability": "macro.cycle",
@@ -112,7 +115,8 @@
       "coverage": "medium",
       "evidenceRefs": [
         "macro-capital-analyst:geopolitics-fragmentation"
-      ]
+      ],
+      "scope": "platform"
     }
   ],
   "persona": {

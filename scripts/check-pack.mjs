@@ -20,7 +20,7 @@ const LIB = process.env.EXPERT_LIB_ROOT ?? '/root/zhijian/dsh-expert-library'
 const ARGV = process.argv.slice(2)
 const AS_JSON = ARGV.includes('--json')
 // 取值型开关（如 --criteria-md <path>）的**值**不是位置参数，不能被当成包目录 —— 踩过一次。
-const VALUE_FLAGS = new Set(['--criteria-md'])
+const VALUE_FLAGS = new Set(['--criteria-md', '--max-notes'])
 const POSITIONAL = []
 for (let i = 0; i < ARGV.length; i++) {
   if (VALUE_FLAGS.has(ARGV[i])) { i++; continue }
@@ -91,7 +91,7 @@ const CRITERIA = [
     notChecked: '字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空）',
     codes: ['structure-missing-field', 'structure-empty-list', 'structure-gate-missing-field',
       'structure-document-structure', 'structure-duplicate-step', 'structure-collection-root', 'structure-gitattributes',
-      'structure-gate-no-config'] },
+      'structure-gate-no-config', 'template-sections-misaligned', 'pack-metadata-missing'] },
   { id: 'doc-script-ref', level: 'structural', subject: '*.md 与 .github/workflows/*.yml 中点名的 scripts/ 路径',
     scope: '点名即必须存在',
     notChecked: '文档里点名的非 scripts/ 路径；文档叙述是否仍准确',
@@ -112,6 +112,18 @@ const CRITERIA = [
     scope: '表头须含 capability/method/caliber/unit；每行列数一致；capability 值唯一；无 UTF-8 BOM',
     notChecked: '各列取值的语义正确性（如单元是否正确）；与产物的实际使用是否一致',
     codes: ['csv-structure'] },
+  { id: 'caliber-declared', level: 'structural', subject: 'data-contracts/*.csv 的 caliber 列',
+    scope: '每一行的 caliber 必须能对上 pack.json 的 caliberDeclarations 键或 caliberAliases 值',
+    notChecked: '口径取值的正确性（只判"有声明"，不判"用得对不对"）',
+    codes: ['caliber-undeclared'] },
+  { id: 'capability-usage', level: 'advisory', subject: 'experts[].capabilities 的引用情况',
+    scope: '未被包内引用、且未标 scope:platform 的能力 → note（可能是漏标，也可能拼错）',
+    notChecked: '不做判定；被标 platform 的项默认视为合理',
+    codes: [] },
+  { id: 'notes-budget', level: 'structural', subject: 'check-pack 自身的 note 数量',
+    scope: '--max-notes N 时，note 数不得超过 N（CI/release-check 会带上）',
+    notChecked: 'note 的语义重要性（只计数量）',
+    codes: ['notes-budget-exceeded'] },
   { id: 'contract-vs-tools', level: 'advisory', subject: 'data-contracts/capability-contract.csv ↔ toolProviders.capabilities',
     scope: '两者 capability 名不完全对应时给 note（不同口径，非缺陷）',
     notChecked: '不做判定：二者分别描述"数据引擎契约"与"包内可调度能力"',
@@ -579,6 +591,18 @@ if (pack.pack?.version) {
         const n = splitCsvLine(l).length
         if (n !== header.length) fail('csv-structure', rel, `第 ${i + 2} 行有 ${n} 列，表头是 ${header.length} 列`)
       })
+      // 口径必须能对应到 pack.json 的声明键（或 caliberAliases）：否则包里存在"未声明的口径"
+      const declaredCaliber = Object.keys(pack.pack?.caliberDeclarations ?? {})
+      const aliasValues = Object.values(pack.pack?.caliberAliases ?? {})
+      const idxCaliber = header.indexOf('caliber')
+      if (idxCaliber >= 0) {
+        rows.forEach((l, i) => {
+          const val = (splitCsvLine(l)[idxCaliber] ?? '').trim()
+          if (!val) { fail('caliber-undeclared', rel, `第 ${i + 2} 行 caliber 为空`); return }
+          const hit = declaredCaliber.some(k => val.includes(k)) || aliasValues.some(v => val === v || val.includes(v))
+          if (!hit) fail('caliber-undeclared', rel, `第 ${i + 2} 行 caliber「${val}」对不上任何声明键（${declaredCaliber.join('/')}）或别名`)
+        })
+      }
       const caps = rows.map(l => splitCsvLine(l)[0].trim()).filter(Boolean)
       if (new Set(caps).size !== caps.length) fail('csv-structure', rel, `capability 值有重复：${caps.join(',')}`)
     }
@@ -699,6 +723,28 @@ if (pack.pack?.version) {
       }
     }
   }
+  // 输出模板：sections[] 与 documentStructure.sections[] 是同一张表的两种表示（id/title ↔ name），
+  // 此前两者一致性纯靠手工维持 —— 不一致时"渲染按结构走、清单按 sections 走"，章节会被悄悄漏掉。
+  for (const t of pack.outputTemplates ?? []) {
+    const a = t.sections, b = t.documentStructure?.sections
+    if (!Array.isArray(a) || !Array.isArray(b)) continue
+    if (a.length !== b.length) {
+      fail('template-sections-misaligned', `outputTemplates.${t.id}`, `sections ${a.length} 项 vs documentStructure.sections ${b.length} 项`)
+    } else {
+      a.forEach((x, i) => {
+        if ((x.title ?? '') !== (b[i].name ?? '')) {
+          fail('template-sections-misaligned', `outputTemplates.${t.id}.sections[${i}]`, `title "${x.title}" != documentStructure name "${b[i].name}"`)
+        }
+      })
+    }
+  }
+  // pack.json 元数据：开源包该有的机器可读信息（此前只在 README/LICENSE 里）
+  for (const k of ['license', 'repository', 'homepage']) {
+    if (!pack.pack?.[k]) fail('pack-metadata-missing', 'pack.json', `缺元数据字段 ${k}`)
+  }
+  if (!Array.isArray(pack.pack?.keywords) || pack.pack.keywords.length === 0) {
+    fail('pack-metadata-missing', 'pack.json', 'keywords 必须是非空数组')
+  }
   // 输出模板：documentStructure 里声明的章节要有 name/required
   for (const t of pack.outputTemplates ?? []) {
     const ds = t.documentStructure
@@ -785,6 +831,43 @@ if (pack.pack?.version) {
         fail('criteria-doc-drift', 'CRITERIA.md', '登记表与代码不一致 —— 重跑 --criteria-md 重新生成（不要手改）')
       }
     }
+  }
+}
+
+// ---------------------------------------------------------------- 12c. 能力引用（advisory）＋ note 预算
+// ④ 专家声明的能力若在包内无人引用：可能是"故意对外（平台用）"，也可能是"id 拼错"。
+//    前者用 scope:'platform' 显式声明 ⇒ 只对"未标 platform 且无人引用"的项出 note。
+// ⑤ note 预算：note 不拦截，但会累积成噪声（历史上曾到 12 条）；给个上限，超了即 FAIL。
+{
+  const texts = []
+  const walkAll = d => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      if (e.isDirectory()) { if (!['.git', 'engine', '__pycache__', 'node_modules'].includes(e.name)) walkAll(join(d, e.name)); continue }
+      if (/\.(json|md)$/.test(e.name)) texts.push(readText(join(d, e.name)))
+    }
+  }
+  if (existsSync(dir)) walkAll(dir)
+  const corpus = texts.join('\n')
+  const platformScoped = [], unreferenced = []
+  for (const ex of pack.experts ?? []) {
+    for (const c of ex.capabilities ?? []) {
+      const id = c.capability ?? c.id
+      if (!id) continue
+      if (c.scope === 'platform') { platformScoped.push(id); continue }
+      // 引用判定：除声明处之外，语料里还出现过 ≥2 次（1 次是它自己的声明）
+      const n = corpus.split(id).length - 1
+      if (n < 2) unreferenced.push(id)
+    }
+  }
+  if (unreferenced.length) {
+    notes.push(`note ${unreferenced.length} 项专家能力在包内无人引用（既未标 scope:'platform'，也没被场景/模板/门禁点名）⇒ 可能是"漏标 platform"，也可能是拼错：${unreferenced.join(', ')}`)
+  }
+  if (platformScoped.length) {
+    notes.push(`note ${platformScoped.length} 项能力显式声明为 scope:'platform'（供平台层使用，不要求包内引用）：${platformScoped.join(', ')}`)
+  }
+  const maxNotes = ARGV.includes('--max-notes') ? Number(ARGV[ARGV.indexOf('--max-notes') + 1]) : null
+  if (Number.isInteger(maxNotes) && notes.length > maxNotes) {
+    fail('notes-budget-exceeded', 'check-pack', `note 数 ${notes.length} 超过预算 ${maxNotes}（note 不拦截，但会累积成噪声）`)
   }
 }
 

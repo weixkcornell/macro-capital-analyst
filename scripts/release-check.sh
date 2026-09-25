@@ -8,7 +8,7 @@ rc=0
 run() { echo "── $1"; shift; "$@" || { echo "   ✗ 失败"; rc=1; }; }
 
 run "① 包自检 check-pack（版本 lockstep／doc lockstep／digest 可复现／占位符／fileRef 安全／bannedTokens 阈值）" \
-    node scripts/check-pack.mjs
+    node scripts/check-pack.mjs --max-notes 10
 run "② 门禁自校准 selftest-gates（42 例负向对照，必须全部按预期）" \
     env SELFTEST_CONCURRENCY="${SELFTEST_CONCURRENCY:-8}" node scripts/selftest-gates.mjs
 run "③ digest 是否需要重钉（dry-run）" \

@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",

@@ -15,12 +15,15 @@
 | `file-ref` | hard | SOURCE-MANIFEST 的 fileRefRoot 与 materials[].fileRef | root 必须声明；fileRef 不得含绝对路径/URL/内网地址 | fileRef 的存在性（38/38 材料按版权设计不分发，查存在性会全红） | `fileRef-root-undeclared`（有对照）、`fileRef-unsafe`（有对照） |
 | `ref-integrity` | hard | skillPackages.contributions / scenarios 引用 / SKILL.md 点名文件 / transport 路径参数 | 每个 id 与路径都必须解析到实际存在的对象或文件 | 被引用对象的"内容合适性"（只判可解析）；平台层解析的能力（如 wind/zyt/beike） | `skill-contribution-target-missing`（有对照）、`scenario-reference-missing`（有对照）、`skill-reference-missing`（有对照）、`transport-target-missing`（有对照） |
 | `scripts-syntax` | hard | scripts/ 与 skills/ 下的 .mjs/.js/.sh/.py | 语法可编译（node --check / bash -n / compile()） | 运行时行为（那由 selftest-gates 与 smoke-test 覆盖）；依赖是否装好 | `script-syntax-error`（有对照） |
-| `structure` | structural | 10 个维度的字段形状 ＋ 门禁四要素 ＋ documentStructure ＋ kb collection root ＋ .gitattributes | 必需字段/非空列表；门禁 id·kind·severity·appliesTo；章节 name/required；步骤编号不重复；collection root 不存在须显式声明；eol=lf | 字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空） | `structure-missing-field`（有对照）、`structure-empty-list`（有对照）、`structure-gate-missing-field`（有对照）、`structure-document-structure`（有对照）、`structure-duplicate-step`（有对照）、`structure-collection-root`（有对照）、`structure-gitattributes`（有对照）、`structure-gate-no-config`（有对照） |
+| `structure` | structural | 10 个维度的字段形状 ＋ 门禁四要素 ＋ documentStructure ＋ kb collection root ＋ .gitattributes | 必需字段/非空列表；门禁 id·kind·severity·appliesTo；章节 name/required；步骤编号不重复；collection root 不存在须显式声明；eol=lf | 字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空） | `structure-missing-field`（有对照）、`structure-empty-list`（有对照）、`structure-gate-missing-field`（有对照）、`structure-document-structure`（有对照）、`structure-duplicate-step`（有对照）、`structure-collection-root`（有对照）、`structure-gitattributes`（有对照）、`structure-gate-no-config`（有对照）、`template-sections-misaligned`（有对照）、`pack-metadata-missing`（有对照） |
 | `doc-script-ref` | structural | *.md 与 .github/workflows/*.yml 中点名的 scripts/ 路径 | 点名即必须存在 | 文档里点名的非 scripts/ 路径；文档叙述是否仍准确 | `doc-script-ref-missing`（有对照） |
 | `workflow-basic` | structural | .github/workflows/*.yml | 存在 on: 与 jobs: 两块 | YAML 语法是否合法、job 能否真跑（CI 由平台执行） | `workflow-basic`（有对照） |
 | `gitignore-rule` | structural | .gitignore | 必须忽略 engine/ 与 __pycache__ | 是否还有其他该忽略而未忽略的路径（人工判断） | `gitignore-rule`（有对照） |
 | `license-consistency` | structural | LICENSE 与包内声明的 license | LICENSE 文本须包含包内声明的每一项 license 名 | 许可证法务层面的适用性（文本存在 ≠ 授权链完整） | `license-consistency`（有对照） |
 | `csv-structure` | structural | data-contracts/*.csv | 表头须含 capability/method/caliber/unit；每行列数一致；capability 值唯一；无 UTF-8 BOM | 各列取值的语义正确性（如单元是否正确）；与产物的实际使用是否一致 | `csv-structure`（有对照） |
+| `caliber-declared` | structural | data-contracts/*.csv 的 caliber 列 | 每一行的 caliber 必须能对上 pack.json 的 caliberDeclarations 键或 caliberAliases 值 | 口径取值的正确性（只判"有声明"，不判"用得对不对"） | `caliber-undeclared`（有对照） |
+| `capability-usage` | advisory | experts[].capabilities 的引用情况 | 未被包内引用、且未标 scope:platform 的能力 → note（可能是漏标，也可能拼错） | 不做判定；被标 platform 的项默认视为合理 | — |
+| `notes-budget` | structural | check-pack 自身的 note 数量 | --max-notes N 时，note 数不得超过 N（CI/release-check 会带上） | note 的语义重要性（只计数量） | `notes-budget-exceeded`（有对照） |
 | `contract-vs-tools` | advisory | data-contracts/capability-contract.csv ↔ toolProviders.capabilities | 两者 capability 名不完全对应时给 note（不同口径，非缺陷） | 不做判定：二者分别描述"数据引擎契约"与"包内可调度能力" | — |
 | `platform-resolution` | advisory | scenarios[].toolPolicy.allowed 中未由本包声明的能力 | 按能力聚合为一条 note（列出出现场景） | 平台是否真的提供这些能力、凭据是否可用 | — |
 | `coverage` | advisory | 包内全部文件 | 登记"哪个判据读过哪个文件"，输出 有针对性判据／仅通用扫描／没人读 与强度分布 | 判据本身的强度（"被 hard 判据读过"≠"该文件被充分验证"） | — |
@@ -152,7 +155,9 @@
    "structure-duplicate-step",
    "structure-collection-root",
    "structure-gitattributes",
-   "structure-gate-no-config"
+   "structure-gate-no-config",
+   "template-sections-misaligned",
+   "pack-metadata-missing"
   ]
  },
  {
@@ -203,6 +208,34 @@
   "notChecked": "各列取值的语义正确性（如单元是否正确）；与产物的实际使用是否一致",
   "codes": [
    "csv-structure"
+  ]
+ },
+ {
+  "id": "caliber-declared",
+  "level": "structural",
+  "subject": "data-contracts/*.csv 的 caliber 列",
+  "scope": "每一行的 caliber 必须能对上 pack.json 的 caliberDeclarations 键或 caliberAliases 值",
+  "notChecked": "口径取值的正确性（只判\"有声明\"，不判\"用得对不对\"）",
+  "codes": [
+   "caliber-undeclared"
+  ]
+ },
+ {
+  "id": "capability-usage",
+  "level": "advisory",
+  "subject": "experts[].capabilities 的引用情况",
+  "scope": "未被包内引用、且未标 scope:platform 的能力 → note（可能是漏标，也可能拼错）",
+  "notChecked": "不做判定；被标 platform 的项默认视为合理",
+  "codes": []
+ },
+ {
+  "id": "notes-budget",
+  "level": "structural",
+  "subject": "check-pack 自身的 note 数量",
+  "scope": "--max-notes N 时，note 数不得超过 N（CI/release-check 会带上）",
+  "notChecked": "note 的语义重要性（只计数量）",
+  "codes": [
+   "notes-budget-exceeded"
   ]
  },
  {

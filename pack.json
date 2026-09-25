@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "schemaVersion": 2,
   "name": "观澜 · 宏观与资本市场分析师领域包",
   "description": "个人专家「观澜」：融会 17 部专著 + 2 套基础教材 + 2 份大类资产配置研报 + 17 篇学术论文（共 38 源 / 43 份精读）的独立宏观与 A 股分析师。第 0 层基准与目标函数 + 九层能力 + 主动收益框架 + 两道横切闸门（闸门 A 正反双校准）+ 六步内化流程 + 凯利分层下注上限，具备一手数据自算、因子归因、周期定位与持续自主学习能力。",
@@ -9,5 +9,23 @@
     "央行": "人民银行货币金融统计口径（社融 / M 层次）",
     "公开K线": "新浪 / 腾讯公开行情 K 线自算口径（四档分位 / 年化波动 / 最大回撤 / 相关矩阵）",
     "Wind": "Wind EDB 口径（可选主定量源，非本机默认）"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/weixkcornell/macro-capital-analyst",
+  "homepage": "https://github.com/weixkcornell/macro-capital-analyst#readme",
+  "keywords": [
+    "macro",
+    "a-share",
+    "asset-allocation",
+    "expert-profile",
+    "zhijian",
+    "domain-pack"
+  ],
+  "author": "观澜（weixkcornell）",
+  "caliberAliases": {
+    "公开K线": "新浪/腾讯公开K线自算口径",
+    "统计局": "统计局口径",
+    "央行": "央行货币金融统计口径",
+    "Wind": "Wind EDB 口径"
   }
 }
