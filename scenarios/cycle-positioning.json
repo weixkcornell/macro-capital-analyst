@@ -1,7 +1,7 @@
 {
   "id": "cycle-positioning",
   "name": "宏观周期定位与风格配置研判",
-  "version": "2.4.12",
+  "version": "2.4.13",
   "schemaVersion": 2,
   "domain": "macro.cycle",
   "intents": [

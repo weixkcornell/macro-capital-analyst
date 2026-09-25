@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.12-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.13-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -137,6 +137,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.13**（2026-09-25）：**修一处被自己跑单变成假话的陈述 ＋ 登记第二单实跑** —— ① 验收清单原写「v2.3.0 之后的增补**尚未经端到端实跑**」；本轮在 **v2.4.12** 上完成了**第二单端到端交付**（场景 `a-share-outlook`，数据边界 2026-09-24）⇒ 该陈述已成假话，**改为如实记述两单各自的版本口径**。**这正是本仓一直在治的形态：陈述在写下时为真、对象演进后未同步。** ② 新增**第二单试运行记录**：`final.md`（六节齐全）＋ `index.html`（自包含渲染）＋公网链接；**交付级门禁全通过**（数字三方对撞 44/44、章节 6/6、占位符与未注入空值 0、禁例 0、五档视口 0 溢出、对比度 573/573）；**两道闸门均不通过**（A：t = −0.30、校正后存活 0、Deflated Sharpe 0.0004、Haircut 缺原文标 unknown；B：成本 0/5 可得、E[R_A] = −308.5 bp/年）⇒ **不发布任何配置结论**。 ③ 该单同时回填了包的三个缺口（见 v2.4.12）。
 
 - **2.4.12**（2026-09-25）：**把一次真实交付暴露的三个缺口回填进包**（三条都不是想出来的，是跑单当场撞出来的） —— ① **任务必须有"产物路径"**：新增判据 `task-deliverable-paths-missing` —— 每个组队模板任务必须声明非空、非绝对路径的 `deliverablePaths`；两条模板（a-share-outlook／cycle-positioning）已逐任务补上。**动机**：跑单中两个执行代理**写完中间产物就停止、交付物缺失**，而任务定义里只有"标题＋描述" ⇒ **"执行者说它做了"与"产物真的在"无法区分**。**"完成"的证据是文件存在且被复核。** ② **写法约定写进写作者看得到的地方**：两个输出模板的 `dataRules` 新增 `writingRules` 四条 —— **交付物不得出现来源标识（方法名可用、作者名不可）**；**引用他人结论必须带发布日**；**每个数字带口径与数据期且能在底座找到证据**；**报告生成器必须自带空值自检**。**动机**：跑单时禁例门禁抓到正文引「某某等 (2015)」的作者名（`Harvey` ×2）—— **规则本来只在 `quality-policies` 的禁例表里，写作者看不到**。 ③ **交付级门禁第 ③ 项扩展为"占位符 ＋ 未注入空值"**：`None/nan/inf` 只要**紧邻数字或单位**即判失败（不误报英文散文）。**动机**：跑单中生成器一个旧键名写错，把 `10Y 国债 None%`、`ERP Nonepp` 渲染进了正文，而**数字一致性门禁只核对数字、抓不到 `None`** ⇒ 五道门禁全绿而缺陷已进正文。该扩展已用注入 `None%` 的负例端到端验过（命中 1 处、退出码 1）。 另：判据登记表同步（自有 code 44 个，全部有负向对照）。
 

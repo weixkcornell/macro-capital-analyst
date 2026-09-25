@@ -2,7 +2,7 @@
 
 > 平台评审按此逐项打勾；先自检再提交。
 
-- [x] `pack.json`（id=macro-capital-analyst / version=2.4.12 / schemaVersion=2 / caliberDeclarations 四类口径）
+- [x] `pack.json`（id=macro-capital-analyst / version=2.4.13 / schemaVersion=2 / caliberDeclarations 四类口径）
 - [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，38 份材料）
 - [x] `scenarios/*.json`（DAG 依赖无环、专家 id 全部可解析、deliverable 明确；共 2 个）
 - [x] `output-templates/` + `quality-policies/`（起步门禁 10 道覆盖数字一致与禁例 token；含 `gate-a-double-calibration` / `net-active-return-required` / `active-risk-budget` 硬门，且每道门均有 team template 绑定）
@@ -29,7 +29,12 @@
   - **GATE 文件**：门禁脚本 **11 件全部钉扎 sha256**（`final.md.freeze#toolchain_pins`，逐件对磁盘复算 11/11 一致）；摘要—正文—底座三方对撞 **47/47 PASS**；对比度 **1542 节点 0 失败**（抽样口径曾漏 12 处，见该单记录）；判决语白名单 6 态 + 逐字溯源 PASS。
   - **匿名化对外样本**：公网看板 `https://yy.meizu.life/render/观澜-a股观点看板/a-share-outlook-20260915.html` —— 对外只列「领域 · 首字母」，无真实人名、无内网地址；团队活动面板快照另发布一份（仅本团队、已排除其他团队内容）。
   - **放行判定**：**报告层 GO**；**报告内配置结论（超配/低配/轮动）不发布** —— 闸门 A 不通过（红利相对沪深300 全样本年化超额 t=0.31 ≪ 3.0，样本 6.7 年，BH-FDR/Bonferroni 存活 0），闸门 B 不通过（实施成本篮子不完整且类别错配）。
-  - **版本口径（诚实声明）**：该单运行在**本机 `domain-packs/` 的 v2.2.0 安装副本**上 ⇒ 它验证的是 **v2.2.0** 的场景/组队/门禁链端到端可用；**v2.3.0 与 v2.4.1 的增补（含本版 `i1_collision_check.py` 修复）尚未经端到端实跑**（本版修复的缺陷正是由该单发现的）。
+  - **版本口径（诚实声明）**：该单运行在**本机 `domain-packs/` 的 v2.2.0 安装副本**上 ⇒ 它验证的是 **v2.2.0** 的场景/组队/门禁链端到端可用；v2.3.0 之后的增补当时尚未实跑（本版 `i1_collision_check.py` 的修复正是由该单发现的）。
+- [x] **试运行记录（第二单，2026-09-25）：端到端一单跑在 v2.4.12 上** —— 场景 `a-share-outlook`；数据边界 **2026-09-24 收盘**（宏观 2026-08、LPR 截至 2026-09-20、10Y 国债 2026-09-23）。**此前"2.3.0 之后的增补未实跑"的口径由此关闭。**
+  - **产物**：`final.md`（六节齐全）＋ `index.html`（按模板 `rendering` 声明的自包含 HTML5）；公网：`https://yy.meizu.life/render/观澜-a股观点看板/a-share-outlook-20260924.html`（线上与磁盘逐字节一致）。
+  - **交付级门禁（判据全部从包里读）**：数字三方对撞 **44/44**｜章节 **6/6**｜占位符与未注入空值 **0**｜禁例 token **0**｜渲染五档视口 **0 溢出**、对比度 **573/573** ⇒ **全通过**。
+  - **两道闸门**：**A 不通过**（主假设 t = −0.30，7 个假设校正后存活 0，Deflated Sharpe 0.0004；Haircut 口径缺原文标 unknown）｜**B 不通过**（成本五度量 0/5 可得 ⇒ 无净额；E[R_A] = −308.5 bp/年）⇒ **不发布任何超配/低配/轮动结论**。
+  - **本单对包的三个回填**（均为当场撞出来的缺口，见 v2.4.12 发布说明）：任务产物路径 `deliverablePaths`＋判据／写法约定入 `dataRules.writingRules`／交付门禁第③项扩展为"占位符＋未注入空值"。
 - [x] **文档与元数据完整**（`README.en.md` 英文概览／`CONTRIBUTING.md` 贡献指南／`knowledge/experts/macro-capital-analyst/README.md` 知识底座自建说明；`pack.json` 含 `license`/`repository`/`homepage`/`keywords`/`author`，由 `pack-metadata-missing` 判据把关）
 - [x] 全部 JSON 可解析（`python3 -m json.tool`）
 - [x] 全部【替换：…】占位符已清除
