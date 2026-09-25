@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
   "description": "包内可执行工具。数据获取走平台 provider 层（wind / zyt / beike）与公开口径自算，本包不自建数据引擎。",
@@ -23,7 +23,11 @@
         "skills/macro-capital-framework/references/scripts/i1_collision_check.py"
       ],
       "readOnly": true,
-      "timeoutMs": 120000
+      "timeoutMs": 120000,
+      "smokeArgs": [
+        "--selftest"
+      ],
+      "smokeNote": "声明即承诺：scripts/smoke-test.mjs 照 smokeArgs 真跑一次本 transport —— 静态存在性由 check-pack 把关，可执行性由本字段把关。"
     }
   ]
 }

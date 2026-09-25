@@ -21,3 +21,5 @@ jobs:
         run: node scripts/repin-digests.mjs --dry-run
       - name: i1 解析层自检（8 例含负向样本）
         run: python3 skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest
+      - name: 冒烟测试（照 transport 的 smokeArgs 真跑一次）
+        run: node scripts/smoke-test.mjs

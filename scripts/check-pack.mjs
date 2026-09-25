@@ -201,10 +201,14 @@ const toolCaps = new Set()
 for (const p of pack.toolProviders ?? []) for (const c of p.capabilities ?? []) toolCaps.add(c.capability)
 const knowledgeCaps = new Set() // eslint-disable-line
 for (const p of pack.knowledgeProviders ?? []) for (const c of p.capabilities ?? []) knowledgeCaps.add(c)
+// 平台层解析的能力按【能力】聚合成一条 note：同一能力出现在 2 个场景里就是 2 条重复噪声，
+// 而噪声会把真正的告警淹掉（note 合并后由"按场景列出"改为"按能力列出 + 出现场景"）。
+const platformResolved = new Map()
 for (const s of pack.scenarios ?? []) {
   for (const cap of s.toolPolicy?.allowed ?? []) {
     if (toolCaps.size > 0 && !toolCaps.has(cap)) {
-      notes.push(`note toolPolicy.allowed "${cap}" (scenario ${s.id}) is not declared by any pack toolProvider — resolved from the platform provider layer`)
+      if (!platformResolved.has(cap)) platformResolved.set(cap, [])
+      platformResolved.get(cap).push(s.id)
     }
   }
   for (const need of s.knowledgePolicy?.required ?? []) {
@@ -216,6 +220,10 @@ for (const s of pack.scenarios ?? []) {
       fail('unknown-knowledge-scope', `scenarios.${s.id}.knowledgePolicy`, `provider "${providerId}" declares scopes [${provider.scopes.join(', ')}] but "${need}" asks for "${scope}"`)
     }
   }
+}
+if (platformResolved.size) {
+  const parts = [...platformResolved].map(([cap, scens]) => `"${cap}"（${scens.join('/')}）`)
+  notes.push(`note ${platformResolved.size} 个 toolPolicy.allowed 能力未由本包 toolProvider 声明，走【平台 provider 层】解析：${parts.join('、')}`)
 }
 
 // ---------------------------------------------------------------- 7. bannedTokens derived from knowledge manifest
@@ -362,9 +370,10 @@ if (pack.pack?.version) {
   }
   const SKIP_DIRS = new Set(['.git', 'engine', '__pycache__', 'node_modules'])
   const EXT = /\.(json|md|mjs|js|cjs|csv|ya?ml|py|sh|txt)$/
-  // 显式豁免：文件里写了 `check-pack-allow: placeholder-residue` 即整文件跳过，并【打印一条 note】
-  // ——豁免必须是声明的、可 grep 的、可见的；不做模式猜测（谁需要豁免谁写明）。
-  const EXEMPT = /check-pack-allow:\s*placeholder-residue/
+  // 显式豁免：**行首注释**写 `check-pack-allow: placeholder-residue` 即整文件跳过，并【打印一条 note】。
+  // 必须是行首注释而不是任意出现 —— 否则"提及这个标记"（文档里写它、或本文件的正则字面量）会被当成"声明"，
+  // 又回到 use/mention 混淆。豁免是声明的、可 grep 的、可见的。
+  const EXEMPT = /^[ \t]*(?:\/\/|#|<!--)[ \t]*check-pack-allow:[ \t]*placeholder-residue/m
   const walk = d => {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name)) walk(join(d, e.name)); continue }
@@ -409,6 +418,59 @@ if (pack.pack?.version) {
     const onlyPack = [...declaredCaps].filter(c => !csvCaps.includes(c))
     if (onlyCsv.length || onlyPack.length) {
       notes.push(`note 数据契约表与 toolProviders 的 capability 名不完全对应（不同口径，非缺陷）：表内 ${csvCaps.length} 条（${onlyCsv.length} 条走平台层解析）／包内声明 ${declaredCaps.size} 条（${onlyPack.length} 条未入表）—— 关系见 tool-providers 的 note 字段`)
+    }
+  }
+}
+
+// ---------------------------------------------------------------- 13. 引用完整性（平台无关兜底）
+// 为什么需要它：3/4/5/6 依赖平台校验器，而 CI 里没有私有库 ⇒ 那几条在 CI 中是 skip。
+// 若不做这层兜底，"引用了不存在的东西"在 CI 上就是全盲（本地能拦、CI 拦不住 = 最坏的组合）。
+{
+  const ids = k => new Set((pack[k] ?? []).map(e => e.id))
+  const expertIds = ids('experts'), otIds = ids('outputTemplates'), qpIds = ids('qualityPolicies')
+  const ttIds = ids('teamTemplates'), kpIds = ids('knowledgeProviders'), spIds = ids('skillPackages')
+  const capIds = new Set((pack.toolProviders ?? []).flatMap(p => (p.capabilities ?? []).map(c => c.capability)))
+  const CONTRIB = {
+    methodPacks: ids('methodPacks'), knowledgeProviders: kpIds, outputTemplates: otIds,
+    qualityPolicies: qpIds, teamTemplates: ttIds, toolRequirements: capIds,
+  }
+  for (const sp of pack.skillPackages ?? []) {
+    for (const [k, list] of Object.entries(sp.contributions ?? {})) {
+      const target = CONTRIB[k]
+      if (!target) { notes.push(`note skillPackages.${sp.id}.contributions 含未纳入校验的类别 "${k}"（请把它加进 CONTRIB 映射）`); continue }
+      for (const ref of list ?? []) {
+        if (!target.has(ref)) fail('skill-contribution-target-missing', `skillPackages.${sp.id}.contributions.${k}`, `"${ref}" 不在 ${k} 维度中`)
+      }
+    }
+  }
+  for (const s of pack.scenarios ?? []) {
+    if (s.teamTemplate && !ttIds.has(s.teamTemplate)) fail('scenario-reference-missing', `scenarios.${s.id}`, `teamTemplate "${s.teamTemplate}" 不存在`)
+    if (s.outputTemplate && !otIds.has(s.outputTemplate)) fail('scenario-reference-missing', `scenarios.${s.id}`, `outputTemplate "${s.outputTemplate}" 不存在`)
+    if (s.qualityPolicy && !qpIds.has(s.qualityPolicy)) fail('scenario-reference-missing', `scenarios.${s.id}`, `qualityPolicy "${s.qualityPolicy}" 不存在`)
+    if (s.skill?.id && !spIds.has(s.skill.id)) fail('scenario-reference-missing', `scenarios.${s.id}.skill`, `skill "${s.skill.id}" 不在 skillPackages 中`)
+    for (const t of s.tasks ?? []) {
+      if (t.expert && !expertIds.has(t.expert)) fail('scenario-reference-missing', `scenarios.${s.id}.tasks.${t.id}`, `expert "${t.expert}" 不存在`)
+    }
+  }
+  // 技能目录内被 SKILL.md 点名的文件必须真的在
+  for (const sp of pack.skillPackages ?? []) {
+    if (sp.source?.kind !== 'workspace' || !sp.source?.root) continue
+    const skillMd = resolve(dir, sp.source.digestTarget ?? `${sp.source.root}/SKILL.md`)
+    if (!existsSync(skillMd)) continue            // 缺 SKILL.md 由 digest 检查负责报
+    const refs = new Set([...readText(skillMd).matchAll(/(?:^|[\s`(])((?:references|scripts|assets)\/[A-Za-z0-9._\-/]+)/g)]
+      .map(m => m[1].replace(/[.,)]+$/, '')))
+    for (const r of refs) {
+      if (!existsSync(resolve(dir, sp.source.root, r))) fail('skill-reference-missing', `${sp.source.root}/${r}`, 'SKILL.md 引用了不存在的文件')
+    }
+  }
+  // local-cli transport 的路径型参数必须存在（声明即承诺可执行）
+  for (const p of pack.toolProviders ?? []) {
+    for (const t of p.transports ?? []) {
+      for (const a of t.args ?? []) {
+        if (a.includes('/') && /\.[A-Za-z0-9]+$/.test(a) && !existsSync(resolve(dir, a))) {
+          fail('transport-target-missing', `toolProviders.${p.id}.transports.${t.id}`, `args 里的路径不存在：${a}`)
+        }
+      }
     }
   }
 }

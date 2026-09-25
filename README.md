@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.3-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.4-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -128,6 +128,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.4**（2026-09-25）：**补上 CI 模式的检查真空 ＋ 动态冒烟 ＋ 修豁免判定的 use/mention 混淆** —— ① **新增四项【平台无关】引用完整性门禁**：`skill-contribution-target-missing`（`skillPackages.contributions` 的每个 id 必须在对应维度里存在）、`scenario-reference-missing`（`teamTemplate`/`outputTemplate`/`qualityPolicy`/`skill.id`/`tasks[].expert` 必须可解析）、`skill-reference-missing`（SKILL.md 点名的 `references/`·`scripts/`·`assets/` 文件必须真的在）、`transport-target-missing`（`local-cli` transport 的路径型 `args` 必须存在）。**动机**：检查 3/4/5/6 依赖平台校验器，而 CI 里没有私有库 ⇒ 那几条在 CI 是 `skip`；不兜底就形成**最坏的组合——本地能拦、CI 拦不住**。 ② **新增 `scripts/smoke-test.mjs` ＋ transport 声明 `smokeArgs`**：`check-pack` 只能证明"声明的路径存在"（静态），本项**照声明真跑一次**（动态）——`collision-cli` 即 `python3 …/i1_collision_check.py --selftest`，跑不通即 FAIL；没写 `smokeArgs` 的 transport 只做静态核对。**声明即承诺。** ③ **修豁免判定的 use/mention 混淆**：`check-pack-allow: placeholder-residue` 原先"文件里出现即算声明"⇒ **文档里提到该标记、以及脚本自己的正则字面量，都会被误判为"已声明豁免"**（实测三处假豁免：README、RELEASING、check-pack 自身）。现要求**行首注释**形式才算声明 ⇒ 只剩真正需要它的 `selftest-gates.mjs` 一处，且每处豁免都会打印 note。 ④ **note 去重聚合**：`toolPolicy.allowed` 的平台层解析原先按"场景 × 能力"报 6 条重复 note，现按能力聚合成 1 条（列出出现场景）—— 噪声会淹掉真告警。 ⑤ 发布前检查扩为**五件套**（`release-check.sh` 与 CI 同步加上冒烟测试）。
 - **2.4.3**（2026-09-24）：**门禁可被第三方/CI 复跑 ＋ 修三处真缺陷 ＋ 手工步骤脚本化** ——
   ① **修真缺陷**：(a) `check-pack.mjs` 在包加载失败时**崩栈**（`Cannot access 'pack' before initialization`，该路径自 2.3.0 既有）⇒ 改为打印诊断；(b) `data-contracts/capability-contract.csv` 带 **UTF-8 BOM**，列名实际是 `\uFEFFcapability` ⇒ 去 BOM 并统一 BOM 安全读取；(c) **`bannedTokens` 判据过宽**：原先把「预期收益／风险管理／国家统计局／Backtesting／Carry」等**通用术语**也算成"应入禁例"⇒ 该告警永不收敛。现拆为 **covered ／ allowlist（通用术语，明确不得入禁例）／ review（待人工判定，有上限）／ strict（真缺口，阈值 0）**，并补齐 29 条专名/篇名 ⇒ **覆盖 85/85**。
   ② **平台校验器改为可选**（缺 `EXPERT_LIB_ROOT` 时 skip 并声明，其余检查照跑）⇒ 新增 **CI**（`.github/workflows/check.yml` 跑包自检／门禁自校准／digest dry-run／i1 自检）与 **`.gitattributes`**（强制 `eol=lf`：digest 目标是 `sha256(SKILL.md)`，CRLF 会让 digest 全体错位且现象不可见）。
