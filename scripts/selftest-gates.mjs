@@ -192,6 +192,16 @@ const CASES = [
     mutate: r => write(r, '.gitignore', read(r, '.gitignore').replace('engine/', '')),
   },
   {
+    name: 'CRITERIA.md 与代码登记表不一致',
+    expectCode: 'criteria-doc-drift',
+    mutate: r => replaceOnce(r, 'CRITERIA.md', /  "id": "validator",\n  "level": "hard",/, '  "id": "validator",\n  "level": "soft",'),
+  },
+  {
+    name: 'CSV 表头缺必需列（capability）',
+    expectCode: 'csv-structure',
+    mutate: r => replaceOnce(r, 'data-contracts/capability-contract.csv', /^capability,/, 'capabilityX,'),
+  },
+  {
     name: 'transport 的路径参数不存在',
     expectCode: 'transport-target-missing',
     mutate: r => {

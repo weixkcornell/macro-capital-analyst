@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.6-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.7-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -128,6 +128,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.7**（2026-09-25）：**把"我们查了什么、没查什么"做成对外答卷** —— ① **新增判据登记表 `CRITERIA.md`（19 条）**：每条判据给出 `id`／**强度**（`hard` 错即坏／`structural` 缺即不完整／`advisory` 只出 note）／对象／量程／**不查什么**／可报出的 `code`。它由代码生成（`--criteria-md`），并由新判据 **`criteria-doc` 逐字比对**防漂移。 **意义**：`0 problems` 从此有明确适用范围 —— **范围之外不是"已验证"，是"没人看"**。 ② **覆盖率加强度分级**：输出 hard／structural／advisory 三档并**点名"仅 advisory 覆盖"的文件**（判据最软、优先加固）。当前 **37 文件：hard 27 ／ structural 10 ／ advisory 0 ／ 仅通用扫描 0 ／ 没人读 0**。 ③ **新增 `csv-structure`（structural）**：数据契约表须有必需列、行列数一致、`capability` 唯一、无 BOM。**其实现第一版误报 2 行**——用 `split(',')` 去切含逗号与引号转义的单元格；改为真正的 CSV 切分后归零。**判定对象是 CSV 就得按 CSV 读**，教训写进代码注释。 ④ **门禁自校准 19 → 21 例**（`criteria-doc-drift`／`csv-structure`）。 ⑤ 修一处参数解析缺陷：`--criteria-md <path>` 的**值**曾被当成包目录（崩栈）—— 取值型开关的值不再参与位置参数解析。
 
 - **2.4.6**（2026-09-25）：**收口：不许有"挂着的未决项"** —— ① `bannedTokens` 的两条 **review（待人工判定）落定为 allowlist**：`Trading Costs` 与 `Equity Risk Premiums` 都是**通用英文金融短语**（中文报告写「交易成本」「股权风险溢价」），把它们当禁例会**误伤合法的英文引述**；若将来要以"来源身份"拦截，应禁**更具体的完整篇名**，而不是这两个通用短语。判定理由写进策略字段 `allowlistDecisionNote`，不留在人的记忆里。 ② **`maxReviewPending` 由 5 收紧为 0** ⇒ 该门禁从此**不允许存在未决项**：有疑问必须当场判定并落进 `allowlist` 或 `bannedTokens`。**"待办"不是状态，是欠账。** ③ 现值：禁例 90 条／通用术语豁免 8 条／待判定 0 条，**覆盖 85/85**。
 

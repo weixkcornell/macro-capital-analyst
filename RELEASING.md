@@ -45,6 +45,16 @@ bash scripts/release-check.sh
 
 **任何一项红：不要发布。**
 
+改过判据（新增/修改 `check-pack` 的检查）之后，**必须重新生成判据登记表**：
+
+```bash
+node scripts/check-pack.mjs --criteria-md CRITERIA.md   # 生成（不要手改）
+node scripts/check-pack.mjs --criteria                   # 只在终端看
+```
+
+`CRITERIA.md` 是"我们到底查了什么、没查什么"的对外答卷：每条判据给出 对象／量程／**不查什么**／可报出的 code。
+`check-pack` 的 `criteria-doc` 判据会**逐字比对**该文件的 JSON 块与代码里的登记表，不一致即 FAIL。
+
 ## 4. 本地安装副本同步（平台读的是它，不是 git 仓）
 
 ```bash

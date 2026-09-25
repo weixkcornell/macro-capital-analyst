@@ -25,3 +25,5 @@ jobs:
         run: node scripts/smoke-test.mjs
       - name: 覆盖率报表（盲区必须可见）
         run: node scripts/check-pack.mjs --coverage
+      - name: 判据登记表在位且与代码一致（criteria-doc 判据）
+        run: node scripts/check-pack.mjs

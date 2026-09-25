@@ -13,13 +13,21 @@
  * notes 里含"人工清单落后于知识底座"这类**可行动**告警，全量给出、不截断。
  */
 import { createRequire } from 'node:module'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 
 const LIB = process.env.EXPERT_LIB_ROOT ?? '/root/zhijian/dsh-expert-library'
 const ARGV = process.argv.slice(2)
 const AS_JSON = ARGV.includes('--json')
-const dir = resolve(ARGV.find(a => !a.startsWith('--')) ?? '.')
+// 取值型开关（如 --criteria-md <path>）的**值**不是位置参数，不能被当成包目录 —— 踩过一次。
+const VALUE_FLAGS = new Set(['--criteria-md'])
+const POSITIONAL = []
+for (let i = 0; i < ARGV.length; i++) {
+  if (VALUE_FLAGS.has(ARGV[i])) { i++; continue }
+  if (ARGV[i].startsWith('--')) continue
+  POSITIONAL.push(ARGV[i])
+}
+const dir = resolve(POSITIONAL[0] ?? '.')
 
 /** 统一剥离 UTF-8 BOM。CSV/JSON 带 BOM 时，第一个键名会变成 "\uFEFFxxx"（静默错名）。 */
 const readText = p => readFileSync(p, 'utf8').replace(/^\uFEFF/, '')
@@ -34,6 +42,94 @@ const mark = (checkId, p) => {
   if (!touched.has(r)) touched.set(r, new Set())
   touched.get(r).add(checkId)
 }
+
+// ---------------------------------------------------------------- 0. 判据登记表（单一事实源）
+// 判据散在代码注释里，"我们到底查了什么、没查什么"就不可被外部审阅。
+// 这张表是唯一事实源：--criteria 打印它、--json 带它、CRITERIA.md 由它生成并由 criteria-doc-drift 校验。
+// level 三档：hard＝错即坏｜structural＝缺即不完整（形状/声明）｜advisory＝只出 note。
+const CRITERIA = [
+  { id: 'validator', level: 'hard', subject: '平台校验器（loadPackFromDirSync）的 error 诊断',
+    scope: 'schema 合法性、DAG 无环、门禁绑定、场景↔组队模板一致、策略解析',
+    notChecked: '平台未声明的语义（如"结论是否正确"）；无私有库时整条不运行（见 skip note）',
+    codes: ['（平台校验器自身的 code）'] },
+  { id: 'version-lockstep', level: 'hard', subject: 'pack.json 与 10 个维度的 version 字段',
+    scope: '全部实体/配置文件的 version 必须与 pack.json 一致',
+    notChecked: 'README/清单里的版本（那是 doc-version 的活）；脚本自身的"版本"',
+    codes: ['version-drift', 'missing-version'] },
+  { id: 'doc-version', level: 'hard', subject: 'README 徽章 / README 版本历史首条 / SUBMISSION-CHECKLIST 的 version=',
+    scope: '三处必须等于 pack.json 的 version；版本历史首条不得是占位（bump-version 生成）',
+    notChecked: 'README 正文里出现的其他版本字样（历史条目本就该保留旧版本号）',
+    codes: ['doc-version-drift', 'missing-version-badge', 'missing-version-history', 'missing-readme',
+      'missing-checklist', 'missing-checklist-version', 'release-note-placeholder'] },
+  { id: 'digest', level: 'hard', subject: 'skill-packages.source.digest 与 domain-knowledge.snapshot.digest',
+    scope: '必须有 digestTarget ＋ digestAlgorithm；当场按目标文件重算并比对',
+    notChecked: 'digest 的语义（digest 等于"内容指纹"，不等于"内容正确"）',
+    codes: ['digest-without-target', 'digest-target-missing', 'digest-mismatch', 'digest-algorithm-invalid'] },
+  { id: 'banned-tokens', level: 'hard', subject: 'SOURCE-MANIFEST 的题名/作者词干 与 quality-policies 的 bannedTokens',
+    scope: 'strict 缺口阈值 0；review 未决项上限 0；allowlist 为"明确不得入禁例"的通用术语',
+    notChecked: '产物内是否真的出现这些词（那是 quality-policy 的 banned-tokens 门在交付物上跑的）；禁例的语义恰当性（人工判定）',
+    codes: ['banned-tokens-gap', 'banned-tokens-review-backlog'] },
+  { id: 'placeholder-residue', level: 'hard', subject: '包内全部文本文件（json/md/mjs/py/csv/yml/sh/txt）',
+    scope: '【替换：<具体内容>】即残留；空体/省略号/正则写法/尖括号体/引述域＝记法不计',
+    notChecked: '产物里的占位符（由 quality-policy placeholder-clean 管）；语义层"该填而没填"',
+    codes: ['placeholder-residue'] },
+  { id: 'file-ref', level: 'hard', subject: 'SOURCE-MANIFEST 的 fileRefRoot 与 materials[].fileRef',
+    scope: 'root 必须声明；fileRef 不得含绝对路径/URL/内网地址',
+    notChecked: 'fileRef 的存在性（38/38 材料按版权设计不分发，查存在性会全红）',
+    codes: ['fileRef-root-undeclared', 'fileRef-unsafe'] },
+  { id: 'ref-integrity', level: 'hard', subject: 'skillPackages.contributions / scenarios 引用 / SKILL.md 点名文件 / transport 路径参数',
+    scope: '每个 id 与路径都必须解析到实际存在的对象或文件',
+    notChecked: '被引用对象的"内容合适性"（只判可解析）；平台层解析的能力（如 wind/zyt/beike）',
+    codes: ['skill-contribution-target-missing', 'scenario-reference-missing',
+      'skill-reference-missing', 'transport-target-missing'] },
+  { id: 'scripts-syntax', level: 'hard', subject: 'scripts/ 与 skills/ 下的 .mjs/.js/.sh/.py',
+    scope: '语法可编译（node --check / bash -n / compile()）',
+    notChecked: '运行时行为（那由 selftest-gates 与 smoke-test 覆盖）；依赖是否装好',
+    codes: ['script-syntax-error'] },
+  { id: 'structure', level: 'structural', subject: '10 个维度的字段形状 ＋ 门禁四要素 ＋ documentStructure ＋ kb collection root ＋ .gitattributes',
+    scope: '必需字段/非空列表；门禁 id·kind·severity·appliesTo；章节 name/required；步骤编号不重复；collection root 不存在须显式声明；eol=lf',
+    notChecked: '字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空）',
+    codes: ['structure-missing-field', 'structure-empty-list', 'structure-gate-missing-field',
+      'structure-document-structure', 'structure-duplicate-step', 'structure-collection-root', 'structure-gitattributes'] },
+  { id: 'doc-script-ref', level: 'structural', subject: '*.md 与 .github/workflows/*.yml 中点名的 scripts/ 路径',
+    scope: '点名即必须存在',
+    notChecked: '文档里点名的非 scripts/ 路径；文档叙述是否仍准确',
+    codes: ['doc-script-ref-missing'] },
+  { id: 'workflow-basic', level: 'structural', subject: '.github/workflows/*.yml',
+    scope: '存在 on: 与 jobs: 两块',
+    notChecked: 'YAML 语法是否合法、job 能否真跑（CI 由平台执行）',
+    codes: ['workflow-basic'] },
+  { id: 'gitignore-rule', level: 'structural', subject: '.gitignore',
+    scope: '必须忽略 engine/ 与 __pycache__',
+    notChecked: '是否还有其他该忽略而未忽略的路径（人工判断）',
+    codes: ['gitignore-rule'] },
+  { id: 'license-consistency', level: 'structural', subject: 'LICENSE 与包内声明的 license',
+    scope: 'LICENSE 文本须包含包内声明的每一项 license 名',
+    notChecked: '许可证法务层面的适用性（文本存在 ≠ 授权链完整）',
+    codes: ['license-consistency'] },
+  { id: 'csv-structure', level: 'structural', subject: 'data-contracts/*.csv',
+    scope: '表头须含 capability/method/caliber/unit；每行列数一致；capability 值唯一；无 UTF-8 BOM',
+    notChecked: '各列取值的语义正确性（如单元是否正确）；与产物的实际使用是否一致',
+    codes: ['csv-structure'] },
+  { id: 'contract-vs-tools', level: 'advisory', subject: 'data-contracts/capability-contract.csv ↔ toolProviders.capabilities',
+    scope: '两者 capability 名不完全对应时给 note（不同口径，非缺陷）',
+    notChecked: '不做判定：二者分别描述"数据引擎契约"与"包内可调度能力"',
+    codes: [] },
+  { id: 'platform-resolution', level: 'advisory', subject: 'scenarios[].toolPolicy.allowed 中未由本包声明的能力',
+    scope: '按能力聚合为一条 note（列出出现场景）',
+    notChecked: '平台是否真的提供这些能力、凭据是否可用',
+    codes: [] },
+  { id: 'coverage', level: 'advisory', subject: '包内全部文件',
+    scope: '登记"哪个判据读过哪个文件"，输出 有针对性判据／仅通用扫描／没人读 与强度分布',
+    notChecked: '判据本身的强度（"被 hard 判据读过"≠"该文件被充分验证"）',
+    codes: [] },
+  { id: 'criteria-doc', level: 'hard', subject: 'CRITERIA.md 与上面的 CRITERIA 登记表',
+    scope: 'CRITERIA.md 必须存在，且其 ```json 代码块与登记表逐字一致',
+    notChecked: '文档措辞的可读性；登记表"是否覆盖了所有该有的判据"（需要人工审阅）',
+    codes: ['criteria-doc-missing', 'criteria-doc-drift'] },
+]
+const criteriaJson = JSON.stringify(CRITERIA, null, 1)
+
 
 const DIMENSIONS = ['experts', 'teamTemplates', 'outputTemplates', 'qualityPolicies',
   'scenarios', 'methodPacks', 'toolProviders', 'knowledgeProviders', 'domainKnowledge', 'skillPackages']
@@ -438,8 +534,49 @@ if (pack.pack?.version) {
   }
 }
 
-// ---------------------------------------------------------------- 12. 数据契约表 ↔ toolProviders（对照）
+// ---------------------------------------------------------------- 12. 数据契约表：结构 ＋ 与 toolProviders 对照
+// 结构（structural）：表头必需列、行列数一致、capability 唯一、无 BOM。
+// 对照（advisory）：与包内声明的能力名不完全对应只给 note（两种口径，非缺陷）。
 {
+  const csvDir = resolve(dir, 'data-contracts')
+  if (existsSync(csvDir)) {
+    for (const f of readdirSync(csvDir).filter(n => n.endsWith('.csv'))) {
+      const rel = `data-contracts/${f}`
+      const abs = resolve(dir, rel)
+      mark('csv-structure', abs)
+      const raw = readFileSync(abs)
+      if (raw[0] === 0xEF && raw[1] === 0xBB && raw[2] === 0xBF) fail('csv-structure', rel, '带 UTF-8 BOM：列名会变成 "\uFEFFxxx"（下游静默错名）')
+      // ⚠ 必须用真正的 CSV 切分（单元格内含逗号 + 引号转义）：本检查第一版用 split(',')，
+      // 在真实文件上误报 2 行"列数不符" —— 是检查错，不是文件错。判定对象是 CSV，就得按 CSV 读。
+      const splitCsvLine = line => {
+        const out = []; let cur = '', q = false
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i]
+          if (q) {
+            if (ch === '"') { if (line[i + 1] === '"') { cur += '"'; i++ } else q = false }
+            else cur += ch
+          } else if (ch === '"') q = true
+          else if (ch === ',') { out.push(cur); cur = '' }
+          else cur += ch
+        }
+        out.push(cur)
+        return out
+      }
+      const lines = readText(abs).split(/\r?\n/).filter(l => l.trim())
+      if (lines.length === 0) { fail('csv-structure', rel, '空文件'); continue }
+      const header = splitCsvLine(lines[0]).map(h => h.trim())
+      for (const col of ['capability', 'method', 'caliber', 'unit']) {
+        if (!header.includes(col)) fail('csv-structure', rel, `表头缺列 ${col}（现有：${header.join('/')}）`)
+      }
+      const rows = lines.slice(1)
+      rows.forEach((l, i) => {
+        const n = splitCsvLine(l).length
+        if (n !== header.length) fail('csv-structure', rel, `第 ${i + 2} 行有 ${n} 列，表头是 ${header.length} 列`)
+      })
+      const caps = rows.map(l => splitCsvLine(l)[0].trim()).filter(Boolean)
+      if (new Set(caps).size !== caps.length) fail('csv-structure', rel, `capability 值有重复：${caps.join(',')}`)
+    }
+  }
   const csvPath = resolve(dir, 'data-contracts/capability-contract.csv')
   if (existsSync(csvPath)) {
     mark('contract', csvPath)
@@ -583,6 +720,27 @@ if (pack.pack?.version) {
   else if (!/eol=lf/.test(readText(gaPath))) fail('structure-gitattributes', '.gitattributes', '未声明 eol=lf')
 }
 
+// ---------------------------------------------------------------- 12b. 判据文档一致性（CRITERIA.md）
+// 文档型判据：CRITERIA.md 必须存在，且其 json 代码块与代码里的登记表逐字一致。
+{
+  const docPath = resolve(dir, 'CRITERIA.md')
+  mark('criteria-doc', docPath)
+  if (!existsSync(docPath)) {
+    fail('criteria-doc-missing', 'CRITERIA.md', '缺失 —— 运行 `node scripts/check-pack.mjs --criteria-md CRITERIA.md` 生成')
+  } else {
+    const m = readText(docPath).match(/```json\n([\s\S]*?)\n```/)
+    if (!m) fail('criteria-doc-drift', 'CRITERIA.md', '找不到 json 代码块（登记表正文）')
+    else {
+      let doc
+      try { doc = JSON.stringify(JSON.parse(m[1]), null, 1) }
+      catch (e) { fail('criteria-doc-drift', 'CRITERIA.md', `json 块无法解析：${e.message}`) }
+      if (doc !== undefined && doc !== criteriaJson) {
+        fail('criteria-doc-drift', 'CRITERIA.md', '登记表与代码不一致 —— 重跑 --criteria-md 重新生成（不要手改）')
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------- 13b. 覆盖率归属（对象→源文件）
 // 判据读的是"装好的对象"，覆盖率的读者关心的是"源文件有没有被判据看过"。
 // 这里把二者如实对应起来：某维度被判据 X 查过 ⇒ 其源文件记为被 X 覆盖。
@@ -602,6 +760,7 @@ if (pack.pack?.version) {
     for (const d of dims) for (const f of dimFiles[d] ?? []) mark(checkId, f)
   }
 }
+
 
 // ---------------------------------------------------------------- 15b. 脚本/文档/杂项完整性
 // 覆盖率报表把这些文件标成"没人看"，本节点掉它们：
@@ -697,17 +856,28 @@ if (ARGV.includes('--coverage')) {
     }
   }
   if (existsSync(dir)) walkAll(dir)
+  const ALIAS = { contract: 'contract-vs-tools' }
+  const LEVEL = id => {
+    if (id === 'load' || id === 'placeholder-scan') return 'hard'   // JSON 可解析／占位符门都按 hard 计
+    const c = CRITERIA.find(x => x.id === (ALIAS[id] ?? id))
+    return c ? c.level : 'advisory'
+  }
+  const RANK = { hard: 3, structural: 2, advisory: 1 }
   const targeted = [], scanOnly = [], untouched = []
+  const byStrength = { hard: [], structural: [], advisory: [] }
   for (const f of all.sort()) {
     const ids = touched.get(f)
     if (!ids) { untouched.push(f); continue }
-    if ([...ids].some(i => !GENERIC.has(i))) targeted.push(f)
-    else scanOnly.push(f)
+    const specific = [...ids].filter(i => !GENERIC.has(i))
+    if (specific.length === 0) { scanOnly.push(f); continue }
+    targeted.push(f)
+    const strongest = specific.map(LEVEL).sort((a, b) => RANK[b] - RANK[a])[0]
+    byStrength[strongest].push(f)
   }
-  notes.push(`note 覆盖率：${all.length} 个文件 —— 有针对性判据 ${targeted.length} ／ 仅通用扫描 ${scanOnly.length} ／ 没人读 ${untouched.length}`)
+  notes.push(`note 覆盖率：${all.length} 个文件 —— 有针对性判据 ${targeted.length}（hard ${byStrength.hard.length}／structural ${byStrength.structural.length}／advisory ${byStrength.advisory.length}）／仅通用扫描 ${scanOnly.length}／没人读 ${untouched.length}`)
   coverage = {
     filesTotal: all.length,
-    targeted, scanOnly, untouched,
+    targeted, scanOnly, untouched, byStrength,
     perCheck: Object.fromEntries(
       [...new Set([...touched.values()].flatMap(s => [...s]))].sort()
         .map(id => [id, [...touched.values()].filter(v => v.has(id)).length])),
@@ -730,6 +900,7 @@ function report() {
       absentBannedTokens,      // strict：真缺口（专名/篇名，未覆盖）
       allowlistedTokens,       // 通用术语：明确不得入禁例
       reviewPendingTokens,     // 待人工判定
+      criteria: CRITERIA.map(c => ({ id: c.id, level: c.level, codes: c.codes })),
       ...(coverage ? { coverage } : {}),
     }, null, 1))
     return
@@ -741,7 +912,8 @@ function report() {
   for (const n of notes) console.log('  · ' + n)
   if (coverage) {
     console.log()
-    console.log(`覆盖率（--coverage）：共 ${coverage.filesTotal} 个文件 —— 有针对性判据 ${coverage.targeted.length} ／ 仅通用扫描 ${coverage.scanOnly.length} ／ 没人读 ${coverage.untouched.length}`)
+    console.log(`覆盖率（--coverage）：共 ${coverage.filesTotal} 个文件 —— 有针对性判据 ${coverage.targeted.length}（hard ${coverage.byStrength.hard.length}／structural ${coverage.byStrength.structural.length}／advisory ${coverage.byStrength.advisory.length}）／仅通用扫描 ${coverage.scanOnly.length}／没人读 ${coverage.untouched.length}`)
+    console.log(`  仅 advisory 覆盖（判据最软）：${coverage.byStrength.advisory.slice(0, 10).join('、') || '（无）'}`)
     const show = (label, list) => { if (list.length) console.log(`  ${label}（${list.length}）：${list.slice(0, 12).join('、')}${list.length > 12 ? ' …' : ''}`) }
     show('仅通用扫描（无针对性判据）', coverage.scanOnly)
     show('没人读', coverage.untouched)
@@ -755,5 +927,40 @@ function report() {
   }
 }
 
-report()
+// --criteria：打印登记表（人读）；--criteria-md <path>：按登记表生成 CRITERIA.md（显式落点，不做隐式写盘）
+if (ARGV.includes('--criteria')) {
+  for (const c of CRITERIA) {
+    console.log(`${c.id}  [${c.level}]`)
+    console.log(`  对象：${c.subject}`)
+    console.log(`  量程：${c.scope}`)
+    console.log(`  不查：${c.notChecked}`)
+    if (c.codes.length) console.log(`  code：${c.codes.join(', ')}`)
+  }
+}
+const mdIdx = ARGV.indexOf('--criteria-md')
+if (mdIdx >= 0 && ARGV[mdIdx + 1]) {
+  const out = resolve(ARGV[mdIdx + 1])
+  const rows = CRITERIA.map(c => `| \`${c.id}\` | ${c.level} | ${c.subject} | ${c.scope} | ${c.notChecked} | ${c.codes.length ? '`' + c.codes.join('`, `') + '`' : '—'} |`).join('\n')
+  const doc = `# 判据登记表（CRITERIA）
+
+> **本文件由代码生成，不要手改**：\`node scripts/check-pack.mjs --criteria-md CRITERIA.md\`。
+> \`check-pack\` 的 \`criteria-doc\` 判据会**逐字比对**下面的 JSON 块与代码里的登记表，不一致即 FAIL。
+> 上面这张表是可读视图；**判定以 JSON 块为准**（表格不参与比对）。
+
+| id | 强度 | 对象 | 量程（查什么） | 不查什么 | 可报出的 code |
+|---|---|---|---|---|---|
+${rows}
+
+**强度含义**：\`hard\`＝错即坏（对象会因此不可用或自相矛盾）；\`structural\`＝缺即不完整（形状/声明层）；\`advisory\`＝只出 note，不做判定。
+
+**这张表要回答的问题**：\`check-pack\` 到底查了什么、**没查什么**。把"没查什么"写出来，是为了让"0 problems"这句话有明确的适用范围 —— \*\*范围之外不是"已验证"，是"没人看"\*\*（覆盖率报表会点名那类文件）。
+
+\`\`\`json
+${criteriaJson}
+\`\`\`
+`
+  writeFileSync(out, doc)
+  console.log(`已生成 ${out}（${CRITERIA.length} 条判据）`)
+}
+if (!ARGV.includes('--criteria') && mdIdx < 0) report()
 process.exit(problems.length === 0 ? 0 : 1)
