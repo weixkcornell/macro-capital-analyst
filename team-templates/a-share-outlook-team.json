@@ -1,6 +1,6 @@
 {
   "id": "a-share-outlook-team",
-  "version": "2.4.11",
+  "version": "2.4.12",
   "schemaVersion": 2,
   "parameters": {
     "type": "object",
@@ -40,7 +40,11 @@
         "equity.strategy",
         "factor.attribution"
       ],
-      "retryPolicy": "quality-repair"
+      "retryPolicy": "quality-repair",
+      "deliverablePaths": [
+        "data-base.json",
+        "data-base.md"
+      ]
     },
     {
       "id": "consensus-scan",
@@ -54,7 +58,10 @@
         "equity.strategy",
         "factor.attribution"
       ],
-      "retryPolicy": "quality-repair"
+      "retryPolicy": "quality-repair",
+      "deliverablePaths": [
+        "consensus.md"
+      ]
     },
     {
       "id": "six-step-gate",
@@ -68,7 +75,12 @@
         "equity.strategy",
         "factor.attribution"
       ],
-      "retryPolicy": "quality-repair"
+      "retryPolicy": "quality-repair",
+      "deliverablePaths": [
+        "six-step.md",
+        "gate-a-stats.json",
+        "gate-b.json"
+      ]
     },
     {
       "id": "fusion-render",
@@ -82,7 +94,11 @@
         "equity.strategy",
         "factor.attribution"
       ],
-      "retryPolicy": "quality-repair"
+      "retryPolicy": "quality-repair",
+      "deliverablePaths": [
+        "final.md",
+        "index.html"
+      ]
     }
   ],
   "gates": [
@@ -159,5 +175,6 @@
     "看板（HTML + markdown）",
     "数据底座表",
     "GATE 验收文件"
-  ]
+  ],
+  "deliverablePathsNote": "任务\"完成\"的证据是【产物文件存在且被复核】，不是执行者自述。execute 前请确保落点目录存在；交付级门禁（scripts/audit-delivery.sh）对最终产物做核对，中间任务的产物由队长按本字段逐条核在不在。"
 }

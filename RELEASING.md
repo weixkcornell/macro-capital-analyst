@@ -80,9 +80,11 @@ bash scripts/audit-delivery.sh --md <final.md> --html <index.html> \
 |---|---|---|
 | number-consistency（摘要—正文—底座三方对撞） | `skills/.../i1_collision_check.py` | `quality-policies` 的 `number-consistency` |
 | section-outline（章节齐备与顺序） | `scripts/check-sections.mjs` | `.../section-outline` 的 `config`（含**规范化规则**） |
-| placeholder-clean（占位符残留） | 内联扫描 | `.../placeholder-clean` |
+| placeholder-clean（占位符残留 ＋ **未注入空值**） | 内联扫描 | `.../placeholder-clean` ＋ 本仓约定（生成器须自带空值自检） |
 | banned-tokens（禁例 token） | 内联扫描 | `.../banned-tokens`（含通用术语豁免表） |
 | render-overflow（五档视口溢出 + WCAG AA 对比度） | `scripts/audit-render.py`（playwright） | `.../render-overflow` 的 `config` |
+
+**报告生成器必须自带空值自检**：注入失败产生的 `None/nan/inf` 与未渲染占位符必须让**生成失败**（数字一致性门禁只核对数字，抓不到 `None`；本仓一次真实交付即因此让缺陷进了正文）。
 
 渲染这一步由 `scripts/render-report.mjs` 执行：markdown → **自包含** HTML5，版式规格（浅色/衬线/学术、涨=红跌=绿、¥、YYYY-MM-DD、文末「不构成投资建议」）**从输出模板的 `rendering` 声明读**。
 自包含是硬要求：审核要在 `file://` 下用无头浏览器逐视口测，任何外链都会让读数依赖网络。

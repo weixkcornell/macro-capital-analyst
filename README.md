@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.11-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.12-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -137,6 +137,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.12**（2026-09-25）：**把一次真实交付暴露的三个缺口回填进包**（三条都不是想出来的，是跑单当场撞出来的） —— ① **任务必须有"产物路径"**：新增判据 `task-deliverable-paths-missing` —— 每个组队模板任务必须声明非空、非绝对路径的 `deliverablePaths`；两条模板（a-share-outlook／cycle-positioning）已逐任务补上。**动机**：跑单中两个执行代理**写完中间产物就停止、交付物缺失**，而任务定义里只有"标题＋描述" ⇒ **"执行者说它做了"与"产物真的在"无法区分**。**"完成"的证据是文件存在且被复核。** ② **写法约定写进写作者看得到的地方**：两个输出模板的 `dataRules` 新增 `writingRules` 四条 —— **交付物不得出现来源标识（方法名可用、作者名不可）**；**引用他人结论必须带发布日**；**每个数字带口径与数据期且能在底座找到证据**；**报告生成器必须自带空值自检**。**动机**：跑单时禁例门禁抓到正文引「某某等 (2015)」的作者名（`Harvey` ×2）—— **规则本来只在 `quality-policies` 的禁例表里，写作者看不到**。 ③ **交付级门禁第 ③ 项扩展为"占位符 ＋ 未注入空值"**：`None/nan/inf` 只要**紧邻数字或单位**即判失败（不误报英文散文）。**动机**：跑单中生成器一个旧键名写错，把 `10Y 国债 None%`、`ERP Nonepp` 渲染进了正文，而**数字一致性门禁只核对数字、抓不到 `None`** ⇒ 五道门禁全绿而缺陷已进正文。该扩展已用注入 `None%` 的负例端到端验过（命中 1 处、退出码 1）。 另：判据登记表同步（自有 code 44 个，全部有负向对照）。
 
 - **2.4.11**（2026-09-25）：**把"声明了却没有工具"的三处补齐 —— 产物侧门禁现在能真的跑起来**（这批不是凭空加的：是为一次真实交付补的，且每一件都拿**已知合格的首单产物**做过校准） —— ① **`scripts/check-sections.mjs`**（`section-outline` 的执行工具）：markdown 取 H2／HTML 取 h2，逐项对照输出模板的 required 章节并检查顺序；**顺带修一处判据缺陷** —— 原先按严格名字比对，会把「**一、**摘要」这类带编号的标题全判成"缺章节"（首单 6 章全缺）⇒ 判据补 `normalization`（比较前去掉可选编号前缀与空白）。② **`scripts/audit-render.py`**（`render-overflow` 的执行工具，playwright）：五档视口＋WCAG AA 全节点穷举；**判据补三条显式排除**（可横滚容器内的宽表／`.sr-only` 无障碍隐藏元素／"元素超出视口"本身）—— 第一版漏掉前两条与第三条时，在首单产物上分别**误报 7–42 个/视口**与**每视口 1 个**，补齐后归零。③ **`scripts/render-report.mjs`**（渲染器）：包此前**声明了渲染规格却没有渲染器**；现按模板的 `rendering`/`renderModes` 声明渲染**自包含** HTML5（浅色／衬线／学术排版、涨=红跌=绿、¥、YYYY-MM-DD、文末「不构成投资建议」）。**它上线第一次渲染就被自己的门禁抓到真缺陷**：320px 宽时页面横溢 20px（长链接/长代码串撑宽）⇒ 全面加 `overflow-wrap:anywhere` 后归零。 ④ **`scripts/audit-delivery.sh`**：产物侧五道硬门的**统一入口**（number-consistency／section-outline／placeholder-clean／banned-tokens／render-overflow），**判据全部从包里读**，不写死在工具里。 ⑤ **校准证据（判据与工具互验）**：把首单产物跑一遍 —— i1 三方对撞 **47/47**、章节 **6/6**、占位符 **0**、禁例 **0**、五档视口 **0 溢出**、对比度 **1079/1079**（渲染器自渲染同一份报告：**1038/1038**、0 溢出）。 ⑥ 文档同步：`RELEASING.md` 增「交付级门禁」一节（含渲染器与自包含要求），`CONTRIBUTING.md` 增"改产物侧判据"一节，`SUBMISSION-CHECKLIST.md` 增条目。 ⑦ 另修：`install-to-profile.sh` 在安装副本被平台停用（`.disabled-by-center`）时给出明确诊断，且**不擅自改名恢复**。
 

@@ -2,7 +2,7 @@
 
 > 平台评审按此逐项打勾；先自检再提交。
 
-- [x] `pack.json`（id=macro-capital-analyst / version=2.4.11 / schemaVersion=2 / caliberDeclarations 四类口径）
+- [x] `pack.json`（id=macro-capital-analyst / version=2.4.12 / schemaVersion=2 / caliberDeclarations 四类口径）
 - [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，38 份材料）
 - [x] `scenarios/*.json`（DAG 依赖无环、专家 id 全部可解析、deliverable 明确；共 2 个）
 - [x] `output-templates/` + `quality-policies/`（起步门禁 10 道覆盖数字一致与禁例 token；含 `gate-a-double-calibration` / `net-active-return-required` / `active-risk-budget` 硬门，且每道门均有 team template 绑定）
@@ -14,6 +14,8 @@
 - [x] 自检脚本（`scripts/check-pack.mjs`：version lockstep + 文档版本 lockstep + 门禁绑定 + DAG 完整性 + digest 可复现性 + 占位符残留 + fileRef 安全 + bannedTokens 阈值 + **引用完整性四门**（contributions／scenario 引用／SKILL.md 点名文件／transport 路径）+ 三方对撞目标；`--json` 供脚本/CI 读；平台校验器缺失时以 skip note 声明并继续跑其余检查）
 - [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**46 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
 - [x] **判据 × 负向对照矩阵**（`negative-controls` 硬门：自有 code 必须 100% 有负向对照，未覆盖即 FAIL；平台校验器自带的 16 个 code 显式排除。现 **自有 39/39**）
+- [x] **任务级产物落点**（组队模板每个任务声明 `deliverablePaths`，由 `task-deliverable-paths-missing` 判据校验 —— 「完成」以**文件存在**为证据，不以自述为证据）
+- [x] **写法约定入 `dataRules.writingRules`**（不得出现来源标识：方法名可用、作者名不可；引用他人结论带发布日；数字带口径与数据期；生成器须自带空值自检）
 - [x] **渲染器**（`scripts/render-report.mjs`：按模板 `rendering` 声明渲染**自包含** HTML5；自包含是硬要求 —— 门禁要在 `file://` 下用无头浏览器逐视口测）
 - [x] **交付级门禁可一条命令跑完**（`scripts/audit-delivery.sh`：number-consistency／section-outline／placeholder-clean／banned-tokens／render-overflow；判据全部从包里读）。为此补了两把此前缺失的执行工具：`scripts/check-sections.mjs`、`scripts/audit-render.py`；两者已在首单产物上校准（章节 6/6、五档视口 0 溢出、对比度 1079/1079）
 - [x] **交付物门禁均有可执行判据**（10 道门全部带 `config`；`structure-gate-no-config` 判据保证今后不会出现"只有声明、没有判据"的门。`render-overflow` 的五档视口/溢出判据/WCAG AA 阈值、`section-outline` 的大纲抽取与对照口径、`layout-audit` 的三项检查均取自首单实测口径）

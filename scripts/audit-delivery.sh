@@ -54,16 +54,20 @@ node "$PACK/scripts/check-sections.mjs" --target "$MD" --template "$TPL" || rc=1
 [ -n "$HTML" ] && { node "$PACK/scripts/check-sections.mjs" --target "$HTML" --template "$TPL" >/dev/null || { echo "   ✗ HTML 章节不符（md 已过，说明渲染丢章节）"; rc=1; }; }
 
 # ③ placeholder-clean：占位符残留（记法「【替换：…】」不计，写了具体内容才算）
-say "③ placeholder-clean：占位符残留"
+say "③ placeholder-clean：占位符残留 + 未注入空值（None/nan/inf）"
 python3 - "$MD" "$HTML" <<'PY' || rc=1
 import re,sys
 bad=0
 for f in [p for p in sys.argv[1:] if p]:
     s=open(f,encoding='utf-8').read()
-    hits=[m.group(0) for m in re.finditer(r'【替换：([^】]*)】', s)
-          if m.group(1) not in ('','…') and not re.search(r'[()\[\]{}\\*+?|^$.]', m.group(1)) and not re.match(r'^[<＜].*[>＞]$', m.group(1))]
-    print(f"   {f}: 残留 {len(hits)} 处" + (f" → {hits[:3]}" if hits else ""))
-    bad += len(hits)
+    ph=[m.group(0) for m in re.finditer(r'【替换：([^】]*)】', s)
+        if m.group(1) not in ('','…') and not re.search(r'[()\[\]{}\\*+?|^$.]', m.group(1)) and not re.match(r'^[<＜].*[>＞]$', m.group(1))]
+    # 未注入空值：只在**紧邻数字/单位/百分号**时判——避免把英文散文里的 "None"/"inf" 误报
+    # （数字一致性门禁只核对数字，抓不到 None；本条是它的补位）
+    nul=[m.group(0) for m in re.finditer(r'\b(None|nan|NaN|inf|Infinity)\b\s*(%|pp|bp|倍|亿|万亿|元|点|pct)?', s)
+         if re.search(r'%|pp|bp|倍|亿|万亿|元|点|pct', m.group(0)) or re.search(r'\b(None|nan|NaN|inf|Infinity)\b\s*[，。、）)]', s[max(0,m.start()-40):m.end()+40]) and re.search(r'\d', s[max(0,m.start()-40):m.start()])]
+    print(f"   {f}: 占位残留 {len(ph)} 处｜未注入空值 {len(nul)} 处" + (f" → {ph[:3]} {nul[:3]}" if (ph or nul) else ""))
+    bad += len(ph)+len(nul)
 sys.exit(1 if bad else 0)
 PY
 

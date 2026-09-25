@@ -91,7 +91,7 @@ const CRITERIA = [
     notChecked: '字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空）',
     codes: ['structure-missing-field', 'structure-empty-list', 'structure-gate-missing-field',
       'structure-document-structure', 'structure-duplicate-step', 'structure-collection-root', 'structure-gitattributes',
-      'structure-gate-no-config', 'template-sections-misaligned', 'pack-metadata-missing'] },
+      'structure-gate-no-config', 'template-sections-misaligned', 'pack-metadata-missing', 'task-deliverable-paths-missing'] },
   { id: 'doc-script-ref', level: 'structural', subject: '*.md 与 .github/workflows/*.yml 中点名的 scripts/ 路径',
     scope: '点名即必须存在',
     notChecked: '文档里点名的非 scripts/ 路径；文档叙述是否仍准确',
@@ -255,6 +255,14 @@ for (const t of pack.teamTemplates ?? []) {
     if (byId.has(task.id)) fail('duplicate-task-id', `teamTemplates.${t.id}`, `task id "${task.id}" duplicated`)
     byId.set(task.id, task)
     if (!slotIds.has(task.role)) fail('dangling-role', `teamTemplates.${t.id}.tasks.${task.id}`, `role "${task.role}" matches no slot`)
+    // 「任务完成」的证据是产物文件存在，不是执行者自述（本轮实测：两个执行代理写完中间产物即停止、
+    // 交付物缺失，而任务定义里没有落点 ⇒ "它说它做了"与"产物真的在"无法区分）。故 deliverablePaths 必需。
+    const dp = task.deliverablePaths
+    if (!Array.isArray(dp) || dp.length === 0) {
+      fail('task-deliverable-paths-missing', `teamTemplates.${t.id}.tasks.${task.id}`, '未声明 deliverablePaths ⇒ 任务完成无法以产物存在为证据')
+    } else if (!dp.every(x => typeof x === 'string' && x.trim() && !x.startsWith('/'))) {
+      fail('task-deliverable-paths-missing', `teamTemplates.${t.id}.tasks.${task.id}`, 'deliverablePaths 必须是非空、非绝对路径的字符串数组')
+    }
   }
   for (const task of t.tasks ?? []) {
     for (const dep of task.dependsOn ?? []) {

@@ -399,6 +399,16 @@ const CASES = [
     mutate: () => {},
   },
   {
+    name: '任务未声明产物路径（完成无法以文件为证）',
+    expectCode: 'task-deliverable-paths-missing',
+    mutate: r => {
+      const f = firstJson(r, 'team-templates', o => o?.tasks?.some(t => t.deliverablePaths))
+      const o = JSON.parse(read(r, f))
+      delete o.tasks[0].deliverablePaths
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
     name: 'CRITERIA.md 与代码登记表不一致',
     expectCode: 'criteria-doc-drift',
     mutate: r => replaceOnce(r, 'CRITERIA.md', /  "id": "validator",\n  "level": "hard",/, '  "id": "validator",\n  "level": "soft",'),

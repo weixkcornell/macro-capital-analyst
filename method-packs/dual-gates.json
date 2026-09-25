@@ -1,6 +1,6 @@
 {
   "id": "dual-gates",
-  "version": "2.4.11",
+  "version": "2.4.12",
   "schemaVersion": 2,
   "name": "两道横切闸门",
   "description": "对所有层结论强制生效、优先级最高的两道横切闸门：统计可信（A）+ 实施成本与可执行（B）。",

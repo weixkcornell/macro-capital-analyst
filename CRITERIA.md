@@ -15,7 +15,7 @@
 | `file-ref` | hard | SOURCE-MANIFEST 的 fileRefRoot 与 materials[].fileRef | root 必须声明；fileRef 不得含绝对路径/URL/内网地址 | fileRef 的存在性（38/38 材料按版权设计不分发，查存在性会全红） | `fileRef-root-undeclared`（有对照）、`fileRef-unsafe`（有对照） |
 | `ref-integrity` | hard | skillPackages.contributions / scenarios 引用 / SKILL.md 点名文件 / transport 路径参数 | 每个 id 与路径都必须解析到实际存在的对象或文件 | 被引用对象的"内容合适性"（只判可解析）；平台层解析的能力（如 wind/zyt/beike） | `skill-contribution-target-missing`（有对照）、`scenario-reference-missing`（有对照）、`skill-reference-missing`（有对照）、`transport-target-missing`（有对照） |
 | `scripts-syntax` | hard | scripts/ 与 skills/ 下的 .mjs/.js/.sh/.py | 语法可编译（node --check / bash -n / compile()） | 运行时行为（那由 selftest-gates 与 smoke-test 覆盖）；依赖是否装好 | `script-syntax-error`（有对照） |
-| `structure` | structural | 10 个维度的字段形状 ＋ 门禁四要素 ＋ documentStructure ＋ kb collection root ＋ .gitattributes | 必需字段/非空列表；门禁 id·kind·severity·appliesTo；章节 name/required；步骤编号不重复；collection root 不存在须显式声明；eol=lf | 字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空） | `structure-missing-field`（有对照）、`structure-empty-list`（有对照）、`structure-gate-missing-field`（有对照）、`structure-document-structure`（有对照）、`structure-duplicate-step`（有对照）、`structure-collection-root`（有对照）、`structure-gitattributes`（有对照）、`structure-gate-no-config`（有对照）、`template-sections-misaligned`（有对照）、`pack-metadata-missing`（有对照） |
+| `structure` | structural | 10 个维度的字段形状 ＋ 门禁四要素 ＋ documentStructure ＋ kb collection root ＋ .gitattributes | 必需字段/非空列表；门禁 id·kind·severity·appliesTo；章节 name/required；步骤编号不重复；collection root 不存在须显式声明；eol=lf | 字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空） | `structure-missing-field`（有对照）、`structure-empty-list`（有对照）、`structure-gate-missing-field`（有对照）、`structure-document-structure`（有对照）、`structure-duplicate-step`（有对照）、`structure-collection-root`（有对照）、`structure-gitattributes`（有对照）、`structure-gate-no-config`（有对照）、`template-sections-misaligned`（有对照）、`pack-metadata-missing`（有对照）、`task-deliverable-paths-missing`（有对照） |
 | `doc-script-ref` | structural | *.md 与 .github/workflows/*.yml 中点名的 scripts/ 路径 | 点名即必须存在 | 文档里点名的非 scripts/ 路径；文档叙述是否仍准确 | `doc-script-ref-missing`（有对照） |
 | `workflow-basic` | structural | .github/workflows/*.yml | 存在 on: 与 jobs: 两块 | YAML 语法是否合法、job 能否真跑（CI 由平台执行） | `workflow-basic`（有对照） |
 | `gitignore-rule` | structural | .gitignore | 必须忽略 engine/ 与 __pycache__ | 是否还有其他该忽略而未忽略的路径（人工判断） | `gitignore-rule`（有对照） |
@@ -157,7 +157,8 @@
    "structure-gitattributes",
    "structure-gate-no-config",
    "template-sections-misaligned",
-   "pack-metadata-missing"
+   "pack-metadata-missing",
+   "task-deliverable-paths-missing"
   ]
  },
  {
