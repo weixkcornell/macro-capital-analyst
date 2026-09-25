@@ -12,7 +12,7 @@
  * 用法：  node scripts/selftest-gates.mjs [packDir]
  * 退出码：0 = 全部按预期；1 = 有门禁未抓住 / 行为不符预期；2 = 环境不可用
  */
-import { cpSync, mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs'
+import { cpSync, mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { resolve, dirname, join } from 'node:path'
@@ -28,7 +28,7 @@ if (!existsSync(resolve(PACK, 'pack.json'))) {
 }
 
 const read = (root, rel) => readFileSync(join(root, rel), 'utf8')
-const write = (root, rel, s) => writeFileSync(join(root, rel), s)
+const write = (root, rel, s) => { mkdirSync(dirname(join(root, rel)), { recursive: true }); writeFileSync(join(root, rel), s) }
 const rm = (root, rel) => rmSync(join(root, rel), { force: true })
 
 /** 替换必须命中且只命中一次 —— 否则"注入失败"会被误读成"门禁没抓住"。 */

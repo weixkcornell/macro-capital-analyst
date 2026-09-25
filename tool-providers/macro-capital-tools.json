@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.4.9",
+  "version": "2.4.10",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
   "description": "包内可执行工具。数据获取走平台 provider 层（wind / zyt / beike）与公开口径自算，本包不自建数据引擎。",

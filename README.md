@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.9-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.10-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -137,6 +137,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.10**（2026-09-25）：**修一个"只有装上去才看得见"的缺陷** —— ① **包自己的门禁自校准在【安装副本】里跑不过（45/46）**：安装时不带 `.github/`（那是仓库侧设施，不属于包），而 `workflow 缺 jobs:` 那条对照样本要去改 `.github/workflows/check.yml` ⇒ ENOENT 崩溃，报成"样本自身出错"。**在开发者签出目录里全绿、在用户实际安装的那份里失败**，正是最难发现的一类。修法：测试写入时**自动建父目录**（测试不该假设仓库里恰好有 `.github/`）。 ② **顺带把安装时自检改为并发**（46 例串行会超时，`SELFTEST_CONCURRENCY=8`）—— 这次就是它先超时、暴露了上面那条缺陷。 ③ 教训入册：**"仓库里能过"不等于"装上能过"**；`install-to-profile.sh` 会在副本内跑四件自检，因此这类缺陷从今往后会在同步当场暴露。
 
 - **2.4.9**（2026-09-25）：**把上一轮列出的八条优化一次做完**（补检查 4 条 ＋ 上限 1 条 ＋ 文档 3 条） —— ① **模板两处章节表对齐判据**（`template-sections-misaligned`）：`sections[].title` 必须逐项等于 `documentStructure.sections[].name`、数量一致 —— 此前靠手工维持，一旦漂移会"渲染按结构走、清单按 sections 走"，章节被悄悄漏掉。 ② **`pack.json` 补元数据**（`license`／`repository`／`homepage`／`keywords`／`author`）并加判据 `pack-metadata-missing` —— 此前这些信息只在 README/LICENSE 里，机器消费者拿不到。 ③ **口径映射显式化**：新增 `pack.json.caliberAliases`（把数据契约里的写法与声明键显式对应），并加判据 `caliber-undeclared` —— 数据契约里出现"未声明口径"从此会 FAIL（原先靠子串巧合）。 ④ **能力引用可见化**：给 4 项仅供平台使用的能力显式标 `scope: 'platform'`，其余未被包内引用的能力改为出 note（**"故意对外"与"id 拼错"从此可区分**）。 ⑤ **note 预算**（`--max-notes`，CI 与发布前检查用 10）—— note 不拦截但会累积成噪声（本仓历史上曾从 4 涨到 12）。 ⑥ **`README.en.md`**（英文概览：结构／自检／版本策略／知识底座边界／许可）。 ⑦ **`CONTRIBUTING.md`**（改之前先读判据登记表；提交前必须全绿；**新增判据必须同时补负向对照**；生成物不许手改）。 ⑧ **知识底座自建说明**：`knowledge/experts/macro-capital-analyst/README.md` 从占位改成完整说明（材料本体按版权不分发是设计、怎么准备自己的材料、怎么写内化摘要、版权边界），中文 README 增一节指向它。 ⑨ 判据登记表 20 → **23 条**、自有 code 对照 **43/43**、门禁自校准 **46 例**。
 
