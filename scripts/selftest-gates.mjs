@@ -29,6 +29,7 @@ if (!existsSync(resolve(PACK, 'pack.json'))) {
 
 const read = (root, rel) => readFileSync(join(root, rel), 'utf8')
 const write = (root, rel, s) => writeFileSync(join(root, rel), s)
+const rm = (root, rel) => rmSync(join(root, rel), { force: true })
 
 /** 替换必须命中且只命中一次 —— 否则"注入失败"会被误读成"门禁没抓住"。 */
 function replaceOnce(root, rel, re, to) {
@@ -192,6 +193,182 @@ const CASES = [
     mutate: r => write(r, '.gitignore', read(r, '.gitignore').replace('engine/', '')),
   },
   {
+    name: '实体没有 version 字段',
+    expectCode: 'missing-version',
+    mutate: r => {
+      const f = firstJson(r, 'method-packs', () => true)
+      const o = JSON.parse(read(r, f))
+      delete o.version
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'README 没有版本徽章',
+    expectCode: 'missing-version-badge',
+    mutate: r => replaceOnce(r, 'README.md', /^.*badge\/Version-.*$/m, '<!-- 徽章被移除 -->'),
+  },
+  {
+    name: 'README 没有版本历史章节',
+    expectCode: 'missing-version-history',
+    mutate: r => replaceOnce(r, 'README.md', /^##\s*版本历史\s*$/m, '## 变更'),
+  },
+  {
+    name: 'README 缺失',
+    expectCode: 'missing-readme',
+    mutate: r => rm(r, 'README.md'),
+  },
+  {
+    name: 'SUBMISSION-CHECKLIST 缺失',
+    expectCode: 'missing-checklist',
+    mutate: r => rm(r, 'SUBMISSION-CHECKLIST.md'),
+  },
+  {
+    name: '清单里没有 version= 标记',
+    expectCode: 'missing-checklist-version',
+    mutate: r => replaceOnce(r, 'SUBMISSION-CHECKLIST.md', /version=\d+\.\d+\.\d+/, 'ver=X'),
+  },
+  {
+    name: 'digestTarget 指向不存在的文件',
+    expectCode: 'digest-target-missing',
+    mutate: r => {
+      const f = firstJson(r, 'skill-packages', o => o?.source?.digest)
+      const o = JSON.parse(read(r, f))
+      o.source.digestTarget = 'NOPE.md'
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'digestAlgorithm 不可用',
+    expectCode: 'digest-algorithm-invalid',
+    mutate: r => {
+      const f = firstJson(r, 'skill-packages', o => o?.source?.digest)
+      const o = JSON.parse(read(r, f))
+      o.source.digestAlgorithm = 'md5x'
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '出现未决的 review 项（上限为 0）',
+    expectCode: 'banned-tokens-review-backlog',
+    mutate: r => {
+      // review 只统计"落在 review 域内、且未被禁例覆盖"的清单词干 ⇒ 必须把某个已覆盖词干
+      // 从 bannedTokens 挪到 review，才构造得出未决项（第一版随手 push 一个词干是不生效的）
+      const STEM = 'Empirical Asset Pricing'
+      const f = firstJson(r, 'quality-policies', o => o?.gates?.some(g => g.config?.bannedTokensReview))
+      const o = JSON.parse(read(r, f))
+      const cfg = o.gates.find(x => x.config?.bannedTokensReview).config
+      if (!cfg.bannedTokens.includes(STEM)) throw new Error(`注入前提不成立：bannedTokens 里没有「${STEM}」`)
+      cfg.bannedTokens = cfg.bannedTokens.filter(x => x !== STEM)
+      cfg.bannedTokensReview.push(STEM)
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'fileRefRoot 未声明',
+    expectCode: 'fileRef-root-undeclared',
+    mutate: r => {
+      const f = 'source/SOURCE-MANIFEST.json'
+      const o = JSON.parse(read(r, f))
+      delete o.fileRefRoot
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '实体缺必需字段（persona）',
+    expectCode: 'structure-missing-field',
+    mutate: r => {
+      const f = firstJson(r, 'experts', () => true)
+      const o = JSON.parse(read(r, f))
+      delete o.persona
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '必需列表为空（methods=[]）',
+    expectCode: 'structure-empty-list',
+    mutate: r => {
+      const f = firstJson(r, 'experts', () => true)
+      const o = JSON.parse(read(r, f))
+      o.methods = []
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'documentStructure 没有 sections',
+    expectCode: 'structure-document-structure',
+    mutate: r => {
+      const f = firstJson(r, 'output-templates', () => true)
+      const o = JSON.parse(read(r, f))
+      o.documentStructure = { pattern: o.documentStructure?.pattern ?? '总-分-总' }
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '方法包步骤编号重复',
+    expectCode: 'structure-duplicate-step',
+    mutate: r => {
+      const f = firstJson(r, 'method-packs', o => Array.isArray(o?.steps) && o.steps.length > 1)
+      const o = JSON.parse(read(r, f))
+      o.steps[1].step = o.steps[0].step
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'kb collection root 不存在且无说明',
+    expectCode: 'structure-collection-root',
+    mutate: r => {
+      const f = firstJson(r, 'domain-knowledge', o => o?.collections?.length)
+      const o = JSON.parse(read(r, f))
+      o.collections[0].root = 'NOPE-DIR'
+      delete o.collections[0].note
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '.gitattributes 未钉 eol=lf',
+    expectCode: 'structure-gitattributes',
+    mutate: r => write(r, '.gitattributes', '* text=auto\n'),
+  },
+  {
+    name: 'workflow 缺 jobs:',
+    expectCode: 'workflow-basic',
+    mutate: r => write(r, '.github/workflows/check.yml', 'name: x\non:\n  push:\n'),
+  },
+  {
+    name: 'LICENSE 与包内 license 声明不一致',
+    expectCode: 'license-consistency',
+    mutate: r => {
+      const f = firstJson(r, 'skill-packages', o => o?.source?.license)
+      const o = JSON.parse(read(r, f))
+      o.source.license = 'Apache-2.0'
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'CRITERIA.md 缺失',
+    expectCode: 'criteria-doc-missing',
+    mutate: r => rm(r, 'CRITERIA.md'),
+  },
+  {
+    name: '质量门禁没有 config（纸上硬门）',
+    expectCode: 'structure-gate-no-config',
+    mutate: r => {
+      const f = firstJson(r, 'quality-policies', o => o?.gates?.length)
+      const o = JSON.parse(read(r, f))
+      delete o.gates[0].config
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '判据自身缺少负向对照（矩阵自指）',
+    expectCode: 'negative-control-gap',
+    mutate: r => {
+      // 拆开字面量：否则本用例自身就成了第二个匹配点（第一版就是这样"注入目标不唯一"）
+      const pat = new RegExp("expectCode: '" + "version-drift" + "'")
+      replaceOnce(r, 'scripts/selftest-gates.mjs', pat, "expectCode: '" + "version-drift-XXX" + "'")
+    },
+  },
+  {
     name: 'CRITERIA.md 与代码登记表不一致',
     expectCode: 'criteria-doc-drift',
     mutate: r => replaceOnce(r, 'CRITERIA.md', /  "id": "validator",\n  "level": "hard",/, '  "id": "validator",\n  "level": "soft",'),
@@ -213,12 +390,15 @@ const CASES = [
   },
 ]
 
-let bad = 0
-for (const c of CASES) {
+// 并发跑：每个样本要起一个 check-pack 子进程（现在 40+ 例），串行会跑成分钟级。
+// 并发度用 SELFTEST_CONCURRENCY 调（默认 4）；输出仍按样本顺序打印，便于对照。
+const CONCURRENCY = Math.max(1, Number(process.env.SELFTEST_CONCURRENCY ?? 4))
+
+function runCase(c) {
   const tmp = mkdtempSync(join(tmpdir(), 'pack-selftest-'))
   let out = '', code = 0
   try {
-    cpSync(PACK, tmp, { recursive: true, filter: s => !/[/\\](\.git|engine|__pycache__)$/.test(s) })
+    cpSync(PACK, tmp, { recursive: true, filter: s => !/[/\\](\\.git|engine|__pycache__)$/.test(s) })
     c.mutate(tmp)
     try {
       out = execFileSync('node', [CHECK, tmp], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
@@ -229,12 +409,24 @@ for (const c of CASES) {
     const ok = c.expectCode === null
       ? (code === 0 && /0 problems/.test(out))
       : (code !== 0 && out.includes(c.expectCode))
-    if (!ok) bad++
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${c.name} → 期望 ${c.expectCode ?? '无问题(exit 0)'}，实得 exit=${code}${c.expectCode && !out.includes(c.expectCode) ? '（未报出该 code）' : ''}`)
+    return { ok, code, line: `${ok ? 'ok  ' : 'FAIL'} ${c.name} → 期望 ${c.expectCode ?? '无问题(exit 0)'}，实得 exit=${code}${c.expectCode && !out.includes(c.expectCode) ? '（未报出该 code）' : ''}` }
+  } catch (e) {
+    return { ok: false, code, line: `FAIL ${c.name} → 样本自身出错：${e.message}` }
   } finally {
     rmSync(tmp, { recursive: true, force: true })
   }
 }
 
-console.log(`\n${bad === 0 ? 'PASS' : 'FAIL'}: ${CASES.length - bad}/${CASES.length} 门禁对照样本按预期`)
+const results = new Array(CASES.length)
+let next = 0
+await Promise.all(Array.from({ length: Math.min(CONCURRENCY, CASES.length) }, async () => {
+  while (next < CASES.length) {
+    const i = next++
+    results[i] = runCase(CASES[i])
+  }
+}))
+
+let bad = 0
+for (const r of results) { if (!r.ok) bad++; console.log(r.line) }
+console.log(`\n${bad === 0 ? 'PASS' : 'FAIL'}: ${CASES.length - bad}/${CASES.length} 门禁对照样本按预期（并发 ${CONCURRENCY}）`)
 process.exit(bad === 0 ? 0 : 1)

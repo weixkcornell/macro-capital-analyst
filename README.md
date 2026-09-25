@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.7-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.8-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -128,6 +128,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.8**（2026-09-25）：**修"声明与可执行之间的缝"** —— ① **判据 × 负向对照矩阵**（新判据 `negative-controls`，**硬门**）：扫描 `selftest-gates.mjs` 算出"每个可报出的 code 有没有被负向对照证明抓得住"，**自有 code 未覆盖即 FAIL**（平台校验器自带的 16 个 code 显式列白名单排除，不假装我们能给它配对照）。接入时实测 **54 个 code 只有 18 个有对照**，其中**自有 19 个从未被证明抓得住** —— 这类"死门禁"与"通过的门禁"观感完全一样（本仓库已真实发生过三次：占位符正则写坏、引述域豁免吞掉全部 JSON、CSV 用了 `split(',')` 误报）。**现已补齐到 39/39**，并把它设成硬门，防止再出现。 ② **三条"纸上硬门"补上可执行判据**：`render-overflow`（**五档视口** 320/390/768/1280/1920；溢出＝`scrollWidth − clientWidth > 1px`；对比度 WCAG AA，正文 ≥4.5:1、大字 ≥3.0:1；**全节点穷举禁止抽样**）、`section-outline`（从 md 取 H2 / html 取 h2 大纲，对照 `output-templates[].documentStructure.sections` 的 required 章节，缺一不可）、`layout-audit`（标题层级不跳级／表头列数＝行数／脚注有回链）。**这些阈值不是新发明的，是把首单里已经跑过的口径搬回包里**（首单实测：对比度 1079/1079、全节点 1542 节点 0 失败、五档视口 0 溢出）。并新增判据 `structure-gate-no-config`：**任何门禁没有 config 即 FAIL** —— 从此不允许存在"只有声明、没有判据"的门。 ③ **门禁自校准 21 → 42 例**（新增 21 例覆盖此前所有自有未覆盖 code），并把 runner 改为**并发**（`SELFTEST_CONCURRENCY`，默认 4）—— 42 例串行已到分钟级。 ④ **打上版本标签**：仓库此前 7 个版本**没有任何 git tag 或 Release**，外部无法精确定位"哪次提交是 2.4.x"，也没有按版本归档的不可变产物；本版为 **v2.4.1 … v2.4.8** 逐版打**附注 tag**（指向各自提交），版本第一次成为可被机器定位的东西。
 
 - **2.4.7**（2026-09-25）：**把"我们查了什么、没查什么"做成对外答卷** —— ① **新增判据登记表 `CRITERIA.md`（19 条）**：每条判据给出 `id`／**强度**（`hard` 错即坏／`structural` 缺即不完整／`advisory` 只出 note）／对象／量程／**不查什么**／可报出的 `code`。它由代码生成（`--criteria-md`），并由新判据 **`criteria-doc` 逐字比对**防漂移。 **意义**：`0 problems` 从此有明确适用范围 —— **范围之外不是"已验证"，是"没人看"**。 ② **覆盖率加强度分级**：输出 hard／structural／advisory 三档并**点名"仅 advisory 覆盖"的文件**（判据最软、优先加固）。当前 **37 文件：hard 27 ／ structural 10 ／ advisory 0 ／ 仅通用扫描 0 ／ 没人读 0**。 ③ **新增 `csv-structure`（structural）**：数据契约表须有必需列、行列数一致、`capability` 唯一、无 BOM。**其实现第一版误报 2 行**——用 `split(',')` 去切含逗号与引号转义的单元格；改为真正的 CSV 切分后归零。**判定对象是 CSV 就得按 CSV 读**，教训写进代码注释。 ④ **门禁自校准 19 → 21 例**（`criteria-doc-drift`／`csv-structure`）。 ⑤ 修一处参数解析缺陷：`--criteria-md <path>` 的**值**曾被当成包目录（崩栈）—— 取值型开关的值不再参与位置参数解析。
 

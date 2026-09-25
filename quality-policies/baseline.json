@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.4.7",
+  "version": "2.4.8",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -179,7 +179,36 @@
         "html",
         "pdf"
       ],
-      "description": "双视口检查：无溢出、对比度达 WCAG AA。"
+      "description": "双视口检查：无溢出、对比度达 WCAG AA。",
+      "config": {
+        "viewports": [
+          {
+            "w": 320,
+            "h": 800
+          },
+          {
+            "w": 390,
+            "h": 844
+          },
+          {
+            "w": 768,
+            "h": 1024
+          },
+          {
+            "w": 1280,
+            "h": 900
+          },
+          {
+            "w": 1920,
+            "h": 1080
+          }
+        ],
+        "overflowCriterion": "documentElement.scrollWidth - clientWidth > 1px 即算水平溢出；元素 scrollWidth - clientWidth > 1px 且 overflowX 不属于 {visible, auto, scroll} 即算内容被裁切",
+        "contrastStandard": "WCAG AA：正文 ≥4.5:1；大字（fontSize ≥24px，或 ≥18.66px 且 fontWeight ≥700）≥3.0:1；判定取 ratio ≥ need − 0.005 以吸收取整误差",
+        "coverage": "全节点穷举，禁止抽样（首单曾因抽样 77 项漏掉 12 处不可读节点）",
+        "tooling": "headless chromium 实测，不读取作者自报",
+        "evidenceFromTrialRun": "首单（观澜·A股观点看板）：对比度 1079/1079 pass、0 fail；全节点 1542 节点 0 失败；五档视口 0 溢出。脚本见该单 out/qa-render-audit.py、out/verify-contrast-nodes.py"
+      }
     },
     {
       "id": "layout-audit",
@@ -190,7 +219,16 @@
         "html",
         "pdf"
       ],
-      "description": "排版审计 0 问题（标题层级、表格对齐、脚注回链）。"
+      "description": "排版审计 0 问题（标题层级、表格对齐、脚注回链）。",
+      "config": {
+        "checks": [
+          "标题层级不跳级（h1→h2→h3）",
+          "表格表头列数 = 每行列数",
+          "每个脚注有回链"
+        ],
+        "severityNote": "soft：只出报告不阻断发布；但命中须在交付说明里列出",
+        "evidenceFromTrialRun": "首单：11 条脚注 + 22 条外链逐条核对；表头列数核对见 out/verify-fidelity.py 的表格单元"
+      }
     },
     {
       "id": "section-outline",
@@ -202,7 +240,13 @@
         "html",
         "pdf"
       ],
-      "description": "PDF/HTML 章节大纲逐项对照 output-templates 定义，强制章节缺一不可。"
+      "description": "PDF/HTML 章节大纲逐项对照 output-templates 定义，强制章节缺一不可。",
+      "config": {
+        "source": "output-templates[].documentStructure.sections（required=true 的章节缺一不可）",
+        "extraction": "markdown 取 H2 序列；HTML 取 h2 序列（结构节点，非正文字符串匹配）",
+        "criterion": "产物章节集合 ⊇ 模板 required 章节集合；顺序与模板一致；多余章节允许但须在报告中标明",
+        "evidenceFromTrialRun": "首单：a-share-outlook 模板 6 章齐备（摘要／市场共识与我的分歧／六步主体／上期判断回顾／方法可靠性声明／脚注与来源）"
+      }
     },
     {
       "id": "placeholder-clean",

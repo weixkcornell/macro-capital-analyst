@@ -90,7 +90,8 @@ const CRITERIA = [
     scope: '必需字段/非空列表；门禁 id·kind·severity·appliesTo；章节 name/required；步骤编号不重复；collection root 不存在须显式声明；eol=lf',
     notChecked: '字段取值的语义正确性（如某条方法的措辞对不对）；枚举值的白名单（只判存在与非空）',
     codes: ['structure-missing-field', 'structure-empty-list', 'structure-gate-missing-field',
-      'structure-document-structure', 'structure-duplicate-step', 'structure-collection-root', 'structure-gitattributes'] },
+      'structure-document-structure', 'structure-duplicate-step', 'structure-collection-root', 'structure-gitattributes',
+      'structure-gate-no-config'] },
   { id: 'doc-script-ref', level: 'structural', subject: '*.md 与 .github/workflows/*.yml 中点名的 scripts/ 路径',
     scope: '点名即必须存在',
     notChecked: '文档里点名的非 scripts/ 路径；文档叙述是否仍准确',
@@ -123,6 +124,10 @@ const CRITERIA = [
     scope: '登记"哪个判据读过哪个文件"，输出 有针对性判据／仅通用扫描／没人读 与强度分布',
     notChecked: '判据本身的强度（"被 hard 判据读过"≠"该文件被充分验证"）',
     codes: [] },
+  { id: 'negative-controls', level: 'hard', subject: '判据 × 负向对照矩阵（门禁自己的覆盖率）',
+    scope: '自有 code 必须 100% 有负向对照（在 selftest-gates.mjs 里能被注入式缺陷触发）',
+    notChecked: '平台校验器自带的 16 个 code（归平台，显式白名单排除）；"对照是否恰好打在该 code 的判据上"',
+    codes: ['negative-control-gap'] },
   { id: 'criteria-doc', level: 'hard', subject: 'CRITERIA.md 与上面的 CRITERIA 登记表',
     scope: 'CRITERIA.md 必须存在，且其 ```json 代码块与登记表逐字一致',
     notChecked: '文档措辞的可读性；登记表"是否覆盖了所有该有的判据"（需要人工审阅）',
@@ -140,6 +145,7 @@ let absentBannedTokens = []   // strict：真缺口（供 --json 全量给出）
 let allowlistedTokens = []    // 通用术语：明确【不得】写入禁例，故不计入缺口
 let reviewPendingTokens = []  // 待人工判定的"疑似通用"词干
 let coverage = null           // --coverage 的计量结果
+let negativeControl = null    // 判据 × 负向对照矩阵
 const fail = (code, where, msg) => problems.push(`${code} @ ${where} :: ${msg}`)
 
 /** 维度键是 camelCase，目录名是 kebab-case（knowledgeProviders ↔ knowledge-providers）。 */
@@ -686,6 +692,11 @@ if (pack.pack?.version) {
       const where = `qualityPolicies.${pol.id}.gates.${g.id ?? '?'}`
       for (const k of ['id', 'kind', 'severity']) if (!g[k]) fail('structure-gate-missing-field', where, `门禁缺字段 ${k}`)
       if (!Array.isArray(g.appliesTo) || g.appliesTo.length === 0) fail('structure-gate-missing-field', where, 'appliesTo 必须是非空数组')
+      // 声明了门却给不出可执行判据 = "纸上硬门"：换个人执行就会各自发明判据（2.4.3 前 render-overflow/
+      // layout-audit/section-outline 三门即如此，阈值只活在某次运行的脚本里）。故 config 必需。
+      if (!g.config || Object.keys(g.config).length === 0) {
+        fail('structure-gate-no-config', where, '门禁没有任何 config ⇒ 只有声明、没有可执行判据（"纸上硬门"）')
+      }
     }
   }
   // 输出模板：documentStructure 里声明的章节要有 name/required
@@ -718,6 +729,42 @@ if (pack.pack?.version) {
   mark('structure', gaPath)
   if (!existsSync(gaPath)) fail('structure-gitattributes', '.gitattributes', '缺失：行尾策略未声明，跨平台 digest 不稳定')
   else if (!/eol=lf/.test(readText(gaPath))) fail('structure-gitattributes', '.gitattributes', '未声明 eol=lf')
+}
+
+// ---------------------------------------------------------------- 11b. 判据 × 负向对照（门禁自己的覆盖率）
+// 一道从未在坏件上失败过的门禁，与一道永远返回 PASS 的死门禁，观感完全一样。
+// 本节点名"哪些 code 还没有负向对照"—— 并把它设为硬门（自有 code 必须 100% 有对照）。
+// 平台校验器自带的 code 归平台，显式列白名单排除，不假装我们能给它配对照。
+{
+  const stPath = resolve(dir, 'scripts/selftest-gates.mjs')
+  const PLATFORM_CODES = new Set([
+    'dag-divergence', 'dag-length-mismatch', 'dag-task-mismatch', 'dangling-dependency', 'dangling-gate',
+    'dangling-gate-policy', 'dangling-index-dependency', 'dangling-knowledge-provider', 'dangling-role',
+    'dependency-cycle', 'duplicate-task-id', 'missing-expert', 'skill-task-mismatch', 'skill-task-out-of-range',
+    'unbound-gate', 'unknown-knowledge-scope',
+  ])
+  if (!existsSync(stPath)) {
+    notes.push('skip 判据对照矩阵未运行：找不到 scripts/selftest-gates.mjs')
+  } else {
+    mark('negative-controls', stPath)
+    const covered = new Set([...readText(stPath).matchAll(/expectCode: '([a-zA-Z-]+)'/g)].map(m => m[1]))
+    const all = CRITERIA.flatMap(c => c.codes).map(c => String(c).trim()).filter(c => c && !c.startsWith('（'))
+    const own = [...new Set(all)].filter(c => !PLATFORM_CODES.has(c))
+    const uncoveredOwn = own.filter(c => !covered.has(c))
+    const uncoveredPlatform = [...PLATFORM_CODES].filter(c => !covered.has(c))
+    negativeControl = {
+      coveredOwn: own.filter(c => covered.has(c)).length,
+      totalOwn: own.length,
+      uncoveredOwn,
+      platformCodes: uncoveredPlatform,
+    }
+    if (uncoveredOwn.length) {
+      fail('negative-control-gap', 'scripts/selftest-gates.mjs',
+        `${uncoveredOwn.length}/${own.length} 个自有 code 没有负向对照（未证明抓得住）：${uncoveredOwn.join(', ')}`)
+    } else {
+      notes.push(`note 判据对照：自有 code ${own.length}/${own.length} 全部有负向对照（平台校验器自带 ${uncoveredPlatform.length} 个 code 不在本次范围）`)
+    }
+  }
 }
 
 // ---------------------------------------------------------------- 12b. 判据文档一致性（CRITERIA.md）
@@ -901,6 +948,7 @@ function report() {
       allowlistedTokens,       // 通用术语：明确不得入禁例
       reviewPendingTokens,     // 待人工判定
       criteria: CRITERIA.map(c => ({ id: c.id, level: c.level, codes: c.codes })),
+      ...(negativeControl ? { negativeControl } : {}),
       ...(coverage ? { coverage } : {}),
     }, null, 1))
     return
@@ -934,20 +982,31 @@ if (ARGV.includes('--criteria')) {
     console.log(`  对象：${c.subject}`)
     console.log(`  量程：${c.scope}`)
     console.log(`  不查：${c.notChecked}`)
-    if (c.codes.length) console.log(`  code：${c.codes.join(', ')}`)
+    if (c.codes.length) {
+      const nc = negativeControl
+      const marks = c.codes.map(x => {
+        if (String(x).startsWith('（')) return `${x}`
+        const has = !nc ? '?' : (nc.uncoveredOwn.includes(x) || nc.platformCodes.includes(x) ? '无对照' : '有对照')
+        return `${x}(${has})`
+      })
+      console.log(`  code：${marks.join(', ')}`)
+    }
   }
 }
 const mdIdx = ARGV.indexOf('--criteria-md')
 if (mdIdx >= 0 && ARGV[mdIdx + 1]) {
   const out = resolve(ARGV[mdIdx + 1])
-  const rows = CRITERIA.map(c => `| \`${c.id}\` | ${c.level} | ${c.subject} | ${c.scope} | ${c.notChecked} | ${c.codes.length ? '`' + c.codes.join('`, `') + '`' : '—'} |`).join('\n')
+  const rows = CRITERIA.map(c => {
+    const codes = c.codes.length ? c.codes.map(x => String(x).startsWith('（') ? x : `\`${x}\`（${negativeControl && (negativeControl.uncoveredOwn.includes(x) || negativeControl.platformCodes.includes(x)) ? '无对照' : '有对照'}）`).join('、') : '—'
+    return `| \`${c.id}\` | ${c.level} | ${c.subject} | ${c.scope} | ${c.notChecked} | ${codes} |`
+  }).join('\n')
   const doc = `# 判据登记表（CRITERIA）
 
 > **本文件由代码生成，不要手改**：\`node scripts/check-pack.mjs --criteria-md CRITERIA.md\`。
 > \`check-pack\` 的 \`criteria-doc\` 判据会**逐字比对**下面的 JSON 块与代码里的登记表，不一致即 FAIL。
 > 上面这张表是可读视图；**判定以 JSON 块为准**（表格不参与比对）。
 
-| id | 强度 | 对象 | 量程（查什么） | 不查什么 | 可报出的 code |
+| id | 强度 | 对象 | 量程（查什么） | 不查什么 | 可报出的 code（含负向对照状态） |
 |---|---|---|---|---|---|
 ${rows}
 

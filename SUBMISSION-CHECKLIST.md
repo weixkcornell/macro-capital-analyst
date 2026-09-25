@@ -2,7 +2,7 @@
 
 > 平台评审按此逐项打勾；先自检再提交。
 
-- [x] `pack.json`（id=macro-capital-analyst / version=2.4.7 / schemaVersion=2 / caliberDeclarations 四类口径）
+- [x] `pack.json`（id=macro-capital-analyst / version=2.4.8 / schemaVersion=2 / caliberDeclarations 四类口径）
 - [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，38 份材料）
 - [x] `scenarios/*.json`（DAG 依赖无环、专家 id 全部可解析、deliverable 明确；共 2 个）
 - [x] `output-templates/` + `quality-policies/`（起步门禁 10 道覆盖数字一致与禁例 token；含 `gate-a-double-calibration` / `net-active-return-required` / `active-risk-budget` 硬门，且每道门均有 team template 绑定）
@@ -12,7 +12,9 @@
 - [x] 本体（`domain-knowledge/macro-capital-analyst-kb.json`，recordCount=38，digest = `sha256(source/SOURCE-MANIFEST.json)`，已声明 `digestTarget`/`digestAlgorithm` 并由 `check-pack.mjs` 当场复算）
 - [x] 知识供给 / 技能包 / 工具集（`knowledge-providers/` + `skill-packages/` + `tool-providers/`）
 - [x] 自检脚本（`scripts/check-pack.mjs`：version lockstep + 文档版本 lockstep + 门禁绑定 + DAG 完整性 + digest 可复现性 + 占位符残留 + fileRef 安全 + bannedTokens 阈值 + **引用完整性四门**（contributions／scenario 引用／SKILL.md 点名文件／transport 路径）+ 三方对撞目标；`--json` 供脚本/CI 读；平台校验器缺失时以 skip note 声明并继续跑其余检查）
-- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**21 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
+- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**42 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
+- [x] **判据 × 负向对照矩阵**（`negative-controls` 硬门：自有 code 必须 100% 有负向对照，未覆盖即 FAIL；平台校验器自带的 16 个 code 显式排除。现 **自有 39/39**）
+- [x] **交付物门禁均有可执行判据**（10 道门全部带 `config`；`structure-gate-no-config` 判据保证今后不会出现"只有声明、没有判据"的门。`render-overflow` 的五档视口/溢出判据/WCAG AA 阈值、`section-outline` 的大纲抽取与对照口径、`layout-audit` 的三项检查均取自首单实测口径）
 - [x] **判据登记表**（`CRITERIA.md`，19 条：id／强度 hard·structural·advisory／对象／量程／**不查什么**／可报出的 code；由 `check-pack --criteria-md` 生成，`criteria-doc` 判据逐字比对防漂移）
 - [x] **覆盖率报表**（`scripts/check-pack.mjs --coverage`：登记"哪个判据读过哪个文件"，输出「有针对性判据／仅通用扫描／没人读」三类；当前 **36 文件：36／0／0**）｜**禁例覆盖 85/85（禁例 90 条／通用术语豁免 8 条／待判定 0 条，`maxReviewPending=0`）**
 - [x] **冒烟测试**（`scripts/smoke-test.mjs`：照 transport 的 `smokeArgs` **真跑一次** —— 静态存在性由 `check-pack` 把关，**可执行性**由本脚本把关；声明即承诺）
