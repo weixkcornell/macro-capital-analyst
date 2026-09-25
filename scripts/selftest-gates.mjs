@@ -136,6 +136,71 @@ const CASES = [
       write(r, f, JSON.stringify(o, null, 2) + '\n')
     },
   },
+  {
+    name: 'contributions 指向不存在的 methodPack',
+    expectCode: 'skill-contribution-target-missing',
+    mutate: r => {
+      const f = firstJson(r, 'skill-packages', o => o?.contributions)
+      const o = JSON.parse(read(r, f))
+      o.contributions.methodPacks = [...(o.contributions.methodPacks ?? []), 'NOPE-method-pack']
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'scenario 引用不存在的 outputTemplate',
+    expectCode: 'scenario-reference-missing',
+    mutate: r => {
+      const f = firstJson(r, 'scenarios', o => o?.outputTemplate)
+      const o = JSON.parse(read(r, f))
+      o.outputTemplate = 'NOPE-template'
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: 'SKILL.md 点名了不存在的文件',
+    expectCode: 'skill-reference-missing',
+    mutate: r => {
+      const f = firstJson(r, 'skill-packages', o => o?.source?.digestTarget)
+      const o = JSON.parse(read(r, f))
+      const md = o.source.digestTarget
+      write(r, md, read(r, md) + '\n另见 `references/NOPE.md`。\n')
+    },
+  },
+  {
+    name: '质量门禁缺字段（severity）',
+    expectCode: 'structure-gate-missing-field',
+    mutate: r => {
+      const f = firstJson(r, 'quality-policies', o => o?.gates?.length)
+      const o = JSON.parse(read(r, f))
+      delete o.gates[0].severity
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
+    name: '脚本语法错误（scripts/ 下不可编译）',
+    expectCode: 'script-syntax-error',
+    mutate: r => write(r, 'scripts/_selftest_broken.mjs', 'const x = (\n'),
+  },
+  {
+    name: '文档点名了不存在的脚本',
+    expectCode: 'doc-script-ref-missing',
+    mutate: r => write(r, 'README.md', read(r, 'README.md') + '\n见 `scripts/NOPE.mjs`。\n'),
+  },
+  {
+    name: '.gitignore 不再忽略运行目录 engine/',
+    expectCode: 'gitignore-rule',
+    mutate: r => write(r, '.gitignore', read(r, '.gitignore').replace('engine/', '')),
+  },
+  {
+    name: 'transport 的路径参数不存在',
+    expectCode: 'transport-target-missing',
+    mutate: r => {
+      const f = firstJson(r, 'tool-providers', o => o?.transports?.length)
+      const o = JSON.parse(read(r, f))
+      o.transports[0].args = ['skills/NOPE.py']
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
 ]
 
 let bad = 0

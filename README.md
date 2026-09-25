@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.4-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.5-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -128,6 +128,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.4.5**（2026-09-25）：**把"盲区"从感觉变成计量：覆盖率报表 ＋ 内容层结构判据** —— ① **新增覆盖率计量**（`check-pack --coverage`）：登记"哪个检查读过哪个文件"，输出**有针对性判据／仅通用扫描／没人读**三类。**第一次跑就暴露：27 个内容文件（experts／method-packs／output-templates／domain-knowledge…）此前只被"读入 + 占位符扫描"碰过、2 个文件没人读** —— 这正是"三道门禁全 PASS"那种话最容易掩盖的地方。 ② **新增内容结构判据（平台无关）**：按维度声明"必须有什么"（10 个维度的必需字段与非空列表、门禁四要素 `id/kind/severity/appliesTo`、`documentStructure.sections[]` 的 `name/required`、方法包步骤编号不重复、kb `collections[].root` 不存在时须显式声明、`.gitattributes` 必须 `eol=lf`）。**契约按实测写**：三个方法包的内容字段名各不相同（gates／layers／steps）⇒ 契约只能是"至少一个非空数组"，**改契约而不是改内容**。 ③ **新增脚本/文档/杂项完整性**：`scripts/*` 与技能脚本**语法可编译**（`node --check`／`bash -n`／`compile()`）；`*.md` 与 workflow 点名的 `scripts/` 路径**必须存在**（**当场抓到 `SUBMISSION-CHECKLIST.md` 一处不可解析的旧路径**，已改为全路径）；workflow 必须有 `on:`/`jobs:`；`.gitignore` 必须忽略 `engine/` 与 `__pycache__`；`LICENSE` 必须与包内 license 声明一致。 ④ **覆盖率 22／12／2 → 36／0／0**（新增判据后盲区为零，且每条覆盖都登记了负责的检查名）。 ⑤ **门禁自校准 15 → 19 例**（结构／脚本语法／文档引用／gitignore 各配负向对照）。 ⑥ **修一处不准确的范围声明**：skip note 原写"检查 3/4/5/6 依赖平台校验器"，实际它们改用"直读 JSON"照跑 —— **范围声明必须准确，否则读者会以为这些检查没跑**。 ⑦ 覆盖率接入 `release-check.sh` 与 CI（报表步，附在五件套之后）。
 
 - **2.4.4**（2026-09-25）：**补上 CI 模式的检查真空 ＋ 动态冒烟 ＋ 修豁免判定的 use/mention 混淆** —— ① **新增四项【平台无关】引用完整性门禁**：`skill-contribution-target-missing`（`skillPackages.contributions` 的每个 id 必须在对应维度里存在）、`scenario-reference-missing`（`teamTemplate`/`outputTemplate`/`qualityPolicy`/`skill.id`/`tasks[].expert` 必须可解析）、`skill-reference-missing`（SKILL.md 点名的 `references/`·`scripts/`·`assets/` 文件必须真的在）、`transport-target-missing`（`local-cli` transport 的路径型 `args` 必须存在）。**动机**：检查 3/4/5/6 依赖平台校验器，而 CI 里没有私有库 ⇒ 那几条在 CI 是 `skip`；不兜底就形成**最坏的组合——本地能拦、CI 拦不住**。 ② **新增 `scripts/smoke-test.mjs` ＋ transport 声明 `smokeArgs`**：`check-pack` 只能证明"声明的路径存在"（静态），本项**照声明真跑一次**（动态）——`collision-cli` 即 `python3 …/i1_collision_check.py --selftest`，跑不通即 FAIL；没写 `smokeArgs` 的 transport 只做静态核对。**声明即承诺。** ③ **修豁免判定的 use/mention 混淆**：`check-pack-allow: placeholder-residue` 原先"文件里出现即算声明"⇒ **文档里提到该标记、以及脚本自己的正则字面量，都会被误判为"已声明豁免"**（实测三处假豁免：README、RELEASING、check-pack 自身）。现要求**行首注释**形式才算声明 ⇒ 只剩真正需要它的 `selftest-gates.mjs` 一处，且每处豁免都会打印 note。 ④ **note 去重聚合**：`toolPolicy.allowed` 的平台层解析原先按"场景 × 能力"报 6 条重复 note，现按能力聚合成 1 条（列出出现场景）—— 噪声会淹掉真告警。 ⑤ 发布前检查扩为**五件套**（`release-check.sh` 与 CI 同步加上冒烟测试）。
 - **2.4.3**（2026-09-24）：**门禁可被第三方/CI 复跑 ＋ 修三处真缺陷 ＋ 手工步骤脚本化** ——

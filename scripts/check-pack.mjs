@@ -24,6 +24,17 @@ const dir = resolve(ARGV.find(a => !a.startsWith('--')) ?? '.')
 /** 统一剥离 UTF-8 BOM。CSV/JSON 带 BOM 时，第一个键名会变成 "\uFEFFxxx"（静默错名）。 */
 const readText = p => readFileSync(p, 'utf8').replace(/^\uFEFF/, '')
 
+// 覆盖率计量：记录"哪个检查读过哪个文件"。--coverage 会据此给出
+// 「只被通用扫描器读过」与「没人读过」的清单 —— 盲区应当是可见的，不是靠感觉。
+const touched = new Map()   // relPath -> Set<checkId>
+const relOf = p => (p.startsWith(dir) ? p.slice(dir.length + 1) : p)
+const mark = (checkId, p) => {
+  if (!p) return
+  const r = relOf(p)
+  if (!touched.has(r)) touched.set(r, new Set())
+  touched.get(r).add(checkId)
+}
+
 const DIMENSIONS = ['experts', 'teamTemplates', 'outputTemplates', 'qualityPolicies',
   'scenarios', 'methodPacks', 'toolProviders', 'knowledgeProviders', 'domainKnowledge', 'skillPackages']
 
@@ -32,20 +43,33 @@ const notes = []
 let absentBannedTokens = []   // strict：真缺口（供 --json 全量给出）
 let allowlistedTokens = []    // 通用术语：明确【不得】写入禁例，故不计入缺口
 let reviewPendingTokens = []  // 待人工判定的"疑似通用"词干
+let coverage = null           // --coverage 的计量结果
 const fail = (code, where, msg) => problems.push(`${code} @ ${where} :: ${msg}`)
 
 /** 维度键是 camelCase，目录名是 kebab-case（knowledgeProviders ↔ knowledge-providers）。 */
 const dirNameOf = key => key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
 
+/** 维度 → 源文件清单（只列表，不读内容）。覆盖率的读者关心"源文件有没有被判据看过"，
+ *  而判据读的是"装好的对象" —— 二者在这里对上。注意：有平台校验器时不会走 loadRawPack，
+ *  故清单必须独立于它生成，否则本地跑覆盖率会全线漏报。 */
+const dimFiles = {}
+for (const k of DIMENSIONS) {
+  const d = resolve(dir, dirNameOf(k))
+  dimFiles[k] = existsSync(d) ? readdirSync(d).filter(n => n.endsWith('.json')).sort().map(f => resolve(d, f)) : []
+}
+
 /** 直接从 JSON 文件装包：与平台校验器无关，故第三方/CI 无私有库也能跑完这些检查。 */
 function loadRawPack(root) {
+  mark('load', join(root, 'pack.json'))
   const out = { pack: JSON.parse(readText(join(root, 'pack.json'))) }
   for (const k of DIMENSIONS) {
     const d = resolve(root, dirNameOf(k))
     out[k] = []
     if (!existsSync(d)) continue
     for (const f of readdirSync(d).filter(n => n.endsWith('.json')).sort()) {
-      try { out[k].push(JSON.parse(readText(resolve(d, f)))) }
+      const abs = resolve(d, f)
+      mark('load', abs)
+      try { out[k].push(JSON.parse(readText(abs))) }
       catch (e) { fail('json-unparseable', `${k}/${f}`, e.message) }
     }
   }
@@ -58,7 +82,7 @@ function loadRawPack(root) {
 let validatorRan = false
 let validatorPack = null
 if (!existsSync(resolve(LIB, 'lib/v2/index.js'))) {
-  notes.push(`skip 平台校验器未运行：未找到 ${LIB}（检查 3/4/5/6 依赖它；其余检查照跑）—— 设 EXPERT_LIB_ROOT 可启用`)
+  notes.push(`skip 平台校验器未运行：未找到 ${LIB} ⇒ 少一层平台侧诊断；其余检查全部照跑（3/4/5/6 改用"直读 JSON"的结果，口径见各自实现）—— 设 EXPERT_LIB_ROOT 可启用`)
 } else {
   const require = createRequire(LIB + '/')
   const v2 = require(resolve(LIB, 'lib/v2/index.js'))
@@ -87,6 +111,7 @@ for (const key of ['experts', 'teamTemplates', 'outputTemplates', 'qualityPolici
   for (const e of pack[key] ?? []) addVer(`${key}.${e.id}`, e.version)
 }
 if (pack.pack?.version) addVer('pack.json', pack.pack.version)
+mark('version-lockstep', join(dir, 'pack.json'))
 if (versions.size > 1) {
   fail('version-drift', 'pack', `pack version "${pack.pack?.version}" but entities carry ${[...versions.keys()].filter(v => v !== pack.pack?.version).join(', ')}`)
 }
@@ -234,6 +259,7 @@ if (platformResolved.size) {
 //   strict    —— 其余未覆盖的专名/篇名 = 真缺口（阈值 0，超了即 FAIL）
 const manifestPath = resolve(dir, 'source/SOURCE-MANIFEST.json')
 if (existsSync(manifestPath)) {
+  mark('banned-tokens', manifestPath)
   const manifest = JSON.parse(readText(manifestPath))
   // Normalise both sides the way a human would: drop subtitles and parentheticals,
   // keep the distinctive stem, then compare.
@@ -284,6 +310,7 @@ if (pack.pack?.version) {
   const declared = pack.pack.version
 
   if (existsSync(resolve(dir, 'README.md'))) {
+    mark('doc-version', resolve(dir, 'README.md'))
     const md = readText(resolve(dir, 'README.md'))
     const badge = md.match(/badge\/Version-([^-\s]+)-/)
     if (!badge) fail('missing-version-badge', 'README.md', 'no shields.io Version badge found')
@@ -305,6 +332,7 @@ if (pack.pack?.version) {
   } else fail('missing-readme', 'README.md', 'not found')
 
   if (existsSync(resolve(dir, 'SUBMISSION-CHECKLIST.md'))) {
+    mark('doc-version', resolve(dir, 'SUBMISSION-CHECKLIST.md'))
     const cl = readText(resolve(dir, 'SUBMISSION-CHECKLIST.md'))
     const m = cl.match(/version=([0-9]+\.[0-9]+\.[0-9]+)/)
     if (!m) fail('missing-checklist-version', 'SUBMISSION-CHECKLIST.md', 'no "version=X.Y.Z" found')
@@ -340,6 +368,7 @@ if (pack.pack?.version) {
       continue
     }
     const abs = resolve(dir, target)
+    mark('digest', abs)
     if (!existsSync(abs)) { fail('digest-target-missing', where, `digestTarget "${target}" 不存在`); continue }
     let got
     try { got = crypto.createHash(algo ?? 'sha256').update(fs.readFileSync(abs)).digest('hex') }
@@ -380,6 +409,7 @@ if (pack.pack?.version) {
       if (!EXT.test(e.name)) continue
       const abs = join(d, e.name)
       const rel = abs.slice(dir.length + 1)
+      mark('placeholder-scan', abs)
       const text = readText(abs)
       if (EXEMPT.test(text)) { notes.push(`note ${rel} 声明了 placeholder-residue 豁免（该文件按设计含残留样本）；引用其检查结论时须带上这一条`); continue }
       const hits = [...text.matchAll(RESIDUE)].filter(m => !isNotation(m.input, m)).map(m => m[0])
@@ -394,6 +424,7 @@ if (pack.pack?.version) {
 // 查的是"可解析规则是否声明"与"有没有把绝对路径/URL/内网地址写进包"。
 {
   if (existsSync(manifestPath)) {
+    mark('file-ref', manifestPath)
     const manifest = JSON.parse(readText(manifestPath))
     if (!manifest.fileRefRoot) {
       fail('fileRef-root-undeclared', 'source/SOURCE-MANIFEST.json', '未声明 fileRefRoot ⇒ 读者无法知道 fileRef 相对哪个根解析')
@@ -411,6 +442,7 @@ if (pack.pack?.version) {
 {
   const csvPath = resolve(dir, 'data-contracts/capability-contract.csv')
   if (existsSync(csvPath)) {
+    mark('contract', csvPath)
     const lines = readText(csvPath).split('\n').filter(l => l.trim())
     const csvCaps = lines.slice(1).map(l => l.split(',')[0].replace(/^\uFEFF/, '').trim()).filter(Boolean)
     const declaredCaps = new Set((pack.toolProviders ?? []).flatMap(p => (p.capabilities ?? []).map(c => c.capability)))
@@ -457,6 +489,7 @@ if (pack.pack?.version) {
     if (sp.source?.kind !== 'workspace' || !sp.source?.root) continue
     const skillMd = resolve(dir, sp.source.digestTarget ?? `${sp.source.root}/SKILL.md`)
     if (!existsSync(skillMd)) continue            // 缺 SKILL.md 由 digest 检查负责报
+    mark('ref-integrity', skillMd)
     const refs = new Set([...readText(skillMd).matchAll(/(?:^|[\s`(])((?:references|scripts|assets)\/[A-Za-z0-9._\-/]+)/g)]
       .map(m => m[1].replace(/[.,)]+$/, '')))
     for (const r of refs) {
@@ -467,11 +500,217 @@ if (pack.pack?.version) {
   for (const p of pack.toolProviders ?? []) {
     for (const t of p.transports ?? []) {
       for (const a of t.args ?? []) {
+        if (a.includes('/') && /\.[A-Za-z0-9]+$/.test(a)) mark('ref-integrity', resolve(dir, a))
         if (a.includes('/') && /\.[A-Za-z0-9]+$/.test(a) && !existsSync(resolve(dir, a))) {
           fail('transport-target-missing', `toolProviders.${p.id}.transports.${t.id}`, `args 里的路径不存在：${a}`)
         }
       }
     }
+  }
+}
+
+// ---------------------------------------------------------------- 15. 结构（平台无关的内容判据）
+// 14 的覆盖率报表第一次跑就暴露了盲区：experts / method-packs / output-templates / domain-knowledge
+// 这些【内容】文件此前只被"读入 + 占位符扫描"碰过，没有任何针对性判据（CI 模式下平台校验器也不在）。
+// 本节按维度声明"必须有什么"，把内容层从"没人看"变成"有人看"。
+{
+  const STRUCTURE = {
+    experts: { required: ['id', 'version', 'schemaVersion', 'display', 'persona', 'methods'], lists: ['methods'] },
+    // 三个方法包的"内容字段"名各不相同（dual-gates→gates／nine-layer→layers／six-step→steps）
+    // ⇒ 契约只能是"至少有一个非空数组"，而不是某个具体字段名（先按实测改契约，不按契约改内容）。
+    methodPacks: { required: ['id', 'version', 'schemaVersion', 'name'], lists: [], atLeastOneList: true },
+    outputTemplates: { required: ['id', 'version', 'schemaVersion', 'sections', 'documentStructure'], lists: ['sections'] },
+    qualityPolicies: { required: ['id', 'version', 'schemaVersion', 'gates'], lists: ['gates'] },
+    teamTemplates: { required: ['id', 'version', 'schemaVersion', 'slots', 'tasks'], lists: ['slots', 'tasks'] },
+    scenarios: { required: ['id', 'version', 'schemaVersion', 'tasks'], lists: ['tasks'] },
+    toolProviders: { required: ['id', 'version', 'schemaVersion', 'capabilities'], lists: ['capabilities'] },
+    knowledgeProviders: { required: ['id', 'version', 'schemaVersion', 'capabilities'], lists: ['capabilities'] },
+    domainKnowledge: { required: ['id', 'version', 'schemaVersion', 'collections'], lists: ['collections'] },
+    skillPackages: { required: ['id', 'version', 'schemaVersion', 'source'], lists: [] },
+  }
+  for (const [dim, spec] of Object.entries(STRUCTURE)) {
+    for (const e of pack[dim] ?? []) {
+      const where = `${dim}.${e.id ?? '?'}`
+      for (const k of spec.required) {
+        if (e[k] === undefined || e[k] === null) fail('structure-missing-field', where, `缺字段 ${k}`)
+      }
+      for (const k of spec.lists) {
+        if (!Array.isArray(e[k]) || e[k].length === 0) fail('structure-empty-list', where, `${k} 必须是非空数组`)
+      }
+      if (spec.atLeastOneList) {
+        const nonEmpty = Object.entries(e).filter(([, v]) => Array.isArray(v) && v.length > 0).map(([k]) => k)
+        if (nonEmpty.length === 0) fail('structure-empty-list', where, '至少要有一个非空数组字段（内容为空）')
+      }
+    }
+  }
+  // 质量门禁：每道门要能被调度，就必须有 id / kind / severity / appliesTo
+  for (const pol of pack.qualityPolicies ?? []) {
+    for (const g of pol.gates ?? []) {
+      const where = `qualityPolicies.${pol.id}.gates.${g.id ?? '?'}`
+      for (const k of ['id', 'kind', 'severity']) if (!g[k]) fail('structure-gate-missing-field', where, `门禁缺字段 ${k}`)
+      if (!Array.isArray(g.appliesTo) || g.appliesTo.length === 0) fail('structure-gate-missing-field', where, 'appliesTo 必须是非空数组')
+    }
+  }
+  // 输出模板：documentStructure 里声明的章节要有 name/required
+  for (const t of pack.outputTemplates ?? []) {
+    const ds = t.documentStructure
+    const secs = Array.isArray(ds?.sections) ? ds.sections : null
+    if (!secs) { fail('structure-document-structure', `outputTemplates.${t.id}`, 'documentStructure.sections 必须是数组'); continue }
+    for (const [i, sec] of secs.entries()) {
+      if (!sec?.name) fail('structure-document-structure', `outputTemplates.${t.id}.documentStructure.sections[${i}]`, '缺 name')
+      if (typeof sec?.required !== 'boolean') fail('structure-document-structure', `outputTemplates.${t.id}.documentStructure.sections[${i}]`, 'required 必须是布尔值')
+    }
+  }
+  // 方法包：步骤编号不重复
+  for (const m of pack.methodPacks ?? []) {
+    const nums = (m.steps ?? []).map(x => x.step)
+    if (new Set(nums).size !== nums.length) fail('structure-duplicate-step', `methodPacks.${m.id}`, `steps.step 有重复：${nums.join(',')}`)
+  }
+  // 本体 collection：root 不在仓内时必须显式说明（否则读者会以为缺文件）
+  for (const kb of pack.domainKnowledge ?? []) {
+    for (const c of kb.collections ?? []) {
+      const abs = resolve(dir, c.root ?? '')
+      if ((!c.root || !existsSync(abs)) && !c.note) {
+        fail('structure-collection-root', `domainKnowledge.${kb.id}.collections.${c.id}`, `root "${c.root}" 在仓内不存在，且未用 note 说明（读者会误判为缺文件）`)
+      }
+      if (c.root) mark('structure', abs)
+    }
+  }
+  // .gitattributes 必须钉行尾：digest 目标是 sha256(SKILL.md)，CRLF 会让 digest 全体错位
+  const gaPath = resolve(dir, '.gitattributes')
+  mark('structure', gaPath)
+  if (!existsSync(gaPath)) fail('structure-gitattributes', '.gitattributes', '缺失：行尾策略未声明，跨平台 digest 不稳定')
+  else if (!/eol=lf/.test(readText(gaPath))) fail('structure-gitattributes', '.gitattributes', '未声明 eol=lf')
+}
+
+// ---------------------------------------------------------------- 13b. 覆盖率归属（对象→源文件）
+// 判据读的是"装好的对象"，覆盖率的读者关心的是"源文件有没有被判据看过"。
+// 这里把二者如实对应起来：某维度被判据 X 查过 ⇒ 其源文件记为被 X 覆盖。
+{
+  const BY_CHECK = {
+    'gates-binding': ['teamTemplates', 'qualityPolicies'],
+    dag: ['teamTemplates', 'scenarios'],
+    'scenario-dag': ['scenarios', 'teamTemplates'],
+    'policy-resolution': ['scenarios', 'knowledgeProviders', 'toolProviders'],
+    structure: Object.keys({
+      experts: 1, methodPacks: 1, outputTemplates: 1, qualityPolicies: 1, teamTemplates: 1,
+      scenarios: 1, toolProviders: 1, knowledgeProviders: 1, domainKnowledge: 1, skillPackages: 1,
+    }),
+    'ref-integrity': ['scenarios', 'skillPackages', 'toolProviders', 'outputTemplates', 'qualityPolicies', 'teamTemplates', 'methodPacks', 'knowledgeProviders'],
+  }
+  for (const [checkId, dims] of Object.entries(BY_CHECK)) {
+    for (const d of dims) for (const f of dimFiles[d] ?? []) mark(checkId, f)
+  }
+}
+
+// ---------------------------------------------------------------- 15b. 脚本/文档/杂项完整性
+// 覆盖率报表把这些文件标成"没人看"，本节点掉它们：
+//   scripts/*.mjs|sh|py  —— 语法可编译（能被 require/执行）
+//   *.md 与 workflow    —— 点名的 scripts/ 路径必须存在（文档引用烂链接）
+//   workflow            —— 必须像一份 workflow（有 on: 与 jobs:）
+//   .gitignore          —— 必须忽略运行目录与 __pycache__（否则运行数据会被误提交）
+//   LICENSE             —— 必须与包内声明的 license 一致
+{
+  const fsMod = await import('node:fs')
+  const { execFileSync } = await import('node:child_process')
+  const syntax = (rel, kind) => {
+    const abs = resolve(dir, rel)
+    mark('scripts-syntax', abs)
+    try {
+      if (kind === 'mjs') execFileSync(process.execPath, ['--check', abs], { stdio: 'ignore' })
+      else if (kind === 'sh') execFileSync('bash', ['-n', abs], { stdio: 'ignore' })
+      else if (kind === 'py') execFileSync('python3', ['-c', `import sys;compile(open(sys.argv[1],encoding="utf-8").read(),sys.argv[1],"exec")`, abs], { stdio: 'ignore' })
+    } catch (e) {
+      fail('script-syntax-error', rel, `${kind} 语法检查未通过（exit=${e.status ?? '?'}）`)
+    }
+  }
+  const walkScripts = d => {
+    for (const e of fsMod.readdirSync(d, { withFileTypes: true })) {
+      if (e.isDirectory()) { if (!['__pycache__', '.git', 'engine'].includes(e.name)) walkScripts(join(d, e.name)); continue }
+      const rel = relOf(join(d, e.name))
+      if (e.name.endsWith('.mjs') || e.name.endsWith('.js')) syntax(rel, 'mjs')
+      else if (e.name.endsWith('.sh')) syntax(rel, 'sh')
+      else if (e.name.endsWith('.py')) syntax(rel, 'py')
+    }
+  }
+  for (const d of ['scripts', 'skills']) { const abs = resolve(dir, d); if (existsSync(abs)) walkScripts(abs) }
+
+  // 文档/workflow 里点名的 scripts/ 路径必须存在
+  const docFiles = []
+  const walkDocs = d => {
+    for (const e of fsMod.readdirSync(d, { withFileTypes: true })) {
+      if (e.isDirectory()) { if (!['__pycache__', '.git', 'engine'].includes(e.name)) walkDocs(join(d, e.name)); continue }
+      if (/\.(md|ya?ml)$/.test(e.name)) docFiles.push(join(d, e.name))
+    }
+  }
+  walkDocs(dir)
+  for (const abs of docFiles) {
+    const rel = relOf(abs)
+    mark('doc-script-ref', abs)
+    const text = readText(abs)
+    for (const m of text.matchAll(/(?:^|[\s`(])(scripts\/[A-Za-z0-9._\-/]+\.(?:mjs|sh|py))/g)) {
+      const ref = m[1].replace(/[.,)]+$/, '')
+      if (!existsSync(resolve(dir, ref))) fail('doc-script-ref-missing', rel, `文档点名了不存在的脚本：${ref}`)
+    }
+  }
+  // workflow 结构
+  const wfDir = resolve(dir, '.github/workflows')
+  if (existsSync(wfDir)) {
+    for (const f of fsMod.readdirSync(wfDir).filter(n => /\.ya?ml$/.test(n))) {
+      const rel = `.github/workflows/${f}`
+      mark('workflow-basic', resolve(dir, rel))
+      const t = readText(resolve(dir, rel))
+      if (!/^on:/m.test(t)) fail('workflow-basic', rel, '缺 on: 触发声明')
+      if (!/^jobs:/m.test(t)) fail('workflow-basic', rel, '缺 jobs:')
+    }
+  }
+  // .gitignore：必须忽略运行目录与 __pycache__
+  const gi = resolve(dir, '.gitignore')
+  mark('gitignore-rule', gi)
+  if (!existsSync(gi)) fail('gitignore-rule', '.gitignore', '缺失')
+  else {
+    const t = readText(gi)
+    for (const pat of ['__pycache__', 'engine/']) {
+      if (!t.includes(pat)) fail('gitignore-rule', '.gitignore', `未忽略 ${pat} ⇒ 运行数据/字节码可能被提交`)
+    }
+  }
+  // LICENSE 与包内声明的 license 一致
+  const licPath = resolve(dir, 'LICENSE')
+  mark('license-consistency', licPath)
+  const declaredLic = new Set((pack.skillPackages ?? []).map(p => p.source?.license).filter(Boolean))
+  if (!existsSync(licPath)) fail('license-consistency', 'LICENSE', '缺失')
+  else if (declaredLic.size && ![...declaredLic].every(l => readText(licPath).includes(l))) {
+    fail('license-consistency', 'LICENSE', `LICENSE 文本与包内声明不一致：声明 ${[...declaredLic].join('/')}`)
+  }
+}
+
+// ---------------------------------------------------------------- 14. 覆盖率（--coverage）
+// 盲区应当是可见的：分清「有针对性判据读过」「只被通用扫描器读过」「没人读过」。
+if (ARGV.includes('--coverage')) {
+  const GENERIC = new Set(['placeholder-scan', 'load'])
+  const SKIP = new Set(['.git', 'engine', '__pycache__', 'node_modules'])
+  const all = []
+  const walkAll = d => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      if (e.isDirectory()) { if (!SKIP.has(e.name)) walkAll(join(d, e.name)); continue }
+      all.push(relOf(join(d, e.name)))
+    }
+  }
+  if (existsSync(dir)) walkAll(dir)
+  const targeted = [], scanOnly = [], untouched = []
+  for (const f of all.sort()) {
+    const ids = touched.get(f)
+    if (!ids) { untouched.push(f); continue }
+    if ([...ids].some(i => !GENERIC.has(i))) targeted.push(f)
+    else scanOnly.push(f)
+  }
+  notes.push(`note 覆盖率：${all.length} 个文件 —— 有针对性判据 ${targeted.length} ／ 仅通用扫描 ${scanOnly.length} ／ 没人读 ${untouched.length}`)
+  coverage = {
+    filesTotal: all.length,
+    targeted, scanOnly, untouched,
+    perCheck: Object.fromEntries(
+      [...new Set([...touched.values()].flatMap(s => [...s]))].sort()
+        .map(id => [id, [...touched.values()].filter(v => v.has(id)).length])),
   }
 }
 
@@ -491,6 +730,7 @@ function report() {
       absentBannedTokens,      // strict：真缺口（专名/篇名，未覆盖）
       allowlistedTokens,       // 通用术语：明确不得入禁例
       reviewPendingTokens,     // 待人工判定
+      ...(coverage ? { coverage } : {}),
     }, null, 1))
     return
   }
@@ -499,6 +739,14 @@ function report() {
   console.log('dimensions: ' + sections[0].map(k => `${k}=${num(k)}`).join(' '))
   console.log()
   for (const n of notes) console.log('  · ' + n)
+  if (coverage) {
+    console.log()
+    console.log(`覆盖率（--coverage）：共 ${coverage.filesTotal} 个文件 —— 有针对性判据 ${coverage.targeted.length} ／ 仅通用扫描 ${coverage.scanOnly.length} ／ 没人读 ${coverage.untouched.length}`)
+    const show = (label, list) => { if (list.length) console.log(`  ${label}（${list.length}）：${list.slice(0, 12).join('、')}${list.length > 12 ? ' …' : ''}`) }
+    show('仅通用扫描（无针对性判据）', coverage.scanOnly)
+    show('没人读', coverage.untouched)
+    console.log('  各检查覆盖文件数：' + Object.entries(coverage.perCheck).map(([k, v]) => `${k}=${v}`).join('  '))
+  }
   if (problems.length === 0) {
     console.log(`\n✓ 0 problems${notes.length ? `, ${notes.length} note(s)` : ''}`)
   } else {

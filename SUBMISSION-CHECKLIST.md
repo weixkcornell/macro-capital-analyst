@@ -2,17 +2,18 @@
 
 > 平台评审按此逐项打勾；先自检再提交。
 
-- [x] `pack.json`（id=macro-capital-analyst / version=2.4.4 / schemaVersion=2 / caliberDeclarations 四类口径）
+- [x] `pack.json`（id=macro-capital-analyst / version=2.4.5 / schemaVersion=2 / caliberDeclarations 四类口径）
 - [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，38 份材料）
 - [x] `scenarios/*.json`（DAG 依赖无环、专家 id 全部可解析、deliverable 明确；共 2 个）
 - [x] `output-templates/` + `quality-policies/`（起步门禁 10 道覆盖数字一致与禁例 token；含 `gate-a-double-calibration` / `net-active-return-required` / `active-risk-budget` 硬门，且每道门均有 team template 绑定）
 - [x] `method-packs/`（六步内化 / 九层能力 / 两道闸门）+ `team-templates/`（2 个组队模板）
-- [x] `skills/macro-capital-framework/SKILL.md`（触发词齐全，references/checklist-template.md + scripts/i1_collision_check.py 完整）
+- [x] `skills/macro-capital-framework/SKILL.md`（触发词齐全；其 references 与 scripts 全部落在 `skills/macro-capital-framework/references/checklist-template.md` 与 `skills/macro-capital-framework/references/scripts/i1_collision_check.py`，并由 check-pack 的 ref-integrity／skill-reference-missing 逐条核对）
 - [x] 数据契约表（`data-contracts/capability-contract.csv`，自建数据引擎契约）
 - [x] 本体（`domain-knowledge/macro-capital-analyst-kb.json`，recordCount=38，digest = `sha256(source/SOURCE-MANIFEST.json)`，已声明 `digestTarget`/`digestAlgorithm` 并由 `check-pack.mjs` 当场复算）
 - [x] 知识供给 / 技能包 / 工具集（`knowledge-providers/` + `skill-packages/` + `tool-providers/`）
 - [x] 自检脚本（`scripts/check-pack.mjs`：version lockstep + 文档版本 lockstep + 门禁绑定 + DAG 完整性 + digest 可复现性 + 占位符残留 + fileRef 安全 + bannedTokens 阈值 + **引用完整性四门**（contributions／scenario 引用／SKILL.md 点名文件／transport 路径）+ 三方对撞目标；`--json` 供脚本/CI 读；平台校验器缺失时以 skip note 声明并继续跑其余检查）
-- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**11 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
+- [x] **门禁自校准脚本**（`scripts/selftest-gates.mjs`：**19 例**负向对照 —— 基线 ／ 徽章・历史・清单三处版本漂移 ／ 实体版本漂移 ／ digest 不符 ／ 缺 `digestTarget` ／ 占位符残留 ／ fileRef 绝对路径 ／ 发布说明占位 ／ 禁例覆盖缺口；任一未被抓住即 exit 1）
+- [x] **覆盖率报表**（`scripts/check-pack.mjs --coverage`：登记"哪个判据读过哪个文件"，输出「有针对性判据／仅通用扫描／没人读」三类；当前 **36 文件：36／0／0**）
 - [x] **冒烟测试**（`scripts/smoke-test.mjs`：照 transport 的 `smokeArgs` **真跑一次** —— 静态存在性由 `check-pack` 把关，**可执行性**由本脚本把关；声明即承诺）
 - [x] 技能脚本自检（`skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest`：8 例含负向样本，覆盖指数名吞数字／千分位／小数边界；报告另含 `caliber` 声明容差与池口径）
 - [x] **发布流程脚本化**（`scripts/bump-version.mjs` 一处改版本号同步 4 类载位并重钉 digest ／ `scripts/repin-digests.mjs` ／ `scripts/install-to-profile.sh` 安装副本同步［先备份、保留安装侧 `routing/`、副本内自检］／ `scripts/release-check.sh` 发布前四件套）＋ **`RELEASING.md`**

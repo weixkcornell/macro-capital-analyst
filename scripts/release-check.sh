@@ -17,6 +17,8 @@ run "④ i1 解析层自检" \
     python3 skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest
 run "⑤ 冒烟测试（照 transport 的 smokeArgs 真跑一次：声明即可执行）" \
     node scripts/smoke-test.mjs
+echo "── ⑥ 覆盖率（盲区可见：有针对性判据／仅通用扫描／没人读）"
+node scripts/check-pack.mjs --coverage 2>/dev/null | sed -n '/覆盖率/,$p'
 
-if [ "$rc" -eq 0 ]; then echo; echo "✓ 发布前五件套全通过"; else echo; echo "✗ 有检查未通过 —— 不要发布"; fi
+if [ "$rc" -eq 0 ]; then echo; echo "✓ 发布前五件套全通过（附覆盖率报表）"; else echo; echo "✗ 有检查未通过 —— 不要发布"; fi
 exit "$rc"

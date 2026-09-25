@@ -23,3 +23,5 @@ jobs:
         run: python3 skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest
       - name: 冒烟测试（照 transport 的 smokeArgs 真跑一次）
         run: node scripts/smoke-test.mjs
+      - name: 覆盖率报表（盲区必须可见）
+        run: node scripts/check-pack.mjs --coverage

@@ -1,7 +1,7 @@
 ---
 name: macro-capital-framework
 description: '观澜宏观与资本市场分析工艺：第 0 层定基准与额度、九层能力取机制、六步内化组织行文、两道闸门把关统计可信与实施成本、五道起步门禁验收。Triggers on "宏观研判", "A股策略", "周期定位", "风格配置", "资产配置", "因子归因", "市场观点看板", "净预期主动收益", "预期收益", "主动收益"'
-version: 2.4.4
+version: 2.4.5
 user-invocable: true
 argument-hint: "[写/审] 中国宏观与 A 股 [主题]"
 license: MIT
