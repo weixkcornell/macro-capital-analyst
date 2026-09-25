@@ -43,7 +43,7 @@ NEW_VER="$(node -e "process.stdout.write(require('$TARGET/pack.json').version)")
 [ "$NEW_VER" = "$SRC_VER" ] || { echo "✗ 版本未对齐：$NEW_VER != $SRC_VER"; exit 1; }
 echo "③ 版本核对通过：$NEW_VER"
 ( cd "$TARGET" && node scripts/check-pack.mjs >/dev/null && echo "   · check-pack ✓" \
-  && node scripts/selftest-gates.mjs >/dev/null && echo "   · selftest-gates ✓" \
+  && SELFTEST_CONCURRENCY=8 node scripts/selftest-gates.mjs >/dev/null && echo "   · selftest-gates ✓" \
   && node scripts/smoke-test.mjs >/dev/null && echo "   · smoke-test ✓" \
   && python3 skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest >/dev/null && echo "   · i1 --selftest ✓" )
 rm -rf "$TARGET/skills/macro-capital-framework/references/scripts/__pycache__"
