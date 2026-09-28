@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.4.13-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.5.0-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -137,6 +137,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.5.0**（2026-09-28）：**同步 macro-capital-market-analysis v25 —— 跨著作权衡元判据层** —— ① 新增**跨著作权衡元判据**五条（不新增第十层、不改闸门判据结构，只在九层之上加一层「多派相左时如何折中」的依据）：**风险三维分离**（波动率=运算代理／期间风险＋尾部肥尾=判断／流动性=危机预警，禁止用单一波动率数同时承担三种角色）；**主动管理三判据**（零和＋平均无 α＋持续性弱 ⇒ 默认低费率指数/指增；「α 变 β」为拥挤衰减机理）；**因子双锚**（正锚：发表偏误仅收缩 10–15%、FDR<10%；反锚：发表后衰减 50%+、拥挤与状态依赖侵蚀；**两侧须同时报，缺一失真**）；**预期收益四问**（哪类风险溢价 → 历史分位 → 前瞻指向 → 扣实施成本与期限后净额）；**新兴市场估值禁用历史 ERP**（改隐含法＋违约利差拼装，A 股 ERP 绝对数须本地重估）。 ② 闸门 A 原「正反双校准」**升级为因子双锚**，补齐反锚一侧（此前只有正锚，会系统性高估因子可靠性）。 ③ 九层 L4（金融定价）补主动管理三判据、L5（预期收益）补四问与禁用历史 ERP、L9（摩擦与可执行）补风险三维分离。 ④ 本体补 6 实体（risk-trinity／active-management-triad／factor-dual-anchor／expected-return-four-questions／em-erp-implicit-only／cross-book-arbitration）＋ 6 关系。 ⑤ 工艺规范新增 §4「跨著作权衡元判据」；专家 Profile 补 5 条 mentalModels 与 3 条 antiPatterns。 ⑥ 本版**不新增知识源**（38 源不变）、**不新增层**，全部实证数字均为海外/全球锚，A 股须本地重标定。
 
 - **2.4.13**（2026-09-25）：**修一处被自己跑单变成假话的陈述 ＋ 登记第二单实跑** —— ① 验收清单原写「v2.3.0 之后的增补**尚未经端到端实跑**」；本轮在 **v2.4.12** 上完成了**第二单端到端交付**（场景 `a-share-outlook`，数据边界 2026-09-24）⇒ 该陈述已成假话，**改为如实记述两单各自的版本口径**。**这正是本仓一直在治的形态：陈述在写下时为真、对象演进后未同步。** ② 新增**第二单试运行记录**：`final.md`（六节齐全）＋ `index.html`（自包含渲染）＋公网链接；**交付级门禁全通过**（数字三方对撞 44/44、章节 6/6、占位符与未注入空值 0、禁例 0、五档视口 0 溢出、对比度 573/573）；**两道闸门均不通过**（A：t = −0.30、校正后存活 0、Deflated Sharpe 0.0004、Haircut 缺原文标 unknown；B：成本 0/5 可得、E[R_A] = −308.5 bp/年）⇒ **不发布任何配置结论**。 ③ 该单同时回填了包的三个缺口（见 v2.4.12）。
 

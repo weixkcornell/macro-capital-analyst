@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst-kb",
-  "version": "2.4.13",
+  "version": "2.5.0",
   "schemaVersion": 2,
   "name": "观澜宏观与资本市场本体",
   "domain": "macro.capital",
@@ -54,6 +54,30 @@
       {
         "id": "usd-safe-haven-pricing",
         "description": "美元避险定价：避险 → 美元升值 → 全球产出下降；美元债负风险溢价；跨境风险分担"
+      },
+      {
+        "id": "risk-trinity",
+        "description": "风险三维分离：波动率=运算代理；期间风险（首次穿越）+ 尾部肥尾=判断；流动性（相关性崩溃）=危机预警。三者分工，不混用单一波动率。"
+      },
+      {
+        "id": "active-management-triad",
+        "description": "主动管理三判据：零和 + 平均无 α + 持续性弱 → 默认低费率指数/指增；α 变 β 为拥挤衰减机理。"
+      },
+      {
+        "id": "factor-dual-anchor",
+        "description": "因子双锚：正锚（发表偏误收缩 10–15%，FDR<10%）与反锚（发表后衰减 50%+、拥挤与状态依赖）须同时报，缺一失真。"
+      },
+      {
+        "id": "expected-return-four-questions",
+        "description": "预期收益四问：哪类风险溢价 → 当前历史分位 → 前瞻指标指向 → 扣实施成本与期限后净额。"
+      },
+      {
+        "id": "em-erp-implicit-only",
+        "description": "新兴市场估值禁用历史 ERP：改隐含法（价格反推折现率 − 无风险利率）+ 违约利差拼装；A 股 ERP 绝对数须本地重估。"
+      },
+      {
+        "id": "cross-book-arbitration",
+        "description": "跨著作权衡元判据层：位于九层之上，用于「多派结论相左时如何折中」；不新增第十层，不改九层结构与闸门判据。"
       }
     ],
     "relations": [
@@ -100,6 +124,36 @@
       {
         "id": "geopolitics-fragmentation-feeds-nine-layer",
         "from": "geopolitics-fragmentation",
+        "to": "nine-layer"
+      },
+      {
+        "id": "cross-book-arbitration-governs-nine-layer",
+        "from": "cross-book-arbitration",
+        "to": "nine-layer"
+      },
+      {
+        "id": "risk-trinity-informs-gate-a",
+        "from": "risk-trinity",
+        "to": "gate-a"
+      },
+      {
+        "id": "factor-dual-anchor-calibrates-gate-a",
+        "from": "factor-dual-anchor",
+        "to": "gate-a"
+      },
+      {
+        "id": "active-management-triad-informs-nine-layer",
+        "from": "active-management-triad",
+        "to": "nine-layer"
+      },
+      {
+        "id": "expected-return-four-questions-informs-nine-layer",
+        "from": "expected-return-four-questions",
+        "to": "nine-layer"
+      },
+      {
+        "id": "em-erp-implicit-only-informs-nine-layer",
+        "from": "em-erp-implicit-only",
         "to": "nine-layer"
       }
     ]
