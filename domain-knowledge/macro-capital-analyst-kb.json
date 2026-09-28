@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst-kb",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "schemaVersion": 2,
   "name": "观澜宏观与资本市场本体",
   "domain": "macro.capital",
@@ -78,6 +78,26 @@
       {
         "id": "cross-book-arbitration",
         "description": "跨著作权衡元判据层：位于九层之上，用于「多派结论相左时如何折中」；不新增第十层，不改九层结构与闸门判据。"
+      },
+      {
+        "id": "carry-degradation",
+        "description": "carry 降级（v28 · gap-005 回测）：现金流收益差曾被视为唯一免检收益来源；本地对三个红利/成长配对的比值均值回归检验显示动量延续、校正后存活 0，故自 v28 起不再自动计入，不得据此放大仓位。"
+      },
+      {
+        "id": "carry-failure-clause",
+        "description": "carry 头寸失效条款（v27 新增，v28 条件 C 已触发）：连续 2 期累计负贡献 < −IC* → 权重减半降观察；连续 4 期净贡献为负 → 强制复盘；映射被证伪 → carry 不再自动计入、按 0 处理。登记于 attribution.py record，append-only。"
+      },
+      {
+        "id": "stock-level-factors",
+        "description": "个股级横截面因子（v28）：申万一级行业成份股的股息率/价值(PE·PB)/规模/动量/换手，替代原「10 指数代理」口径。"
+      },
+      {
+        "id": "northbound-holding",
+        "description": "北向持仓（v28）：fund north-holding 一手数据，用于拥挤度「持有人结构」一条腿。"
+      },
+      {
+        "id": "gap-registry",
+        "description": "缺口登记（gap-001~005）：可排期推进的已知缺口清单；gap-003（汇率历史）与 gap-005（carry 本地验证）已落地，gap-002（海外锚本地重标定）与 gap-004（第 0 层基准口径文献）仍 open。"
       }
     ],
     "relations": [
@@ -154,6 +174,31 @@
       {
         "id": "em-erp-implicit-only-informs-nine-layer",
         "from": "em-erp-implicit-only",
+        "to": "nine-layer"
+      },
+      {
+        "id": "carry-degradation-governs-active-return",
+        "from": "carry-degradation",
+        "to": "active-return"
+      },
+      {
+        "id": "carry-failure-clause-informs-gate-b",
+        "from": "carry-failure-clause",
+        "to": "gate-b"
+      },
+      {
+        "id": "gap-registry-informs-gate-a",
+        "from": "gap-registry",
+        "to": "gate-a"
+      },
+      {
+        "id": "stock-level-factors-informs-nine-layer",
+        "from": "stock-level-factors",
+        "to": "nine-layer"
+      },
+      {
+        "id": "northbound-holding-informs-nine-layer",
+        "from": "northbound-holding",
         "to": "nine-layer"
       }
     ]

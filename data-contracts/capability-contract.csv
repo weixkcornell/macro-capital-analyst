@@ -1,3 +1,8 @@
 capability,method,input_schema,output_schema,caliber,unit,frequency,lag,dataView,auth,rate_limit,sla,notes
 public.kline.self-compute,read,"{""symbol"": ""string""}","{""percentiles"": ""number[]"", ""volatility"": ""number"", ""drawdown"": ""number""}",新浪/腾讯公开K线自算口径,元·指数,日更,T+1,internal,公开接口(无需凭据),10 QPS,尽力而为,自建数据引擎：四档分位/年化波动/最大回撤/相关矩阵/拥挤度/风险贡献分解
 macro.official.verify,read,"{""indicator"": ""string""}","{""value"": ""number"", ""caliber"": ""string""}",统计局/央行官方口径,元·%,月更,T+1,internal,公开(无需凭据),—,—,官方口径核验：社零/M层次/GDP平减等口径锚定
+westock.sector.valuation,read,"{""industry"": ""string""}","{""pe_ttm"": ""number"", ""div_ttm"": ""number"", ""percentile"": ""number""}",westock,倍·%,日更,T+1,internal,需 westock CLI,--,--,v27 接入：申万行业 PE/PB/PS/股息率 TTM + 历史百分位(PeTTMPct/PbLFPct/DivTTMPct)；消除 carry 表跨来源拼装
+westock.sector.forecast,read,"{""industry"": ""string""}","{""eps_forecast"": ""number""}",westock,元,季更,--,internal,需 westock CLI,--,--,v27 接入：申万行业盈利预测（一致预期），补此前「无一致预期」缺口
+westock.quote.fx,read,"{""pair"": ""string""}","{""series"": ""number[]""}",westock,--,日更,T+1,internal,需 westock CLI,--,--,v27 接入：外汇历史序列，解决 gap-003（人民币汇率/美元指数本机无历史序列）
+fund.north-holding,read,"{""date"": ""string""}","{""holding"": ""number""}",北向,亿元,日更,T+1,internal,公开接口,--,--,v28 新增：拥挤度「持有人结构」一条腿的一手数据
+stock.cross-sectional.factor,read,"{""industry"": ""string""}","{""factors"": ""object""}",申万,倍·%,日更,T+1,internal,公开接口,10 QPS,尽力而为,v28 新增：个股级股息率/价值(PE·PB)/规模/动量/换手，替代原「10 指数代理」
