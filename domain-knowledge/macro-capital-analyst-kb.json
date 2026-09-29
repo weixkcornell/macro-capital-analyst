@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst-kb",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "schemaVersion": 2,
   "name": "观澜宏观与资本市场本体",
   "domain": "macro.capital",
@@ -20,8 +20,8 @@
         "description": "六步内化流程：钱从哪来 → 钱变利润 → 价格装多少预期 → 结构定价自洽 → 周期定位风险归属 → 错了会怎样"
       },
       {
-        "id": "nine-layer",
-        "description": "九层能力：数据读数 → 货币信用 → 宏观骨架 → 金融定价 → 预期收益 → 组合管理 → 宏观因子周期 → 横截面因子 → 摩擦可执行"
+        "id": "thirteen-layer",
+        "description": "十三层能力（第 0 层为总开关，不计入）：① 数据读数与口径锚定 ② 货币信用侧 ③ 宏观骨架 ④ 金融定价 ⑤ 预期收益与资产类别定位 ⑥ 组合管理侧 ⑦ 宏观因子与周期定位 ⑧ 横截面因子定价与统计可靠性 ⑨ 摩擦、流动性与可执行性 ⑩ 资产定价模型的实证检验与诊断 ⑪ 风险边界、破产约束与极端事件治理 ⑫ 信息不对称、微观结构与激励传导 ⑬ 组合工程与生存约束"
       },
       {
         "id": "gate-a",
@@ -98,6 +98,42 @@
       {
         "id": "gap-registry",
         "description": "缺口登记（gap-001~005）：可排期推进的已知缺口清单；gap-003（汇率历史）与 gap-005（carry 本地验证）已落地，gap-002（海外锚本地重标定）与 gap-004（第 0 层基准口径文献）仍 open。"
+      },
+      {
+        "id": "model-diagnostics",
+        "description": "⑩ 层资产定价模型的实证检验与诊断：主方程 E_t(mR)=1 为母式；α 必须绑定模型；triality 三路等价；宏观因子须先造因子模拟组合；HJ 界为排除工具（加资产使约束更紧）；有成本套利解释异象存续；CSR/Fama-MacBeth 窗口规范（60/36/24 月、日频 240 日）。"
+      },
+      {
+        "id": "risk-boundary-survival",
+        "description": "⑪ 层风险边界、破产约束与极端事件治理（概率不可赋值区域）：风险二元性；VaR 操作性定义（99 天优化 + 一年 2–3 个 break 单独归因 + 交易前指定）；凯利永不清零约束；压力测试反推法（3–10 倍 VaR，只报相对损失规模绝不报概率）；黑洞扫描（缩放平静日 ×10，推定有罪）；极端动作须在平静日预设写死。"
+      },
+      {
+        "id": "microstructure-incentives",
+        "description": "⑫ 层信息不对称、微观结构与激励传导：竞争/完全公开/部分公开三均衡阶梯；无交易定理（噪声交易者是交易量的必要条件）；卖空约束造成涨跌不对称；CGW 交易量-反转；DHS 有偏自我归因；Romer 被压抑信息；「激励 → 行为 → 价格」为一级分析链路，情绪只定赔率不定方向。"
+      },
+      {
+        "id": "portfolio-engineering",
+        "description": "⑬ 层组合工程与生存约束：仓位规则即 alpha（改定仓方法造成 10–30pp 相对差异，原始 MVO −34%）；Jagannathan-Ma 非负约束是统计改进；杠杆地板与天花板（式 10.2/10.3）；止损效率表（Sharpe=0.5 付 42%、Sharpe=2 只付 4%）；崩盘=跨投资者去杠杆（Burry 19.7%/0.03%）。"
+      },
+      {
+        "id": "expected-return-decomposition",
+        "description": "主动收益基本成分三分解：总收益 = ① 支付收益率（股息率＋净回购率）+ ② 预期现金流增长率（EPS 增长）+ ③ 预期估值变化（P/E 均值回归）。三项均为可观测/可算分量，故本模块不要求过 IC 显著性检验；须并列输出「含③」与「不含③」两版，只有两版同号的方向才可建仓。"
+      },
+      {
+        "id": "effective-breadth",
+        "description": "有效独立标的数 N_eff = N/(1+(N−1)·ρ̄) 与标的间平均相关 ρ̄：名义标的数不等于独立赌注数（实测 29 条行业指数只等于 6.2 条，ρ̄=0.132、BR≈25），二者是判断「某热点值不值得下注」的必报量。"
+      },
+      {
+        "id": "language-standard",
+        "description": "语言硬规则（v35）：产出与内部文档一律不得用「腿」这一比喻称呼头寸、标的或口径，拥挤度的三个角度统一称「三条口径」；加粗只给数字与关键术语、不得包整句判断；破折号只作「即/也就是」的补充、不得代替冒号与句号；长句拆短（一句一事）。"
+      },
+      {
+        "id": "geometric-deduction",
+        "description": "收益口径折减：算术平均收益高估买入持有可获收益，差额 = 方差/2（海外锚约 2%，不分散者约 4.5%）；A 股指数波动长期高于 20%，折减只会更大，禁止沿用 2%。须在正文声明几何/算术口径。"
+      },
+      {
+        "id": "trio-positioning",
+        "description": "三问定位（周期定位的跨书折中）：结构定方向 → 时钟定状态 → 情绪定仓位（精度递增、确定性递减）。时钟是参考不是圣杯（A 股解释度仅 43–57%、时钟动量准确率 54–65%）；商业周期择时有成本陷阱，只做温和偏移不做大幅择时。"
       }
     ],
     "relations": [
@@ -122,14 +158,14 @@
         "to": "gate-b"
       },
       {
-        "id": "six-step-organises-nine-layer",
+        "id": "six-step-organises-thirteen-layer",
         "from": "six-step",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
-        "id": "source-material-grounds-nine-layer",
+        "id": "source-material-grounds-thirteen-layer",
         "from": "source-material",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
         "id": "publication-bias-calibration-calibrates-gate-a",
@@ -142,14 +178,14 @@
         "to": "active-return"
       },
       {
-        "id": "geopolitics-fragmentation-feeds-nine-layer",
+        "id": "geopolitics-fragmentation-feeds-thirteen-layer",
         "from": "geopolitics-fragmentation",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
-        "id": "cross-book-arbitration-governs-nine-layer",
+        "id": "cross-book-arbitration-governs-thirteen-layer",
         "from": "cross-book-arbitration",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
         "id": "risk-trinity-informs-gate-a",
@@ -162,19 +198,19 @@
         "to": "gate-a"
       },
       {
-        "id": "active-management-triad-informs-nine-layer",
+        "id": "active-management-triad-informs-thirteen-layer",
         "from": "active-management-triad",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
-        "id": "expected-return-four-questions-informs-nine-layer",
+        "id": "expected-return-four-questions-informs-thirteen-layer",
         "from": "expected-return-four-questions",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
-        "id": "em-erp-implicit-only-informs-nine-layer",
+        "id": "em-erp-implicit-only-informs-thirteen-layer",
         "from": "em-erp-implicit-only",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
         "id": "carry-degradation-governs-active-return",
@@ -192,14 +228,64 @@
         "to": "gate-a"
       },
       {
-        "id": "stock-level-factors-informs-nine-layer",
+        "id": "stock-level-factors-informs-thirteen-layer",
         "from": "stock-level-factors",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
       },
       {
-        "id": "northbound-holding-informs-nine-layer",
+        "id": "northbound-holding-informs-thirteen-layer",
         "from": "northbound-holding",
-        "to": "nine-layer"
+        "to": "thirteen-layer"
+      },
+      {
+        "id": "model-diagnostics-guards-active-return",
+        "from": "model-diagnostics",
+        "to": "active-return"
+      },
+      {
+        "id": "risk-boundary-survival-informs-thirteen-layer",
+        "from": "risk-boundary-survival",
+        "to": "thirteen-layer"
+      },
+      {
+        "id": "risk-boundary-survival-guards-gate-b",
+        "from": "risk-boundary-survival",
+        "to": "gate-b"
+      },
+      {
+        "id": "microstructure-incentives-informs-thirteen-layer",
+        "from": "microstructure-incentives",
+        "to": "thirteen-layer"
+      },
+      {
+        "id": "portfolio-engineering-informs-thirteen-layer",
+        "from": "portfolio-engineering",
+        "to": "thirteen-layer"
+      },
+      {
+        "id": "expected-return-decomposition-governs-active-return",
+        "from": "expected-return-decomposition",
+        "to": "active-return"
+      },
+      {
+        "id": "effective-breadth-calibrates-active-return",
+        "from": "effective-breadth",
+        "to": "active-return"
+      },
+      {
+        "id": "language-standard-governs-active-return",
+        "from": "language-standard",
+        "to": "active-return"
+      },
+      {
+        "id": "geometric-deduction-calibrates-gate-a",
+        "from": "geometric-deduction",
+        "to": "gate-a"
+      },
+      {
+        "id": "trio-positioning-informs-thirteen-layer",
+        "from": "trio-positioning",
+        "to": "thirteen-layer"
       }
     ]
   },
@@ -207,18 +293,18 @@
     {
       "id": "source-materials",
       "root": "knowledge/experts/macro-capital-analyst",
-      "note": "该 root 在本仓内**只有 README**：38 份材料本体（原著/教材/论文原文）受版权约束、不随包分发，故开源仓中此 collection 读不到实体 —— 这是设计，不是缺文件。可分发的只有「方法论内化摘要层」与 source/SOURCE-MANIFEST.json 的溯源账本（fileRef 的解析根见其 fileRefRoot）。"
+      "note": "该 root 在本仓内**只有 README**：46 份材料本体（原著/教材/论文原文）受版权约束、不随包分发，故开源仓中此 collection 读不到实体 —— 这是设计，不是缺文件。可分发的只有「方法论内化摘要层」与 source/SOURCE-MANIFEST.json 的溯源账本（fileRef 的解析根见其 fileRefRoot）。"
     }
   ],
   "snapshot": {
-    "id": "source-manifest-38",
+    "id": "source-manifest-46",
     "renamedFrom": "source-manifest-2.3.0",
-    "takenAt": "2026-09-23",
-    "digest": "7a95c691f3338c203d143955ba04a6677ef7f2bc8db5e56934919667844b54e0",
+    "takenAt": "2026-09-29",
+    "digest": "ce6d80870d598ee758dff240f30a3efe5d723309b51b12fbfb96cd3779592489",
     "digestAlgorithm": "sha256",
     "digestTarget": "source/SOURCE-MANIFEST.json",
-    "digestNote": "digest = sha256(原文件字节)。id 只写内容特征（38 份材料），不写包版本号 —— 包版本会随每次发布漂移，写进 id 会让同一个快照在下一版里显示成'过期快照'（与 v2.3.0 修 skill-packages digest 同源的第二例）。",
-    "recordCount": 38
+    "digestNote": "digest = sha256(原文件字节)。id 只写内容特征（46 份材料），不写包版本号 —— 包版本会随每次发布漂移，写进 id 会让同一个快照在下一版里显示成「过期快照」。",
+    "recordCount": 46
   },
   "retrievalProfiles": [
     {

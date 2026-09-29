@@ -12,7 +12,7 @@ A single-expert pack: one macro / A-share analyst ("观澜") with
 - a **benchmark-and-objective layer** (CSI 300 as the baseline; absolute-return risk constraints),
 - an **active-return framework** (active weight, active risk σ_A, Euler MCTR/CTR decomposition, E[R_A] three-way split, IR = IC × √BR, IC\*),
 - **two cross-cutting gates**: Gate A (statistical credibility: BH-FDR + Bonferroni, Haircut / Deflated Sharpe, forward *and* reverse calibration) and Gate B (implementation cost & executability),
-- a **six-step internalisation workflow** and a **nine-layer capability map**,
+- a **six-step internalisation workflow** and a **thirteen-layer capability map**,
 - 2 scenarios (`a-share-outlook`, `cycle-positioning`) with team templates and DAGs,
 - 10 deliverable quality gates, and a self-check stack (see below).
 
@@ -21,13 +21,13 @@ A single-expert pack: one macro / A-share analyst ("观澜") with
 ```
 pack.json                  pack metadata (id / version / license / repository / caliber declarations)
 experts/                   the expert profile (Expert Profile v2)
-method-packs/              six-step internalisation, nine-layer framework, dual gates
+method-packs/              six-step internalisation, thirteen-layer framework, dual gates
 scenarios/ + team-templates/   scenario definitions and their task DAGs
 output-templates/          section structure per deliverable
 quality-policies/          the 10 deliverable gates (each with an executable `config`)
 data-contracts/            capability contract table for the self-built data engine
 domain-knowledge/          knowledge-base ontology + snapshot (digest of SOURCE-MANIFEST)
-source/SOURCE-MANIFEST.json  provenance ledger for the 38 source materials
+source/SOURCE-MANIFEST.json  provenance ledger for the 46 source materials
 skills/                    the framework skill (SKILL.md + references + scripts)
 scripts/                   self-checks, release tooling, smoke test
 CRITERIA.md                machine-verified criteria registry (generated)
@@ -57,7 +57,7 @@ Releases are tagged `vX.Y.Z` and published as GitHub Releases. Archived snapshot
 
 ## Knowledge base (important)
 
-The pack ships only the **internalised-summary layer** (the analyst's own frameworks, MIT). The 38 source
+The pack ships only the **internalised-summary layer** (the analyst's own frameworks, MIT). The 46 source
 materials (copyrighted books, textbooks and papers) are **not distributed**: `materials[].fileRef` entries
 resolve against a private local root declared as `fileRefRoot`, and are intentionally unresolvable in this
 repository. See [`knowledge/experts/macro-capital-analyst/README.md`](knowledge/experts/macro-capital-analyst/README.md)

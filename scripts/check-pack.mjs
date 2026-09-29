@@ -75,7 +75,7 @@ const CRITERIA = [
     codes: ['placeholder-residue'] },
   { id: 'file-ref', level: 'hard', subject: 'SOURCE-MANIFEST 的 fileRefRoot 与 materials[].fileRef',
     scope: 'root 必须声明；fileRef 不得含绝对路径/URL/内网地址',
-    notChecked: 'fileRef 的存在性（38/38 材料按版权设计不分发，查存在性会全红）',
+    notChecked: 'fileRef 的存在性（46/46 材料按版权设计不分发，查存在性会全红）',
     codes: ['fileRef-root-undeclared', 'fileRef-unsafe'] },
   { id: 'ref-integrity', level: 'hard', subject: 'skillPackages.contributions / scenarios 引用 / SKILL.md 点名文件 / transport 路径参数',
     scope: '每个 id 与路径都必须解析到实际存在的对象或文件',

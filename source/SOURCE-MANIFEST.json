@@ -1,8 +1,8 @@
 {
   "pack": "macro-capital-analyst",
   "fileRefRoot": "knowledge/experts/macro-capital-analyst",
-  "fileRefNote": "materials[].fileRef 是【相对 fileRefRoot 的裸文件名】，指向本地私有知识底座（版权的原著/教材/论文原文），本仓不分发 ⇒ 在开源仓里这些 fileRef 一律不可解析，这是设计而非缺陷（38/38 条 distributable=false）。+ 号表示同一材料的多个文件。禁止写绝对路径、URL 或内网地址（由 scripts/check-pack.mjs 的 fileRef-unsafe 检查把关）。",
-  "note": "观澜知识底座溯源清单（包版本见 pack.json 的 version；内容对应 macro-capital-market-analysis v24）。开源原则：仅开放「方法论内化摘要层」（观澜本人的提炼与框架，MIT），原著/教材/论文原文版权归原作者/出版方、不随包分发、仅作只读溯源参考；无授权来源不入库。",
+  "fileRefNote": "materials[].fileRef 是【相对 fileRefRoot 的裸文件名】，指向本地私有知识底座（版权的原著/教材/论文原文），本仓不分发 ⇒ 在开源仓里这些 fileRef 一律不可解析，这是设计而非缺陷（46/46 条 distributable=false）。+ 号表示同一材料的多个文件。禁止写绝对路径、URL 或内网地址（由 scripts/check-pack.mjs 的 fileRef-unsafe 检查把关）。",
+  "note": "观澜知识底座溯源清单（包版本见 pack.json 的 version；内容对应 macro-capital-market-analysis v35）。开源原则：仅开放「方法论内化摘要层」（观澜本人的提炼与框架，MIT），原著/教材/论文原文版权归原作者/出版方、不随包分发、仅作只读溯源参考；无授权来源不入库。",
   "materials": [
     {
       "id": "mat-001",
@@ -540,6 +540,118 @@
       "status": "已精读",
       "distributable": false,
       "note": "补第 ⑧ 层可预测性异质性：Panel Tree；可预测性资产特定 + 状态依赖；集中于大盈利超预期/高 E-P/低换手；逆周期；高可预测聚类 Sharpe≈1.88。美股锚，A 股须本地重标定。"
+    },
+    {
+      "id": "mat-039",
+      "type": "paper",
+      "title": "The Global Financial Cycle",
+      "author": "Miranda-Agrippino & Rey",
+      "source": "NBER Working Paper No. 29327（2021-10）",
+      "authorization": "公开发表论文（仅内化摘要层开源）",
+      "fileRef": "miranda_agrippino_rey_2021_gfc.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-040",
+      "type": "book",
+      "title": "Financial Decisions and Markets: A Course in Asset Pricing（中译《金融决策与市场》）",
+      "author": "John Y. Campbell",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "campbell_2018_financial_decisions_markets.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-041",
+      "type": "book",
+      "title": "Advanced Portfolio Management: A Quant's Guide for Fundamental Investors",
+      "author": "Giuseppe A. Paleologo",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "paleologo_2021_advanced_pm.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-042",
+      "type": "book",
+      "title": "Finding Alpha: The Search for Alpha When Risk and Return Break Down",
+      "author": "Eric Falkenstein",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "falkenstein_2009_finding_alpha.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-043",
+      "type": "book",
+      "title": "Alpha Trader",
+      "author": "Brent Donnelly",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "donnelly_2021_alpha_trader.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-044",
+      "type": "book",
+      "title": "Empirical Asset Pricing: Models and Methods",
+      "author": "Wayne Ferson",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "ferson_2019_empirical_asset_pricing.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-045",
+      "type": "book",
+      "title": "Red-Blooded Risk: The Secret History of Wall Street",
+      "author": "Kim & Brown",
+      "source": "书籍资料库（题名页作者字段抽取未获取，以库内著录为准）",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "red_blooded_risk_kim_brown.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
+    },
+    {
+      "id": "mat-046",
+      "type": "book",
+      "title": "The Front Office: A Guide to Hedge Funds for Retail, Day Traders, and Aspiring Quants",
+      "author": "Tom Costello",
+      "source": "书籍资料库",
+      "authorization": "内部使用（仅内化摘要层开源）",
+      "fileRef": "costello_2021_front_office.md",
+      "boundExperts": [
+        "macro-capital-analyst"
+      ],
+      "status": "已精读",
+      "distributable": false
     }
   ]
 }

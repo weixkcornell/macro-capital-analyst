@@ -6,3 +6,4 @@ westock.sector.forecast,read,"{""industry"": ""string""}","{""eps_forecast"": ""
 westock.quote.fx,read,"{""pair"": ""string""}","{""series"": ""number[]""}",westock,--,日更,T+1,internal,需 westock CLI,--,--,v27 接入：外汇历史序列，解决 gap-003（人民币汇率/美元指数本机无历史序列）
 fund.north-holding,read,"{""date"": ""string""}","{""holding"": ""number""}",北向,亿元,日更,T+1,internal,公开接口,--,--,v28 新增：拥挤度「持有人结构」一条腿的一手数据
 stock.cross-sectional.factor,read,"{""industry"": ""string""}","{""factors"": ""object""}",申万,倍·%,日更,T+1,internal,公开接口,10 QPS,尽力而为,v28 新增：个股级股息率/价值(PE·PB)/规模/动量/换手，替代原「10 指数代理」
+csi.index.perf,read,"{""index"": ""string""}","{""price"": ""number[]"", ""pe_roll"": ""number[]"", ""total_return"": ""number[]""}",中证,--,日更,T+1,internal,公开接口,--,--,v29/v34 接入：中证 index-perf 一手面板（价格 + 滚动 PE + 全收益，2015 起）；全收益与价格日收益差累计反推 TTM 股息率，是主动收益① 项的一手来源，消除 gap-005 的代理检验

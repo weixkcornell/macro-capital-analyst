@@ -2,11 +2,11 @@
 
 > 平台评审按此逐项打勾；先自检再提交。
 
-- [x] `pack.json`（id=macro-capital-analyst / version=2.6.0 / schemaVersion=2 / caliberDeclarations 四类口径）
-- [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，38 份材料）
+- [x] `pack.json`（id=macro-capital-analyst / version=2.7.0 / schemaVersion=2 / caliberDeclarations 八类口径（统计局/央行/公开K线/Wind/westock/北向/申万/中证））
+- [x] `experts/macro-capital-analyst.json`（schemaVersion 2 全字段；`source/SOURCE-MANIFEST.json` 溯源齐备，46 份材料）
 - [x] `scenarios/*.json`（DAG 依赖无环、专家 id 全部可解析、deliverable 明确；共 2 个）
 - [x] `output-templates/` + `quality-policies/`（起步门禁 10 道覆盖数字一致与禁例 token；含 `gate-a-double-calibration` / `net-active-return-required` / `active-risk-budget` 硬门，且每道门均有 team template 绑定）
-- [x] `method-packs/`（六步内化 / 九层能力 / 两道闸门）+ `team-templates/`（2 个组队模板）
+- [x] `method-packs/`（六步内化 / **十三层能力** / 两道闸门）+ `team-templates/`（2 个组队模板）
 - [x] `skills/macro-capital-framework/SKILL.md`（触发词齐全；其 references 与 scripts 全部落在 `skills/macro-capital-framework/references/checklist-template.md` 与 `skills/macro-capital-framework/references/scripts/i1_collision_check.py`，并由 check-pack 的 ref-integrity／skill-reference-missing 逐条核对）
 - [x] 数据契约表（`data-contracts/capability-contract.csv`，自建数据引擎契约）
 - [x] 本体（`domain-knowledge/macro-capital-analyst-kb.json`，recordCount=38，digest = `sha256(source/SOURCE-MANIFEST.json)`，已声明 `digestTarget`/`digestAlgorithm` 并由 `check-pack.mjs` 当场复算）

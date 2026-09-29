@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.6.0-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.7.0-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -12,10 +12,10 @@
 
 ## 这是什么
 
-「观澜」是一名宏观与资本市场的**独立分析师**。它融会 17 部专著（徐高×2、李奇霖、统计指标手册、李斌伍戈、Grinold&Kahn、钦塞瑞尼、Ilmanen、佩德森、石川、Andrew Ang、马克斯、劳顿、小哈斯莱特、Kerry Back、Karolyi、Bali）+ 2 套基础教材（CFA 2020 L1 六卷 / CFA 2025 L1-L3 十三卷）+ 2 份大类资产配置研报 + 17 篇学术论文，共 **38 源 / 43 份精读**，形成一套自己的分析框架：
+「观澜」是一名宏观与资本市场的**独立分析师**。它融会 23 部专著（徐高×2、李奇霖、统计指标手册、李斌伍戈、Grinold&Kahn、钦塞瑞尼、Ilmanen、佩德森、石川、Andrew Ang、马克斯、劳顿、小哈斯莱特、Kerry Back、Karolyi、Bali 2016、Campbell、Paleologo、Falkenstein、Donnelly、Ferson、Kim & Brown、Costello）+ 2 套基础教材（CFA 2020 L1 六卷 / CFA 2025 L1-L3 十三卷）+ 2 份大类资产配置研报 + 18 篇学术论文，共 **46 源 / 54 份精读**，形成一套自己的分析框架：
 
 - **第 0 层 · 基准与目标函数（总开关）**：基准=沪深300（价格指数口径）+ 绝对收益风险约束（回撤 −20%、现金 20%）+ 事前风控档位表 → 主动风险额度。
-- **九层能力**：数据读数 → 货币信用 → 宏观骨架 → 金融定价 → 预期收益 → 组合管理 → 宏观因子周期 → 横截面因子 → 摩擦可执行。
+- **十三层能力**：数据读数 → 货币信用 → 宏观骨架 → 金融定价 → 预期收益 → 组合管理 → 宏观因子周期 → 横截面因子 → 摩擦可执行 → 模型实证检验 → 风险边界与极端事件 → 信息不对称与微观结构 → 组合工程与生存约束。
 - **主动收益框架**：主动权重向量 w_a → σ_A（协方差口径）→ MCTR/CTR 欧拉分解 → E[R_A] 三项分解（carry／估值收敛／盈利差）→ IR=IC×√BR → IC*。
 - **两道横切闸门**：统计可信（t 阈值分档 + 多重检验校正 + Haircut/Deflated Sharpe **正反双校准**——发表偏误仅需收缩 10–15%，未过校正 ≠ 反向信号成立）+ 实施成本与可执行（E[R_A] − 实施成本 = 净预期主动收益，净额 ≤ 0 不发布）。
 - **六步内化流程**：钱从哪来 → 钱变利润 → 价格装多少预期 → 结构定价自洽 → 周期定位风险归属 → 错了会怎样。
@@ -28,7 +28,7 @@
 
 | 层 | 内容 | 授权 |
 |---|---|---|
-| ✅ 开放层 | 观澜自有方法论/工艺/配置（九层能力、六步流程、两道闸门、输出规范、场景 DAG） | MIT |
+| ✅ 开放层 | 观澜自有方法论/工艺/配置（十三层能力、六步流程、两道闸门、主动收益三分解、输出规范、场景 DAG） | MIT |
 | ⛔ 受限层 | 原著/CFA 教材原文（PDF/EPUB） | 版权归原作者/出版方，**不随包分发** |
 
 详细溯源见 `source/SOURCE-MANIFEST.json`。**编造专家观点比不回答更严重**——本包所有观点均可溯源，无授权来源不入库。
@@ -48,7 +48,7 @@ macro-capital-analyst/
 ├── domain-knowledge/
 │   └── macro-capital-analyst-kb.json  # 领域本体（实体 / 关系 / 检索剖面）
 ├── knowledge-providers/
-│   └── macro-capital-analyst-library.json  # 知识供给声明（38 源 / 43 份精读）
+│   └── macro-capital-analyst-library.json  # 知识供给声明（46 源 / 54 份精读）
 ├── scenarios/
 │   ├── a-share-outlook.json           # 「A股观点看板」任务 DAG
 │   └── cycle-positioning.json         # 「周期定位与配置研判」任务 DAG
@@ -59,7 +59,7 @@ macro-capital-analyst/
 │   └── baseline.json                  # 起步门禁 10 道（含 gate-a-double-calibration / net-active-return-required / active-risk-budget）
 ├── method-packs/
 │   ├── six-step-internalization.json  # 六步内化流程（§0 权威步骤定义）
-│   ├── nine-layer-framework.json      # 九层能力框架
+│   ├── thirteen-layer-framework.json  # 十三层能力框架
 │   └── dual-gates.json                # 两道横切闸门
 ├── team-templates/
 │   ├── a-share-outlook-team.json      # 看板组队模板（scenarios 引用）
@@ -80,7 +80,7 @@ macro-capital-analyst/
 ├── scripts/
 │   └── check-pack.mjs                 # 领域包自检（version lockstep + 跨维度绑定 + DAG）
 ├── source/
-│   └── SOURCE-MANIFEST.json           # 溯源清单（38 份材料）
+│   └── SOURCE-MANIFEST.json           # 溯源清单（46 份材料）
 └── LICENSE                            # MIT
 ```
 
@@ -112,7 +112,7 @@ macro-capital-analyst/
 
 > 「检查书籍库有没有新书，自主学习并更新分析框架」
 
-观澜会：列书籍目录比对已读清单 → 下载新增著作逐章五段式精读 → 提炼机制整合进九层能力 → 记录学习日志。
+观澜会：列书籍目录比对已读清单 → 下载新增著作逐章五段式精读 → 提炼机制整合进十三层能力 → 记录学习日志。
 
 ### 作为系统提示词（最小用法）
 
@@ -128,8 +128,8 @@ macro-capital-analyst/
 
 ## 知识底座与自建说明
 
-本仓**只含「方法论内化摘要层」**：38 份源材料（原著／教材／论文）受版权约束、**不随包分发** ——
-`source/SOURCE-MANIFEST.json` 里每一条 `materials[].fileRef` 在本仓**都解析不到**，这是设计（38/38 条 `distributable: false`），
+本仓**只含「方法论内化摘要层」**：46 份源材料（原著／教材／论文）受版权约束、**不随包分发** ——
+`source/SOURCE-MANIFEST.json` 里每一条 `materials[].fileRef` 在本仓**都解析不到**，这是设计（46/46 条 `distributable: false`），
 解析根见该文件的 `fileRefRoot` 字段。**怎么自建你自己的知识底座**（准备材料／写内化摘要／改 `fileRefRoot`／版权边界）见
 [`knowledge/experts/macro-capital-analyst/README.md`](knowledge/experts/macro-capital-analyst/README.md)。
 
@@ -137,6 +137,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.7.0**（2026-09-29）：**同步 macro-capital-market-analysis v29–v35 —— 能力层扩至十三层 + 主动收益模块整体替换 + 语言硬规则（跨 7 个版本）** —— ① **能力层 9 → 13 层**：新增 ⑩ 资产定价模型的实证检验与诊断（主方程 E_t(mR)=1；α 必须绑定模型；triality 三路等价；宏观因子须先造因子模拟组合；HJ 界为排除工具）、⑪ 风险边界、破产约束与极端事件治理（概率不可赋值区域；VaR 操作性定义；凯利永不清零约束；压力测试反推法；黑洞扫描；极端动作须在平静日预设写死）、⑫ 信息不对称、微观结构与激励传导（三均衡阶梯；无交易定理；卖空约束的涨跌不对称；CGW 交易量-反转；DHS 有偏自我归因；激励→行为→价格）、⑬ 组合工程与生存约束（仓位规则即 alpha；Jagannathan-Ma 非负约束；杠杆地板与天花板；止损 efficiency 表；崩盘=跨投资者去杠杆）。② **主动收益模块整体替换（现行唯一口径）**：先按主动管理基础法则试 α=IC·z，本机实测 29 条行业指数的有效独立标的数只有 6.2（ρ̄=0.132、BR≈25）、三个估值口径 IC 全为负且 BH-FDR 与 Bonferroni 存活均 0 ⇒ **指数层面无法产出 α，该口径否决**；改用**基本成分三分解**——总收益 = ① 支付收益率（股息率＋净回购率）+ ② 预期现金流增长率（EPS）+ ③ 预期估值变化（P/E 均值回归）。三项均可观测，故不要求过 IC 显著性检验；**「含③／不含③」两版并列强制，只有两版同号的方向才可建仓**；③ 的收敛速度不假定、由年度采样 AR(1) 估 ρ 与半衰期，ρ ≥ 1 一律记 0。③ **失效条款重述与新增**：C 重述——原结论否证的是「① 项单独作为唯一来源」而非「股息不被支付」（用价格比值回归失败去否决股息支付属对象替换）；新增 D——③ 的准入与两版建仓规则。④ **闸门 A/B 扩充**：闸门 A 增至**七条**（新增第 7 条「收益口径折减与 p-hacking 拦截」——算术口径须扣方差/2、A 股禁沿用海外 2% 锚；须披露调参次数与阈值档位；少于 30 个观测不单独下结论）；闸门 B 增至**六条**（新增第 6 条「杠杆水位与生存约束」——含仓位/杠杆的结论须声明自身杠杆上限（κ 取 2–3）、触发式止损在极端时的失效、「正确但被强平」风险与缓冲额度；崩盘识别用杠杆水位而非价格跌幅）。⑤ **新增/扩充数据源**：接入 westock CLI（申万行业估值／一致预期／财报 TTM、外汇历史）、北向持仓、**个股级横截面因子**，并新接**中证官网 index-perf 一手面板**（价格 + 滚动 PE + 全收益，2015 起，覆盖 20 个行业）——使 ① 项从「代理检验」升级为一手可观测分量。⑥ **知识底座 38 → 46 源 / 43 → 54 份精读**：新增 8 本著作（Miranda-Agrippino & Rey 2021 GFC、Campbell、Paleologo、Falkenstein、Donnelly、Ferson、Kim & Brown、Costello）+ 2 份内部综合（周期定位专题、跨著作比对协议）。⑦ **语言硬规则（v35）**：产出与内部文档一律不得用「腿」这一比喻称呼头寸、标的或口径，拥挤度统一称「三条口径」；加粗只给数字与关键术语、破折号只作「即/也就是」补充、长句拆短。⑧ **元判据增补**：新增「三问定位」（结构定方向 → 时钟定状态 → 情绪定仓位），并把有效独立标的数 N_eff 与 ρ̄ 列为「值不值得下注」的必报量。⑨ 实体侧同步：`nine-layer-framework` 更名并扩为 **`thirteen-layer-framework`**；本体补 9 实体 + 10 关系；禁例 token 由 90 增至 106（含 8 本新著作题名/作者词干与语言硬规则）。
 
 - **2.6.0**（2026-09-28）：**同步 macro-capital-market-analysis v27/v28 —— carry 降级 + 失效条款 + 数据源升级（评审驱动 · 数据实证）** —— ① **carry 由「唯一可计入来源」降级为存疑**：新增 `carry_backtest.py`，对三个红利/成长配对（上证红利·国证红利 vs 创业板指·科创50）做价格比值均值回归检验，**结果呈动量延续而非均值回归，多重检验校正后存活 0（0/6、0/5、0/3，原始 p<0.05 仅 0 个）** ⇒ 「股息率差为正 → 未来红利跑赢」的映射**证据不足，两个方向都不支持**。**触发失效条款 C**：carry 自本版起**不再自动计入** E[R_A]，不得据此放大仓位，逐期复核。 ② **新增 carry 头寸失效条款（预登记、强制）**：A 连续 2 期累计负贡献 < −IC* → 权重减半降观察；B 连续 4 期净贡献为负 → 强制复盘；C 映射被证伪 → 按 0 处理且**禁止反向解读**（本版已触发）。每期须在 `attribution.py record` 同登记累计净贡献与连续失效期数（append-only，不事后改判）。 ③ **数据源升级**：接入 westock CLI（申万行业估值 / 一致预期 / 财报 TTM / 外汇历史）⇒ 消除「carry 表跨来源拼装」与「无一致预期」两大缺口，并解决 gap-003；增采**北向持仓**（持有人权益结构一手数据）；新增 `stock_factor.py` 采集**个股级横截面因子**（股息率 / 价值 / 规模 / 动量 / 换手），替代 ⑧ 层原「10 指数代理」。 ④ 数据契约表补 5 条能力（westock.sector.valuation / .forecast / .quote.fx、fund.north-holding、stock.cross-sectional.factor）；本体补 5 实体（carry-degradation / carry-failure-clause / stock-level-factors / northbound-holding / gap-registry）+ 5 关系。 ⑤ 工艺规范新增 §5「carry 降级与失效条款」；专家 Profile 补 4 条 mentalModels、2 条 antiPatterns、2 条 vetoRules、2 项 capability。 ⑥ 本版**不新增知识源**（38 源不变、references 44 份不变）、不新增层；实证数字为海外锚与本地回测，A 股须本地重标定。
 - **2.5.0**（2026-09-28）：**同步 macro-capital-market-analysis v25 —— 跨著作权衡元判据层** —— ① 新增**跨著作权衡元判据**五条（不新增第十层、不改闸门判据结构，只在九层之上加一层「多派相左时如何折中」的依据）：**风险三维分离**（波动率=运算代理／期间风险＋尾部肥尾=判断／流动性=危机预警，禁止用单一波动率数同时承担三种角色）；**主动管理三判据**（零和＋平均无 α＋持续性弱 ⇒ 默认低费率指数/指增；「α 变 β」为拥挤衰减机理）；**因子双锚**（正锚：发表偏误仅收缩 10–15%、FDR<10%；反锚：发表后衰减 50%+、拥挤与状态依赖侵蚀；**两侧须同时报，缺一失真**）；**预期收益四问**（哪类风险溢价 → 历史分位 → 前瞻指向 → 扣实施成本与期限后净额）；**新兴市场估值禁用历史 ERP**（改隐含法＋违约利差拼装，A 股 ERP 绝对数须本地重估）。 ② 闸门 A 原「正反双校准」**升级为因子双锚**，补齐反锚一侧（此前只有正锚，会系统性高估因子可靠性）。 ③ 九层 L4（金融定价）补主动管理三判据、L5（预期收益）补四问与禁用历史 ERP、L9（摩擦与可执行）补风险三维分离。 ④ 本体补 6 实体（risk-trinity／active-management-triad／factor-dual-anchor／expected-return-four-questions／em-erp-implicit-only／cross-book-arbitration）＋ 6 关系。 ⑤ 工艺规范新增 §4「跨著作权衡元判据」；专家 Profile 补 5 条 mentalModels 与 3 条 antiPatterns。 ⑥ 本版**不新增知识源**（38 源不变）、**不新增层**，全部实证数字均为海外/全球锚，A 股须本地重标定。
@@ -163,7 +165,7 @@ macro-capital-analyst/
 - **2.4.3**（2026-09-24）：**门禁可被第三方/CI 复跑 ＋ 修三处真缺陷 ＋ 手工步骤脚本化** ——
   ① **修真缺陷**：(a) `check-pack.mjs` 在包加载失败时**崩栈**（`Cannot access 'pack' before initialization`，该路径自 2.3.0 既有）⇒ 改为打印诊断；(b) `data-contracts/capability-contract.csv` 带 **UTF-8 BOM**，列名实际是 `\uFEFFcapability` ⇒ 去 BOM 并统一 BOM 安全读取；(c) **`bannedTokens` 判据过宽**：原先把「预期收益／风险管理／国家统计局／Backtesting／Carry」等**通用术语**也算成"应入禁例"⇒ 该告警永不收敛。现拆为 **covered ／ allowlist（通用术语，明确不得入禁例）／ review（待人工判定，有上限）／ strict（真缺口，阈值 0）**，并补齐 29 条专名/篇名 ⇒ **覆盖 85/85**。
   ② **平台校验器改为可选**（缺 `EXPERT_LIB_ROOT` 时 skip 并声明，其余检查照跑）⇒ 新增 **CI**（`.github/workflows/check.yml` 跑包自检／门禁自校准／digest dry-run／i1 自检）与 **`.gitattributes`**（强制 `eol=lf`：digest 目标是 `sha256(SKILL.md)`，CRLF 会让 digest 全体错位且现象不可见）。
-  ③ **新增三处门禁**：**占位符残留**（`【替换：…】` 省略号形态＝记法不计；写了具体内容才算。含引述域豁免与显式 `check-pack-allow: placeholder-residue` 声明）、**fileRef 安全口径**（须声明 `fileRefRoot`；禁止绝对路径/URL/内网地址；**不查存在性**——38/38 材料按版权设计不分发）、**数据契约表 ↔ toolProviders 对照**（不同口径，给 note 不给判）。
+  ③ **新增三处门禁**：**占位符残留**（`【替换：…】` 省略号形态＝记法不计；写了具体内容才算。含引述域豁免与显式 `check-pack-allow: placeholder-residue` 声明）、**fileRef 安全口径**（须声明 `fileRefRoot`；禁止绝对路径/URL/内网地址；**不查存在性**——46/46 材料按版权设计不分发）、**数据契约表 ↔ toolProviders 对照**（不同口径，给 note 不给判）。
   ④ **把手工步骤脚本化**：`bump-version.mjs`（一处改版本号 → 4 类载位同步 + 自动重钉 digest + 插入待补的发布说明条目）、`repin-digests.mjs`、`install-to-profile.sh`（备份 + 保留安装侧 `routing/` + 副本内自检）、`release-check.sh`（发布前四件套）＋ **`RELEASING.md`**。
   ⑤ `selftest-gates.mjs` 由 7 例扩到 **11 例**（新门禁各配负向对照；`check-pack` 的这套对照本身也成了 CI 的一步）。
   ⑥ `i1_collision_check.py`：暴露 `--abs-tol` 与 `--pool-exclude`，报告新增 **`caliber`**（容差算法／池口径／排除项／摘要选择器）—— 原先容差下限写死、池含版本号等弱匹配项，**口径不写出来，PASS 就不可复核**。
