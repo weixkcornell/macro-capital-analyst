@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.10",
+  "version": "2.8.11",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -400,7 +400,11 @@
           "code": "backend_error",
           "meaning": "鉴权正常、额度耗尽",
           "operatorAction": "充值后方可使用档位 1"
-        }
+        },
+        "requireIndicatorCode": true,
+        "requireErrorCodeInReliability": true,
+        "requireCredentialPathInReliability": true,
+        "switchNote": "下列三个开关由 scripts/check-wind-provenance.py **真正消费**（v2.8.10 起）：requireIndicatorCode＝Wind 引用必须带指标代码或标「待补」；requireErrorCodeInReliability＝降级记录须含错误码；requireCredentialPathInReliability＝降级记录须说明已试凭据路径。审计结论：v2.8.10 之前该脚本读到了 config 却从未传入检查函数（判据全内置）；现已有「判据来源」自校准对照。"
       }
     },
     {

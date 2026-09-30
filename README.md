@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.10-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.11-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -139,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.11**（2026-09-30）：**修掉「声明判据被静默丢弃」的第三例（正文字号）+ 把「判据来源」做成发布门** —— ① 缺陷（由独立复核实测）：`audit-mobile.py` 的加载器虽已修好，但 `bodyFontMinPx` 仍被静默丢弃 —— `:61` 建的是**整数键**、`:173` 按**字符串键**查询，类型不匹配 ⇒ 每次查询落空、一律回退写死的 `17`，**声明的逐视口正文字号从未生效**且无声。判别性证据：合成策略把四项判据都设为明显偏离默认 （正文 25 / 图 30 / 触控 100 / 表 30）时，后三项逐条咬合报 FAIL，唯正文字号仍报 `bodyFontNeedPx=17`。已修：键统一为字符串、回退值改为按视口的内置默认，并在报告里新增 `bodyFontNeedSource`（policy / builtin-default）便于机检。② 新增 `audit-mobile.py --selftest`：**判据来源判别性对照 7 项**（用偏离默认的合成策略跑合成样本，逐项断言正文/图内/触控/表内阈值真的咬合）。③ `check-wind-provenance.py` 的三个开关已显式声明进 `baseline.json`（此前管路通了、包里却没有可配置键 ⇒ 一律内置 True），并附「开关由谁消费」的说明。④ `release-check.sh` 加第 ⑧ 步「门禁判据来源自校准」⇒ **发布前由七件套升为八件套**；`RELEASING.md` 同步。⑤ 来由与教训：连续三例（mobile 加载器 / wind 未消费 / mobile 正文字号）都是**「声明被加载」≠「声明生效」**；现在以「偏离默认必须改变判定」作为统一的可执行判据。
 
 - **2.8.10**（2026-09-30）：**修复两处「声明判据没被加载/消费」的门禁缺陷 + 图型枚举对齐（由独立复核实测发现）** —— ① `audit-mobile.py` 的 `load_policy` 只判 `is_file()`，而 `audit-delivery.sh` 传的是**目录**（`quality-policies`），目录恒不满足 ⇒ `glob` 永不执行、声明的 `mobile-readability.config` **从未被加载**，一律走内置默认（声明值与内置默认逐值相等，故对既有判定**零数值影响**，但"改 `baseline.json` 不生效"是潜在缺陷）。已改为**支持目录或文件**，实测 `policySource` 由 `null` 变为 `quality-policies/baseline.json`。② `check-wind-provenance.py` 虽定位到策略文件、解析出 `cfg`，却**从未传入 `run_checks`**（仅在赋值处出现）⇒ Wind 门判据同样是内置的。已改为真正消费 3 个开关（`requireIndicatorCode` / `requireErrorCodeInReliability` / `requireCredentialPathInReliability`），并新增**「判据来源」自校准对照**：同一份缺指标代码的产物在声明为真时 FAIL、为假时 PASS（**自校准 5/5 → 6/6**）。③ `directives.list[figure].keys.type` 只枚举 6 种，而 `designSystem.figures.types` 声明 12 种，且检查器未强制更窄的枚举 ⇒ **契约与检查器不一致**。已把枚举按 `figures.types` 对齐为 12 种，并在 `check-template-conformance.mjs` 新增两项检查 `figure-type-enum-drift`（两处枚举必须一致）与 `figure-type-undeclared`（md 用到的 `type=` 必须已声明），配两条负向对照（**自校准 7/7 → 9/9**）。④ `RELEASING.md` 增「判据来源审计」段：明确列出**哪些门真正加载并强制声明判据**、哪些是内置或本仓约定 —— 避免"判据来自包里"这句话再次失真。⑤ 来由：本版缺陷由 t15 **独立复核**实测发现（复核人≠执行者）；产物侧内容零变更，纯门禁机制修复。
 

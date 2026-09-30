@@ -43,12 +43,67 @@ def load_policy(policy_path):
     return cfg, src, adopted
 
 
+def selftest():
+    """判别性自校准：合成策略把四项判据都设成**明显偏离内置默认**的值，逐项断言其咬合。
+
+    为什么必须有：v2.8.10 之前 `bodyFontMinPx` 因键类型不匹配被**静默丢弃**，
+    声明的逐视口正文字号从未生效、一律回退写死的 17，而门禁照样报 PASS——
+    「加载了策略」与「策略生效」是两件事，只有偏离默认的对照才能分辨。
+    """
+    import subprocess, tempfile
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="mobile-selftest-"))
+    html = tmp / "fixture.html"
+    # 合成样本须**同时**含四项判据的对象：正文段落、小字号表格、小字 SVG 图、小触控目标。
+    html.write_text(
+        "<!DOCTYPE html><html lang=zh-CN><head><meta charset=utf-8>"
+        "<meta name=viewport content='width=device-width,initial-scale=1'>"
+        "<style>body{font:18px/1.6 sans-serif;margin:0;padding:12px}"
+        "table{font-size:12px;border-collapse:collapse}td{border:1px solid #ccc;padding:2px}"
+        "a.tiny{display:inline-block;width:10px;height:10px;font-size:10px;overflow:hidden}</style></head>"
+        "<body><p>合成样本：正文 18px。</p>"
+        "<table><tr><td>表内 12px</td><td>2</td></tr></table>"
+        "<figure><svg viewBox='0 0 640 60' width='100%'><text x='4' y='20' font-size='8'>图内 8px</text></svg></figure>"
+        "<p><a class='tiny' href='#x'>点</a></p>"
+        "</body></html>", encoding="utf-8")
+    pol = tmp / "pol"; pol.mkdir()
+    (pol / "baseline.json").write_text(json.dumps({"gates": [{"id": "mobile-readability", "config": {
+        "viewports": [{"w": 375, "h": 812}],
+        "criteria": {"bodyFontMinPx": {"375": 25}, "figureLabelMinEffectivePx": {"min": 30},
+                     "tapTargetMinPx": 100, "tableFontMinPx": 30}}}]}, ensure_ascii=False), encoding="utf-8")
+    out = tmp / "o.json"
+    subprocess.run([sys.executable, __file__, "--html", str(html), "--out", str(out),
+                    "--policy-dir", str(pol)], capture_output=True, text=True)
+    rep = json.loads(out.read_text(encoding="utf-8"))
+    v = rep["viewports"][0]
+    cases = [
+        ("策略被加载（policySource 非空）", rep.get("policySource") is not None),
+        ("正文字号判据取自声明（25，而非内置 17）", v.get("bodyFontNeedPx") == 25),
+        ("正文字号判据来源标记为 policy", v.get("bodyFontNeedSource") == "policy"),
+        ("偏离默认的正文阈值真的报 FAIL", any("25" in x and "正文" in x for x in v["problems"])),
+        ("图内文字阈值（30）咬合", any("30.0px" in x and "图内" in x for x in v["problems"])),
+        ("触控阈值（100）咬合", any("100.0px" in x for x in v["problems"])),
+        ("表内字号阈值（30）咬合", any("<30.0px" in x for x in v["problems"])),
+    ]
+    bad = [n for n, ok in cases if not ok]
+    for n, ok in cases:
+        print(f"{'ok  ' if ok else 'FAIL'} {n}")
+    print(f"\n{'PASS' if not bad else 'FAIL'}: {len(cases) - len(bad)}/{len(cases)} 移动端判据来源对照按预期")
+    return 0 if not bad else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--html", required=True)
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--html")
+    ap.add_argument("--out")
     ap.add_argument("--policy-dir", default=None, help="包的 quality-policies 目录（缺省尝试 ../quality-policies）")
+    ap.add_argument("--selftest", action="store_true",
+                    help="判别性自校准：用**故意偏离默认**的合成策略跑一遍，断言声明的判据真的生效（判据变更后必跑）")
     args = ap.parse_args()
+    if args.selftest:
+        return selftest()
+    if not args.html or not args.out:
+        print("FAIL: 需要 --html 与 --out（或 --selftest）", file=sys.stderr)
+        return 2
 
     target = pathlib.Path(args.html)
     if not target.is_file():
@@ -58,7 +113,10 @@ def main():
     cfg, src, adopted = load_policy(pol_dir)
 
     vps = cfg.get("viewports") or [{k: v[k] for k in ("w", "h")} for v in DEFAULT_VIEWPORTS]
-    body_min = {int(k): int(v) for k, v in (cfg.get("criteria", {}).get("bodyFontMinPx") or {}).items()
+    # 键**必须保持字符串**：下面按 body_min.get(str(vp["w"])) 查询。
+    # 此前这里建的是 int 键、查询用 str 键 ⇒ 类型不匹配、每次落空 ⇒ 声明的逐视口正文字号**从未生效**，
+    # 一律回退到写死的 17（2026-09-30 由交付方用「故意偏离默认的合成策略」实测发现；今天不造成假过，但是静默失守）。
+    body_min = {str(k): int(v) for k, v in (cfg.get("criteria", {}).get("bodyFontMinPx") or {}).items()
                 if str(k).isdigit()}
     if not body_min:
         body_min = {str(v["w"]): v["bodyMin"] for v in DEFAULT_VIEWPORTS}
@@ -170,7 +228,8 @@ def main():
             )
             pg.close()
 
-            need = body_min.get(str(vp["w"]), 17)
+            _fallback = next((v["bodyMin"] for v in DEFAULT_VIEWPORTS if v["w"] == vp["w"]), 17)
+            need = body_min.get(str(vp["w"]), _fallback)
             probs = []
             if res["page"]["overflowPx"] > 1:
                 probs.append(f"页面级横向溢出 {res['page']['overflowPx']}px（判据 ≤1px）")
@@ -194,6 +253,7 @@ def main():
                 probs.append(f"表格既非卡片堆叠也无可横滚容器：{len(unscrollable)} 张")
 
             report["viewports"].append({"viewport": f"{vp['w']}x{vp['h']}", "bodyFontNeedPx": need,
+                                        "bodyFontNeedSource": "policy" if str(vp["w"]) in body_min else "builtin-default",
                                         "bodyMedianFontPx": res["body"]["medianFontPx"],
                                         "pageOverflowPx": res["page"]["overflowPx"],
                                         "clipped": res["page"]["clipped"],

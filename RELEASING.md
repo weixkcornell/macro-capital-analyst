@@ -44,7 +44,8 @@ bash scripts/release-check.sh
 | ④ | `i1_collision_check.py --selftest` | 技能脚本解析层 8 例（含负向样本） |
 | ⑤ | `smoke-test.mjs` | 照 `transports` 的 `smokeArgs` 真跑一次（断言"声明即可执行"） |
 | ⑥ | `check-doc-commands.mjs --dir .` | **文档-契约一致性（离线）**：文档里的 CLI 示例与 `data-contracts/*.csv` 的 `input_schema` 字段，必须落在**真实 `inputSchema`** 内（判据来自 `data-contracts/wind-tool-schemas.json`）。**范围与限度（2026-09-30 实测补记）**：只扫 `.md`（**不扫 `.html`**）；**只比字段名、读不出意图** —— 故意写错的反例若以完整命令字面量给出会被当成缺陷，故反例须以**参数对象形式**给出（错误响应与退出码照原样保留，证据不缩水）；反斜杠续行的命令会被静默跳过（假阴性），复核命令须写成单行。**它不是交付门禁**：不进 `baseline.json`、不是 `audit-delivery.sh` 的一步 |
-| ⑦ | `check-template-conformance.mjs --selftest` | 输出模板一致性门自身的**负向对照**（2 正向 + 5 负向，必须 7/7）—— 与 ② 同理由：门禁不校准等于没门禁 |
+| ⑦ | `check-template-conformance.mjs --selftest` | 输出模板一致性门自身的**负向对照**（2 正向 + 7 负向，必须 9/9）—— 与 ② 同理由：门禁不校准等于没门禁 |
+| ⑧ | `audit-mobile.py --selftest` ＋ `check-wind-provenance.py --selftest` | **判据来源自校准**：用**故意偏离内置默认**的合成策略跑一遍，断言声明的判据**真的生效**（移动端 7 项 / Wind 6 项）。理由：v2.8.10 之前 `mobile` 与 `wind` 两道门的声明判据根本没被加载/消费，而门禁照样 PASS —— **「加载了策略」与「策略生效」是两件事**，只有偏离默认的对照才能分辨 |
 
 **任何一项红：不要发布。**
 
