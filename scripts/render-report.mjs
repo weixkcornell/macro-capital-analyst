@@ -84,7 +84,7 @@ function atomize(html) {
   return html
     .replace(new RegExp(`([${MINUS}+\\-]?\\d[\\d,]*(?:\\.\\d+)?)(\\s*)(${UNIT})`, 'g'),
       (_, n, sp, u) => `<span class="num-atomic">${n}${sp ? '&nbsp;' : ''}${u}</span>`)
-    .replace(new RegExp(`([${MINUS}+\\-]?\\d[\\d,]*(?:\\.\\d+)?)(?=[，。、；：）)〈〉《》\\s]|$)`, 'g'), '<span class="num-atomic">$1</span>')
+
 }
 // 行内只出「强调 / 代码 / 链接」；涨跌着色不上行内 —— 方向语义只能由 figure/kpi 的 tone 显式声明
 function inline(s) {
@@ -320,6 +320,95 @@ function figureSvg(type, rows, unit, tone = null) {
       body.push(S(cx + 14, cy + 62, num(values[i]?.raw ?? ''), 'tx-ink tx-val', 'start', FS.huge, 700))
     })
     h = 16 + Math.ceil(rows.length / cols) * (cellH + 10) + 4
+  } else if (type === 'sparkline') {
+    // 走势小图：真实序列 → 面积折线，标出区间高低与末值（封面/章首都用得上）
+    const x0 = 22, x1 = VB_W - 22, top = 34, hgt = 92
+    const vals = rows.map(r => parseVal(r[1])).filter(Boolean).map(v => v.v)
+    const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1
+    const X = i => x0 + (i / Math.max(1, vals.length - 1)) * (x1 - x0)
+    const Y = v => top + (1 - (v - lo) / span) * hgt
+    const pts = vals.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')
+    const area = `M ${X(0).toFixed(1)},${(top + hgt).toFixed(1)} L ${pts.split(' ').join(' L ')} L ${X(vals.length - 1).toFixed(1)},${(top + hgt).toFixed(1)} Z`
+    body.push(`<path d="${area}" class="f-area"/>`)
+    body.push(`<polyline points="${pts}" class="s-line"/>`)
+    const iMax = vals.indexOf(hi), iMin = vals.indexOf(lo)
+    body.push(CIRC(X(iMax), Y(hi), 4, 'f-bar'))
+    body.push(CIRC(X(iMin), Y(lo), 4, 'f-bar-alt'))
+    body.push(S(VB_W - 22, 22, num(String(hi)), 'tx-oncover tx-val', 'end', FS.big, 700))
+    body.push(S(22, top + hgt + 28, rows[0]?.[0] ?? '', 'tx-oncoverMuted tx-lab', 'start', FS.big))
+    body.push(S(VB_W - 22, top + hgt + 28, rows[rows.length - 1]?.[0] ?? '', 'tx-oncoverMuted tx-lab', 'end', FS.big))
+    h = top + hgt + 40
+  } else if (type === 'microbar') {
+    // 微条形阵：一排细条，值在条顶、标签在条底（杂志式「一眼看全」）
+    const n = rows.length, top = 40, hgt = 78
+    const gap = 12, w = ((VB_W - 40) - (n - 1) * gap) / n
+    rows.forEach((r, i) => {
+      const v = values[i]
+      const x = 20 + i * (w + gap)
+      const bh = v ? (Math.abs(v.v) / maxAbs) * hgt : 0
+      body.push(RECT(x, top + hgt - bh, w, bh, 'f-bar', 3))
+      body.push(S(x + w / 2, top + hgt - bh - 9, num(v?.raw ?? ''), 'tx-ink tx-val', 'middle', FS.label, 600))
+      body.push(S(x + w / 2, top + hgt + 24, r[0], 'tx-sec tx-lab', 'middle', FS.label))
+    })
+    h = top + hgt + 42
+  } else if (type === 'gauge') {
+    // 仪表盘：单值落在 0–100 量程上（用 pathLength=100 精确取弧长）
+    const cxc = VB_W / 2, cyc = 150, r = 150
+    const x0 = cxc - r, x1 = cxc + r
+    const v = Math.max(0, Math.min(100, values[0]?.v ?? 0))
+    body.push(`<path d="M ${x0} ${cyc} A ${r} ${r} 0 0 1 ${x1} ${cyc}" class="s-track" pathLength="100"/>`)
+    body.push(`<path d="M ${x0} ${cyc} A ${r} ${r} 0 0 1 ${x1} ${cyc}" class="${v >= 60 ? 's-gauge-hot' : 's-gauge'}" pathLength="100" stroke-dasharray="${v} 100"/>`)
+    body.push(S(cxc, cyc - 26, num(values[0]?.raw ?? ''), 'tx-ink tx-big', 'middle', FS.huge, 700))
+    body.push(S(cxc, cyc + 34, rows[0]?.[0] ?? '', 'tx-sec tx-lab', 'middle', FS.label))
+    body.push(S(x0, cyc + 34, '0', 'tx-sec tx-lab', 'middle', FS.label))
+    body.push(S(x1, cyc + 34, '100', 'tx-sec tx-lab', 'middle', FS.label))
+    h = cyc + 48
+  } else if (type === 'donut') {
+    // 环图：占比（每段按值取弧长），中心给合计或最大项
+    const cxc = 150, cyc = 120, r = 78, C = 2 * Math.PI * r
+    const total = values.reduce((a, v) => a + Math.abs(v.v), 0) || 1
+    let acc = 0
+    values.forEach((v, i) => {
+      const frac = Math.abs(v.v) / total
+      const dash = `${(frac * C).toFixed(1)} ${C.toFixed(1)}`
+      body.push(`<circle cx="${cxc}" cy="${cyc}" r="${r}" fill="none" class="s-donut-${i % 3}" stroke-dasharray="${dash}" stroke-dashoffset="${(-acc * C).toFixed(1)}" transform="rotate(-90 ${cxc} ${cyc})"/>`)
+      acc += frac
+    })
+    rows.forEach((r2, i) => {
+      const y = 54 + i * 40
+      const v = values[i]
+      body.push(RECT(300, y - 14, 16, 16, `f-bar${i % 3 === 1 ? '-alt' : i % 3 === 2 ? '-mut' : ''}`, 3))
+      body.push(S(326, y, r2[0], 'tx-ink tx-lab', 'start', FS.label, 600))
+      body.push(S(VB_W - 20, y, num(v?.raw ?? ''), 'tx-ink tx-val', 'end', FS.value, 700))
+    })
+    body.push(S(cxc, cyc + 8, num(values[0]?.raw ?? ''), 'tx-ink tx-big', 'middle', FS.big, 700))
+    h = Math.max(240, 60 + rows.length * 40)
+  } else if (type === 'pictogram') {
+    // 象形图：用重复圆点表示比例，标注分母
+    const top = 34, rowh = 46
+    rows.forEach((r2, i) => {
+      const y = top + i * rowh
+      const v = values[i]
+      const total = Math.max(...values.map(x => x.v), 1)
+      const n = Math.max(1, Math.round((Math.abs(v?.v ?? 0) / total) * 10))
+      body.push(S(20, y + 6, r2[0], 'tx-sec tx-lab', 'start', FS.label))
+      for (let k = 0; k < n; k++) body.push(CIRC(180 + k * 24, y + 1, 8, 'f-bar'))
+      body.push(S(VB_W - 20, y + 6, num(v?.raw ?? ''), 'tx-ink tx-val', 'end', FS.value, 600))
+    })
+    h = top + rows.length * rowh + 16
+  } else if (type === 'timeline') {
+    // 时间轴：横向轴线 + 等距节点（事件标签上、日期下）
+    const y = 62
+    const n = rows.length
+    const x = i => 30 + (i / Math.max(1, n - 1)) * (VB_W - 60)
+    body.push(LINE(24, y, VB_W - 24, y, 's-axis'))
+    rows.forEach((r2, i) => {
+      const xi = x(i)
+      body.push(CIRC(xi, y, 5, 'f-bar'))
+      body.push(S(xi, y - 18, r2[1] ?? '', 'tx-ink tx-val', 'middle', FS.label, 600))
+      body.push(S(xi, y + 26, r2[0] ?? '', 'tx-sec tx-lab', 'middle', FS.label))
+    })
+    h = 110
   } else {
     fail(`未知图类型 ${type}（模板 figures.types 白名单之外）`)
     return svg(60, '')
@@ -358,8 +447,8 @@ function renderDirective(d) {
       const meta = []
       for (const r of d.rows) {
         let k, v
-        if (r.length === 1) {                      // `title: 报告名` 形式（无竖线）
-          const m = /^([^:：]+)[:：]\s*(.*)$/.exec(r[0])
+        if (r.length === 1) {                      // `title: 报告名` / `issue=2026 Q4` 形式（无竖线）
+          const m = /^([^:：=]+)[:：=]\s*(.*)$/.exec(r[0])
           if (m) { k = m[1].trim(); v = m[2].trim() } else { k = r[0].trim(); v = '' }
         } else {                                   // `键 | 值` 形式
           k = String(r[0] ?? '').replace(/[:：]\s*$/, '').trim(); v = r.slice(1).join(' ').trim()
@@ -373,6 +462,46 @@ function renderDirective(d) {
 <h1 class="masthead-title">${inline(kv.title ?? '')}</h1>
 ${kv.lede ? `<div class="masthead-lede">${inline(kv.lede)}</div>` : ''}
 ${meta.length ? `<dl class="masthead-meta">${meta.map(([k, v]) => `<dt>${inline(k)}</dt><dd>${inline(v)}</dd>`).join('')}</dl>` : ''}</header>`
+    }
+    case 'cover': {
+      const meta = []
+      for (const r of d.rows) {
+        let k, v
+        if (r.length === 1) { const m = /^([^:：=]+)[:：=]\s*(.*)$/.exec(r[0]); k = m ? m[1].trim() : r[0].trim(); v = m ? m[2].trim() : '' }
+        else { k = String(r[0] ?? '').replace(/[:：]\s*$/, '').trim(); v = r.slice(1).join(' ').trim() }
+        if (['kicker', 'issue', 'title', 'lede'].includes(k)) kv[k] = v
+        else if (k) meta.push([k, v])
+      }
+      if (kv.title) mastheadTitle = kv.title
+      return `<span class="cover-kicker">${inline(kv.kicker ?? '')}</span>
+<p class="cover-issue">${inline(kv.issue ?? '')}</p>
+<h1 class="cover-title">${inline(kv.title ?? '')}</h1>
+${kv.lede ? `<p class="cover-lede">${inline(kv.lede)}</p>` : ''}
+<hr class="cover-rule">
+${meta.length ? `<dl class="masthead-meta">${meta.map(([k, v]) => `<dt>${inline(k)}</dt><dd>${inline(v)}</dd>`).join('')}</dl>` : ''}`
+    }
+    case 'cover-stats': {
+      const tiles = d.rows.map(r => ({ label: r[0], value: r[1] ?? '', tone: r[2] ?? 'neutral', note: r[3] ?? '' }))
+      return `<div class="cover-stats">${tiles.map(t => `<div class="cover-stat cover-stat--${t.tone}">
+<span class="cover-stat-label">${inline(t.label)}</span>
+<div class="cover-stat-value">${kpiValueHtml(t.value)}</div>
+${t.note ? `<div class="cover-stat-note">${inline(t.note)}</div>` : ''}</div>`).join('')}</div>`
+    }
+    case 'cover-art': {
+      const type = kv.type ?? 'sparkline'
+      return `<figure class="cover-art" role="img" aria-label="${esc(kv.title ?? '走势小图')}">${figureSvg(type, d.rows, kv.unit ?? '', null)}
+<p class="cover-art-note">${inline(kv.title ?? '')}${kv.source ? `　${inline(kv.source)}` : ''}</p></figure>`
+    }
+    case 'lede':
+      return `<p class="lede">${d.rows.map(r => r.join(' | ')).join(' ')}</p>`
+    case 'takeaway': {
+      const items = d.rows.map(r => `<li class="takeaway-item">${inline(r.join(' | '))}</li>`).join('')
+      return `<aside class="takeaway"><span class="takeaway-badge" aria-hidden="true">读</span>
+<div class="takeaway-title">${inline(kv.title ?? '读懂这一节')}</div><ul>${items}</ul></aside>`
+    }
+    case 'glossary': {
+      const items = d.rows.map(r => `<div class="glossary-item"><dt class="glossary-term">${inline(r[0] ?? '')}</dt><dd class="glossary-def">${inline(r.slice(1).join(' '))}</dd></div>`).join('')
+      return `<dl class="glossary">${items}</dl>`
     }
     case 'kpis': {
       const tiles = d.rows.map(r => {
@@ -419,7 +548,25 @@ ${t.note ? `<div class="kpi-note">${inline(t.note)}</div>` : ''}</div>`).join(''
 
 function renderBlocks(blocks) {
   const toc = []
-  const body = blocks.map(b => {
+  const COVERISH = new Set(['cover', 'cover-stats', 'cover-art'])
+  const body = []
+  for (let bi = 0; bi < blocks.length; bi++) {
+    const b = blocks[bi]
+    // 封面：相邻的 cover / cover-stats / cover-art 合并为一个全出血深底容器
+    if (b.kind === 'directive' && COVERISH.has(b.name)) {
+      const inner = []
+      while (bi < blocks.length && blocks[bi].kind === 'directive' && COVERISH.has(blocks[bi].name)) { inner.push(renderDirective(blocks[bi])); bi++ }
+      bi--
+      body.push(`<header class="cover">${inner.join('\n')}</header>`)
+      continue
+    }
+    body.push(renderBlockOne(b, toc))
+  }
+  return { body: body.join('\n'), toc }
+}
+
+function renderBlockOne(b, toc) {
+  {
     switch (b.kind) {
       case 'h1': return `<h1 class="doc-title">${inline(b.text)}</h1>`
       case 'h2': {
@@ -441,8 +588,7 @@ function renderBlocks(blocks) {
       case 'directive': return renderDirective(b)
       default: return ''
     }
-  }).join('\n')
-  return { body, toc }
+  }
 }
 
 /* ────────────────────────── 7. 主流程 ────────────────────────── */
@@ -574,10 +720,10 @@ hr{border:0;border-top:1px solid var(--c-hair);margin:var(--sp-32) 0}
 .chip--amber{border-color:var(--c-amber600);color:var(--c-amber700);background:var(--c-amber50)}
 .chip--neutral{border-color:var(--c-hairStrong);color:var(--c-ink600);background:var(--c-sunk)}
 .chapter{margin:0 0 var(--sp-32)}
-.chapter-head{display:flex;align-items:baseline;gap:var(--sp-12);margin:var(--sp-64) 0 var(--sp-24);
+.chapter-head{display:grid;gap:var(--sp-4);margin:var(--sp-48) 0 var(--sp-24);
   padding-top:var(--sp-16);border-top:2px solid var(--c-teal600);scroll-margin-top:72px}
-.chapter-no{font-family:var(--ff-num);font-size:var(--fs-label);letter-spacing:var(--ls-label);
-  color:var(--c-teal600);font-weight:var(--fw-semibold)}
+.chapter-no{font-family:var(--ff-num);font-size:var(--fs-display);line-height:1;letter-spacing:-.03em;
+  color:var(--c-teal600);font-weight:var(--fw-bold)}
 .chapter-title{scroll-margin-top:72px}
 .chapter:target .chapter-head{background:var(--c-teal50);border-radius:var(--r-sm)}
 /* ── 金句 / 提示块 ── */
@@ -650,6 +796,63 @@ th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
 .s-hair{stroke:var(--c-hair);stroke-width:1}
 .s-teal-thick{stroke:var(--c-teal600);stroke-width:6;stroke-linecap:round}
 .s-dash{stroke:var(--c-hairStrong);stroke-width:1;stroke-dasharray:3 3}
+/* ── 封面（移动端杂志 register） ── */
+.cover{background:var(--c-coverInk);color:var(--c-coverText);margin:0 0 var(--sp-32);
+  padding:var(--sp-32) var(--gl) var(--sp-24) var(--gl)}
+.cover-kicker{display:block;font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);
+  font-weight:var(--fw-semibold);color:var(--c-gold)}
+.cover-issue{font-family:var(--ff-num);font-size:var(--fs-hero);line-height:1;letter-spacing:-.03em;
+  font-weight:var(--fw-bold);color:var(--c-gold);margin:var(--sp-16) 0 var(--sp-8)}
+.cover-title{font-family:var(--ff-prose);font-size:var(--fs-h1);line-height:1.22;letter-spacing:var(--ls-h1);
+  color:var(--c-coverText);margin:0 0 var(--sp-12);text-wrap:balance}
+.cover-lede{font-family:var(--ff-ui);font-size:var(--fs-caption);color:var(--c-coverMuted);margin:0 0 var(--sp-16)}
+.cover-rule{border:0;border-top:2px solid var(--c-gold);width:56px;margin:0 0 var(--sp-16)}
+.cover .masthead-meta{border-top:1px solid var(--c-hairOnCover);padding-top:var(--sp-16);margin:0}
+.cover .masthead-meta dt{color:var(--c-coverMuted)}
+.cover .masthead-meta dd{color:var(--c-coverText)}
+.cover-stats{display:grid;gap:0;margin:var(--sp-8) 0 0}
+.cover-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;
+  gap:var(--sp-4) var(--sp-12);padding:var(--sp-12) 0;border-top:1px solid var(--c-hairOnCover)}
+.cover-stat-label{font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-meta);color:var(--c-coverMuted)}
+.cover-stat-value{font-family:var(--ff-num);font-size:var(--fs-h3);font-weight:var(--fw-semibold);color:var(--c-coverText)}
+.cover-stat-value .kpi-unit{color:var(--c-coverMuted)}
+.cover-stat--down .cover-stat-value{color:var(--c-downOnCover)}
+.cover-stat--up .cover-stat-value{color:var(--c-upOnCover)}
+.cover-stat--warn .cover-stat-value{color:var(--c-gold)}
+.cover-stat-note{grid-column:1/-1;font-family:var(--ff-ui);font-size:var(--fs-label);line-height:var(--lh-ui);color:var(--c-coverMuted)}
+.cover-art{margin:var(--sp-16) 0 0}
+.cover-art .fig-svg{background:transparent;border:0;box-shadow:none;border-radius:0;margin-left:calc(-1 * var(--gl));margin-right:calc(-1 * var(--gl));width:calc(100% + var(--gl) + var(--gr));max-width:none}
+.cover-art-note{margin:var(--sp-4) 0 0;font-family:var(--ff-ui);font-size:var(--fs-micro);color:var(--c-coverMuted)}
+.f-area{fill:var(--c-teal500);opacity:.26}
+.s-line{fill:none;stroke:var(--c-gold);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.s-track{fill:none;stroke:var(--c-hair);stroke-width:14;stroke-linecap:round}
+.s-gauge{fill:none;stroke:var(--c-teal600);stroke-width:14;stroke-linecap:round}
+.s-gauge-hot{fill:none;stroke:var(--c-amber600);stroke-width:14;stroke-linecap:round}
+.s-donut-0{fill:none;stroke:var(--c-teal600);stroke-width:26}
+.s-donut-1{fill:none;stroke:var(--c-teal500);stroke-width:26}
+.s-donut-2{fill:none;stroke:var(--c-ink400);stroke-width:26}
+.f-bar-alt{fill:var(--c-teal500)}.f-bar-mut{fill:var(--c-ink400)}
+.tx-big{font-family:var(--ff-num)}
+.tx-oncover{fill:var(--c-coverText)}
+.tx-oncoverMuted{fill:var(--c-coverMuted)}
+/* ── 导语 / 读懂这一节 / 术语表 ── */
+.lede{font-family:var(--ff-prose);font-size:var(--fs-h4);line-height:1.7;color:var(--c-ink800);
+  margin:var(--sp-24) 0;padding-left:var(--sp-16);border-left:3px solid var(--c-gold)}
+.takeaway{position:relative;background:var(--c-amber50);border-left:3px solid var(--c-amber600);
+  border-radius:0 var(--r-md) var(--r-md) 0;padding:var(--sp-16) var(--sp-16) var(--sp-12) 52px;margin:var(--sp-24) 0}
+.takeaway-badge{position:absolute;left:var(--sp-12);top:var(--sp-16);width:28px;height:28px;border-radius:var(--r-pill);
+  background:var(--c-amber700);color:var(--c-paper);font-family:var(--ff-num);font-size:var(--fs-label);
+  font-weight:var(--fw-bold);display:flex;align-items:center;justify-content:center}
+.takeaway-title{font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);
+  font-weight:var(--fw-semibold);color:var(--c-amber700);margin:0 0 var(--sp-8)}
+.takeaway ul{margin:0;padding-left:1.1em}
+.takeaway-item{margin:0 0 var(--sp-4);font-size:var(--fs-table);line-height:1.65;color:var(--c-ink800)}
+.takeaway-item:last-child{margin-bottom:0}
+.glossary{margin:var(--sp-24) 0;display:grid;gap:0}
+.glossary-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--sp-4) var(--sp-12);
+  padding:var(--sp-8) 0;border-bottom:1px dashed var(--c-hair)}
+.glossary-term{font-family:var(--ff-ui);font-size:var(--fs-table);font-weight:var(--fw-semibold);color:var(--c-teal700)}
+.glossary-def{margin:0;font-size:var(--fs-table);line-height:var(--lh-table);color:var(--c-ink600)}
 /* ── 目录：桌面 rail ── */
 .rail{font-family:var(--ff-ui);font-size:var(--fs-label);line-height:var(--lh-ui);
   position:sticky;top:var(--sp-24);align-self:start;max-height:calc(100vh - 48px);overflow:auto}
@@ -676,6 +879,11 @@ ${railActive ? `${railActive}{background:var(--c-teal50);color:var(--c-teal700);
   width:44px;height:44px;color:var(--c-ink800);background:var(--c-paper);border:1px solid var(--c-hair);
   border-radius:var(--r-pill);text-decoration:none;font-size:var(--fs-h4)}
 /* ── 断点：≤1080px 移动优先 ── */
+@media (min-width:1081px){
+  .cover{padding:var(--sp-48) var(--sp-32) var(--sp-32)}
+  .cover-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 var(--sp-24)}
+  .cover-stat:first-child,.cover-stat:nth-child(2),.cover-stat:nth-child(3){border-top:1px solid var(--c-hairOnCover)}
+}
 @media (max-width:1080px){
   .shell{display:block;max-width:none;padding:0}
   .rail{display:none}
@@ -693,6 +901,8 @@ ${railActive ? `${railActive}{background:var(--c-teal50);color:var(--c-teal700);
     color:var(--c-ink800);text-decoration:none;font-family:var(--ff-ui);font-size:var(--fs-caption);border-bottom:1px solid var(--c-hair)}
   .tocbar-item .rn{color:var(--c-teal600);font-weight:var(--fw-semibold)}
   .masthead{margin:var(--sp-16) 0 var(--sp-32);padding:var(--sp-24) var(--sp-16);border-radius:0}
+  /* 杂志封面：band 打满屏宽（main 已留出安全区沟槽，用负外边距抵消） */
+  .cover{margin-left:calc(-1 * var(--gl));margin-right:calc(-1 * var(--gr));border-radius:0}
   .chapter-head{margin-top:var(--sp-48)}
   .fig-svg{margin-left:calc(-1 * var(--gl));margin-right:calc(-1 * var(--gr));width:calc(100% + var(--gl) + var(--gr));
     max-width:none;border-radius:0;border-left:0;border-right:0}

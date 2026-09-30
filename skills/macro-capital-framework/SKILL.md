@@ -1,7 +1,7 @@
 ---
 name: macro-capital-framework
 description: '观澜宏观与资本市场分析工艺：第 0 层定基准与额度、十三层能力取机制、六步内化组织行文、两道闸门把关统计可信与实施成本、主动收益基本成分三分解、语言硬规则、十道起步门禁验收。Triggers on "宏观研判", "A股策略", "周期定位", "风格配置", "资产配置", "因子归因", "市场观点看板", "净预期主动收益", "预期收益", "主动收益"'
-version: 2.8.4
+version: 2.8.5
 user-invocable: true
 argument-hint: "[写/审] 中国宏观与 A 股 [主题]"
 license: MIT
@@ -67,7 +67,14 @@ metadata:
 
 1. **模板即契约**：`output-templates/*.json` 的 `designSystem` 声明 `tokens`（染色中性色阶／1.2 模数字号阶／4px 间距阶／染色投影／圆角）、`roles`（每条含对比度下限，由 token 值重算）、`components`（DOM 结构 + 类名 + 可选类）、`figures`（画布与图型白名单）、`print`、`a11y`；`directives` 声明允许的组件指令。**同包各模板的核心 token 必须一致**（一个包一个视觉身份）。
 2. **作者只写 markdown**：组件一律用 `:::` 围栏声明，**不得在内容里写原始 HTML**（渲染器会 fail-closed）。未声明的指令名一律渲染失败。
-3. **指令清单与行格式**（判据在模板 `directives.list`，此处为速查）：
+3. **指令清单与行格式**（判据在模板 `directives.list`，此处为速查）。**register = 移动端杂志**：封面 → 导语 → 每章（章节开场 → 读懂这一节 → 正文与图）→ 术语表 → 脚注。
+   - **封面三件**（相邻书写即合成一个全出血深底容器）：
+     - `:::cover` — 头部 `kicker=`/`issue=`/`title=`/`lede=`；body 每行 `键 | 值`（基准、asOf、生成日…）。刊期用 hero 档大字（金色）。
+     - `:::cover-stats` — 每行 `标签 | 值(含单位) | tone | 注释`，**最多 3 张**，且必须与内页同口径同值。
+     - `:::cover-art` — body 每行 `日期 | 数值`，**必须是真实序列**（本期用基准近 60 个交易日）；无数据则整块不写。
+   - `:::lede` — 导语（2–3 句，一句话说清本期结论）。
+   - `:::takeaway` — **「读懂这一节」**：每章一处、2–3 条**大白话**（每条 ≤40 字、不用未解释的缩写），只做翻译，**不得引入正文没有的新数字或新结论**。
+   - `:::glossary` — 术语表：每行 `术语 | 定义`，只解释本期真正出现的词。
    - `:::masthead` — 头部 `eyebrow=`/`title=`/`lede=`；body 每行 `键 | 值`（期次、基准、asOf、生成日…）。**报告名只放 title**，周期与基准另立角色，不得并入 h1。
    - `:::kpis` — 每行 `标签 | 值(含单位) | tone(neutral|up|down|warn) | 注释`。值里的**单位必须紧跟数字**；标签是名词短语、不是公式；同排最多一张高亮卡；卡数 %4==1 时末卡通栏。
    - `:::callout tone=conclusion|warning|caliber title=…` — body 为正文段。**不得嵌在卡片里**（双层边框）。
@@ -75,7 +82,7 @@ metadata:
    - `:::compare left=旧读法 right=新读法` — 每行 `维度 | 左 | 右`；旧读法弱、新读法强，靠明度差而非颜色。
    - `:::caliber` — 每行一条口径依据（左上「口径」徽标由 CSS 生成，内容里不写「口径」二字）。
    - `:::inferences` — 每行一条推论，**须含数字锚**。
-   - `:::figure type=bars|diverging|range|waterfall|steps|matrix title=… unit=… source=… [caption=…][qualitative=true][tone=sign]` — body 每行 `标签 | 数值`。**无数字不绘**；定性图加 `qualitative=true`（eyebrow 自动标「定性示意」）。图号由渲染器按 DOM 顺序连续重编号（eyebrow／figcaption／aria-label／id 四处同源）。`tone=sign` 仅在**确实是涨跌/正负方向**的读数上使用。
+   - `:::figure type=bars|diverging|range|waterfall|steps|matrix|sparkline|microbar|gauge|donut|pictogram|timeline title=… unit=… source=… [caption=…][qualitative=true][tone=sign]` — body 每行 `标签 | 数值`。**无数字不绘**；定性图加 `qualitative=true`（eyebrow 自动标「定性示意」）。图号由渲染器按 DOM 顺序连续重编号（eyebrow／figcaption／aria-label／id 四处同源）。`tone=sign` 仅在**确实是涨跌/正负方向**的读数上使用。
    - `:::no-figure` — 该章无数字时占位声明，不得画装饰图。
 4. **颜色语义**：`--c-up/--c-down`（涨红跌绿）**只用于方向性读数**；净额、分位、波动、权重、偏离度等非方向性量化一律用墨色/青墨，否则是语义误读（且灰度打印下红绿不可辨，方向读数须同时带符号与文字）。
 5. **交付前跑两条命令**（缺一不可）：

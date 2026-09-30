@@ -1,6 +1,6 @@
 {
   "id": "cycle-positioning",
-  "version": "2.8.4",
+  "version": "2.8.5",
   "schemaVersion": 2,
   "name": "周期定位与配置研判输出模板",
   "media": [
@@ -9,12 +9,12 @@
   ],
   "register": {
     "kind": "product-read",
-    "metaphor": "印刷研究札记（printed research note）",
-    "why": "这是一份「用来看」的长文 + 数据件，不是品牌页：质感来自信息层级、字体与留白，而不是装饰。因此禁用品牌页装置（颗粒、暗角、巨型标题、WebGL/GSAP 英雄动效、暗色默认），并用「纸面中性色阶 + 极细描边 + 染色投影」替代纯白平面与边框堆积。",
+    "metaphor": "移动端杂志（mobile magazine issue）",
+    "why": "第一阅读场景是**手机**：竖屏、单手、碎片时间。因此版式按杂志做——封面（深青墨底 + 金色刊期 + 关键数字 + 走势小图）、大字号标题、章节开场大号数字、全出血插图、每节一句「读懂这一节」的话；数据密度让位于可读性。仍禁用品牌页装置（WebGL/GSAP 英雄动效、颗粒、暗角），且**插图必须有数字依据**（封面小图＝真实走势序列，章内图＝该章数字）。",
     "dials": {
-      "soul": 0.35,
-      "spectacle": 0.1,
-      "density": 0.75
+      "soul": 0.5,
+      "spectacle": 0.25,
+      "density": 0.55
     }
   },
   "designSystem": {
@@ -44,12 +44,21 @@
         "amber50": "#fdf8ee",
         "up": "#B3261E",
         "down": "#0F6B3C",
-        "focus": "#0e6a55"
+        "focus": "#0e6a55",
+        "coverInk": "#0d211d",
+        "coverText": "#f0f4f0",
+        "coverMuted": "#9fb0aa",
+        "gold": "#c08a2a",
+        "goldDim": "#8d6a22",
+        "hairOnCover": "#24413a",
+        "upOnCover": "#f2a9a1",
+        "downOnCover": "#86d3a8"
       },
       "colorNotes": {
         "noPureExtremes": "禁用 #fff / #000：纸面 #fdfefc 与墨色 #0f1a17 为两端（finesse 通用工艺底线的染色中性色）",
         "tintedNeutralRamp": "中性色阶带青墨色相（H≈158°），不是灰；steps ink900→hairStrong 为一条连续色阶",
-        "signSemantics": "up / down 只用于**有方向含义**的价格或涨跌读数；净额、分位、波动、权重等非方向性量化一律用 ink800/teal600，不得用红绿（避免「负号即跌」的语义误读）"
+        "signSemantics": "up / down 只用于**有方向含义**的价格或涨跌读数；净额、分位、波动、权重等非方向性量化一律用 ink800/teal600，不得用红绿（避免「负号即跌」的语义误读）",
+        "cover": "封面用深青墨底 + 金色刊期/规则线（gold #c08a2a on coverInk = 5.52:1，可作文字）；封面文字用 coverText/coverMuted，不用纯白；内页回到纸面 register。"
       },
       "type": {
         "families": {
@@ -67,19 +76,21 @@
             "label": 13,
             "caption": 14,
             "table": 15,
-            "body": 17,
+            "body": 18,
             "h4": 20,
             "h3": 24,
             "h2": 29,
             "h1": 35,
-            "display": 42
+            "display": 42,
+            "hero": 56
           },
           "interpolated": [
             13,
             15,
-            42
+            42,
+            56
           ],
-          "why": "1.2 模数比（base 17）给出 12/14/17/20/24/29/35；13（标签）、15（表格）、42（桌面卷首）为 CJK 可读性插入的半档，已声明为插入值，不算随手字号。"
+          "why": "1.2 模数比（base 17）给出 12/14/17/20/24/29/35；13（标签）、15（表格）、42（卷首）、56（封面刊期）为 CJK 可读性插入的半档，已声明为插入值。移动端杂志register下**正文取 18px**（高于移动端门禁下限 17px），因为第一场景是手机长读。"
         },
         "lineHeight": {
           "display": 1.12,
@@ -87,7 +98,7 @@
           "h2": 1.28,
           "h3": 1.38,
           "h4": 1.45,
-          "body": 1.8,
+          "body": 1.78,
           "table": 1.6,
           "caption": 1.62,
           "ui": 1.5
@@ -280,6 +291,48 @@
         "minRatio": 4.5,
         "minSizePx": 14,
         "use": "卡片内强调"
+      },
+      {
+        "token": "color.coverText",
+        "on": "color.coverInk",
+        "minRatio": 4.5,
+        "minSizePx": 17,
+        "use": "封面标题与正文"
+      },
+      {
+        "token": "color.gold",
+        "on": "color.coverInk",
+        "minRatio": 4.5,
+        "minSizePx": 13,
+        "use": "封面刊期、金色规则线旁文字"
+      },
+      {
+        "token": "color.coverMuted",
+        "on": "color.coverInk",
+        "minRatio": 4.5,
+        "minSizePx": 13,
+        "use": "封面元信息"
+      },
+      {
+        "token": "color.goldDim",
+        "on": "color.paper",
+        "minRatio": 4.5,
+        "minSizePx": 14,
+        "use": "内页金色强调（浅底）"
+      },
+      {
+        "token": "color.upOnCover",
+        "on": "color.coverInk",
+        "minRatio": 4.5,
+        "minSizePx": 14,
+        "use": "封面上涨读数（深底提亮版）"
+      },
+      {
+        "token": "color.downOnCover",
+        "on": "color.coverInk",
+        "minRatio": 4.5,
+        "minSizePx": 14,
+        "use": "封面下跌读数（深底提亮版）"
       }
     ],
     "components": [
@@ -301,6 +354,91 @@
         "optionalClasses": [
           "masthead-lede",
           "masthead-meta"
+        ]
+      },
+      {
+        "id": "cover",
+        "classes": [
+          "cover",
+          "cover-kicker",
+          "cover-issue",
+          "cover-title",
+          "cover-lede",
+          "cover-rule"
+        ],
+        "anatomy": "header.cover（深青墨底，全出血）> span.cover-kicker + p.cover-issue(金色刊期) + h1.cover-title + p.cover-lede + hr.cover-rule",
+        "rules": [
+          "封面是全出血深底；刊期用 hero 档大字（金色）；标题用 h1 档衬线；lede 一行给周期与基准",
+          "封面内不放正文段落；不放品牌页装置（动效/颗粒/暗角）",
+          "封面上最多 3 张关键数字卡（cover-stats），且必须与内页同口径同值"
+        ]
+      },
+      {
+        "id": "cover-stats",
+        "classes": [
+          "cover-stats",
+          "cover-stat",
+          "cover-stat-label",
+          "cover-stat-value"
+        ],
+        "anatomy": "div.cover-stats > div.cover-stat > span.cover-stat-label + div.cover-stat-value",
+        "rules": [
+          "移动端纵向堆叠（每张一行，值右对齐或左对齐均可，但三张必须同构）",
+          "值+单位不折行；标签 ≤10 字",
+          "深底上的数字用 coverText，方向性读数才用 up/down"
+        ]
+      },
+      {
+        "id": "cover-art",
+        "classes": [
+          "cover-art"
+        ],
+        "anatomy": "figure.cover-art > svg（走势小图）",
+        "rules": [
+          "**必须有数字依据**：用真实区间序列（如基准指数近 90 个交易日）绘制，并标注区间与截至日",
+          "无数据时整块不渲染（禁装饰性插图）",
+          "图上文字 ≥19/640 viewBox，同 fig-svg 规约"
+        ]
+      },
+      {
+        "id": "lede",
+        "classes": [
+          "lede"
+        ],
+        "anatomy": "p.lede（开篇导语，2–3 句）",
+        "rules": [
+          "字号取 h4 档、行高 1.7、颜色 ink800；首句一句话说清本期结论",
+          "不放数字堆砌，数字留在后面的卡片与图里"
+        ]
+      },
+      {
+        "id": "takeaway",
+        "classes": [
+          "takeaway",
+          "takeaway-badge",
+          "takeaway-title",
+          "takeaway-item"
+        ],
+        "anatomy": "aside.takeaway > span.takeaway-badge(读) + div.takeaway-title(读懂这一节) + ul.takeaway-item×3",
+        "rules": [
+          "**用大白话**：每条 ≤40 字，禁用术语缩写（出现即须在 glossary 里解释）",
+          "每章最多一处、固定 2–3 条；金色左规则线 + 纸面卡",
+          "它是「翻译层」，不得引入正文没有的新数字或新结论"
+        ]
+      },
+      {
+        "id": "glossary",
+        "classes": [
+          "glossary",
+          "glossary-item",
+          "glossary-term",
+          "glossary-def"
+        ],
+        "anatomy": "dl.glossary > (div.glossary-item > dt.glossary-term + dd.glossary-def)",
+        "rules": [
+          "只解释本期真正出现的术语（bp、分位、首次穿越、N_eff、ρ̄…）",
+          "定义 ≤30 字，可带一个换算例（例：1 bp = 万分之一 = 0.01%）",
+          "术语首次出现处也可用行内 chip 指向它"
         ]
       },
       {
@@ -551,7 +689,13 @@
         "range",
         "waterfall",
         "steps",
-        "matrix"
+        "matrix",
+        "sparkline",
+        "donut",
+        "gauge",
+        "pictogram",
+        "timeline",
+        "microbar"
       ],
       "palette": {
         "bar": "teal600",
@@ -570,7 +714,10 @@
         "数值标签一律在条末端外侧，tabular-nums，字号 ≥19（viewBox 内）",
         "定性图必须在 eyebrow 或 caption 标注「定性示意」",
         "来源与口径行固定为最后一行，格式（来源，机构，截至 年-月）",
-        "同一图内不超过 3 种数据系列色；序列色只取 palette 中的键"
+        "同一图内不超过 3 种数据系列色；序列色只取 palette 中的键",
+        "杂志向读图：优先「一图一句」——caption 以「看图说话：」开头，一句话讲清这张图要读者看到什么",
+        "封面/章首允许小图（sparkline/microbar/gauge/donut/pictogram），但同样**无数字不绘**",
+        "pictogram（象形图）用重复图形表示比例，须标出分母与单位"
       ]
     },
     "print": {
@@ -612,9 +759,35 @@
     }
   },
   "directives": {
-    "contract": "作者在 markdown 里用 ::: 围栏声明组件，渲染器按 designSystem.components 生成结构。**内容里不得出现原始 HTML**（渲染器一律转义），组件只能由声明产生——这样版式归模板、内容归作者。",
+    "contract": "作者在 markdown 里用 ::: 围栏声明组件，渲染器按 designSystem.components 生成结构。**内容里不得出现原始 HTML**（渲染器一律转义），组件只能由声明产生——版式归模板、内容归作者。**杂志 register 的写法**：封面（cover / cover-stats / cover-art）→ 导语（lede）→ 每章：章节开场（h2 自动）→「读懂这一节」（takeaway）→ 正文与图（figure）→ 术语表（glossary）在脚注前统一给出。",
     "syntax": ":::name key=value …  …body…  :::",
     "list": [
+      {
+        "name": "cover",
+        "keys": [
+          "kicker",
+          "issue",
+          "title",
+          "lede"
+        ],
+        "body": "每行：键 | 值（期次/基准/asOf/生成日）；封面数字卡用 `:::cover-stats` 另起一块",
+        "renders": "cover"
+      },
+      {
+        "name": "cover-stats",
+        "body": "每行：标签 | 值(含单位) | tone | 注释",
+        "renders": "cover-stats"
+      },
+      {
+        "name": "cover-art",
+        "keys": [
+          "title",
+          "unit",
+          "source"
+        ],
+        "body": "每行：日期 | 数值（真实序列）",
+        "renders": "cover-art（走势小图）"
+      },
       {
         "name": "masthead",
         "keys": [
@@ -681,6 +854,24 @@
         "name": "no-figure",
         "body": "空",
         "renders": "fig-note（「本章无数字，按 §三 铁律不绘制点睛图」）"
+      },
+      {
+        "name": "lede",
+        "body": "一段导语",
+        "renders": "lede"
+      },
+      {
+        "name": "takeaway",
+        "keys": [
+          "title"
+        ],
+        "body": "每行一条（大白话，≤40 字）",
+        "renders": "takeaway"
+      },
+      {
+        "name": "glossary",
+        "body": "每行：术语 | 定义",
+        "renders": "glossary"
       }
     ],
     "unknownDirective": "遇到未声明的 ::: 名 → 渲染失败（fail-closed），不得静默透传"
