@@ -66,3 +66,7 @@ for how to build your own knowledge base.
 ## License
 
 MIT (see [`LICENSE`](LICENSE)). Source materials remain the property of their authors/publishers.
+
+## Data sources and acquisition priority
+
+Data is always fetched from the **Wind CLI first**; if Wind is unavailable (not installed / no entitlement / field missing / call failed) the pack falls back in this order: westock CLI → public interfaces (self-computed) → external sources with citation and as-of. Skipping Wind and going straight to public interfaces is not allowed. The tier actually used, and the reason Wind was not used, must be stated in the method-reliability note.

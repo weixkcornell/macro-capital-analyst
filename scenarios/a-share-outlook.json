@@ -1,7 +1,7 @@
 {
   "id": "a-share-outlook",
   "name": "中国 A 股市场观点看板",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "schemaVersion": 2,
   "domain": "equity.strategy",
   "intents": [
@@ -85,7 +85,7 @@
       "beike"
     ]
   },
-  "description": "从一手数据自算与市场共识对照出发，按六步内化流程重构观点、过两道闸门，产出含上期回顾与可靠性声明的 A 股观点看板。",
+  "description": "从一手数据自算与市场共识对照出发，按六步内化流程重构观点、过两道闸门，产出含上期回顾与可靠性声明的 A 股观点看板。 取数优先级（强制 · v2.8.0 起）：**任何数据一律先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败 / 超时）**再退回其他方式**，退回顺序为 westock CLI → 公开接口自算 → 外部口径（须标来源与 as-of）。**禁止跳过 Wind CLI 直接走公开接口**；本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明。",
   "skill": {
     "id": "macro-capital-framework",
     "purpose": "观澜宏观与 A 股分析的完整工艺规范（行文/用数/门禁）",

@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.7.0-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.0-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -120,7 +120,9 @@ macro-capital-analyst/
 
 ## 数据口径
 
-本包声明四类口径（见 `pack.json` 的 `caliberDeclarations`）：统计局、央行、公开 K 线自算、Wind（可选）。本机无 Wind/iFinD，行情用公开 K 线自算；forward EPS、一致预期等缺失层在「方法可靠性声明」显式标注。
+本包声明八类口径（见 `pack.json` 的 `caliberDeclarations`）：**Wind（取数优先级第 1 档）**、统计局、央行、公开 K 线自算、westock、北向、申万、中证。
+
+**取数优先级（v2.8.0 起）**：任何数据一律**先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败）**再退回其他方式**——westock CLI → 公开接口自算 → 外部口径（须标来源与 as-of）。**禁止跳过 Wind CLI 直接走公开接口**；本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明。说明：本机当前未解析到 Wind CLI，故在 Wind 就绪前运行会落到退回档，此时 forward EPS、个股级一致预期、汇率与美元指数历史序列等仍缺，须如实声明。
 
 ## 免责声明
 
@@ -137,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.0**（2026-09-30）：**同步 macro-capital-market-analysis v37 —— 取数优先级：Wind CLI 优先** —— ① **新增强制规则（取数优先级）**：**任何数据一律先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败 / 超时）**再退回其他方式**，退回顺序为 **westock CLI → 公开接口自算（新浪 / 腾讯 fqkline / 中证 `index-perf` / 东财）→ 外部口径（须标来源与 as-of）**。**禁止跳过 Wind CLI 直接走公开接口**；**本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明**。② **落地位置**：`pack.json` 的口径声明把 Wind 由「可选主定量源」升为「**取数优先级第 1 档**」；`experts` 的 `methodProfile.dataPreference` 置顶该规则，并补 1 条 `mentalModel`、2 条 `antiPattern`、1 条 `vetoRule`，`blindSpots` 由「本机无 Wind/iFinD」改为「Wind 不可用时的缺口」；`quality-policies/baseline.json` 的 `number-consistency` 门禁新增「取数档位声明」判据（`dataSourcePriority = [wind, westock, public-selfcompute, external-with-citation]`）；两个 scenario 的 `description`、`tool-providers` 的 `description` 与 `note`、包内 `skills/macro-capital-framework/SKILL.md` 的 §2 均写入该优先级。③ **同步全文因该规则而不成立的绝对陈述**（skill 侧 10 处、包侧 2 处）：「本机无 Wind/iFinD，forward EPS 与盈利预测修正层缺失」→「取数先试 Wind CLI，取不到再退回；实际档位须声明」；汇率与美元指数历史序列由「本机无历史」改为「先试 Wind CLI，不可用时自建序列」；附录 B gap-003 的补齐路径改为 Wind CLI 优先。④ **一处如实提示（非本包可解）**：规则是策略性的、自带退回条款；**本机当前未解析到 Wind CLI**（PATH 无 `wind`、无 Wind 安装目录），故在 Wind 就绪前所有运行都会落到退回档，此时「方法可靠性声明」须写明实际档位与原因。⑤ 本版**不新增知识源**（46 源 / 54 份精读不变）、**不新增实体**（43 个不变）；能力层、两道闸门判据的**内容**零变更。
 
 - **2.7.0**（2026-09-29）：**同步 macro-capital-market-analysis v29–v35 —— 能力层扩至十三层 + 主动收益模块整体替换 + 语言硬规则（跨 7 个版本）** —— ① **能力层 9 → 13 层**：新增 ⑩ 资产定价模型的实证检验与诊断（主方程 E_t(mR)=1；α 必须绑定模型；triality 三路等价；宏观因子须先造因子模拟组合；HJ 界为排除工具）、⑪ 风险边界、破产约束与极端事件治理（概率不可赋值区域；VaR 操作性定义；凯利永不清零约束；压力测试反推法；黑洞扫描；极端动作须在平静日预设写死）、⑫ 信息不对称、微观结构与激励传导（三均衡阶梯；无交易定理；卖空约束的涨跌不对称；CGW 交易量-反转；DHS 有偏自我归因；激励→行为→价格）、⑬ 组合工程与生存约束（仓位规则即 alpha；Jagannathan-Ma 非负约束；杠杆地板与天花板；止损 efficiency 表；崩盘=跨投资者去杠杆）。② **主动收益模块整体替换（现行唯一口径）**：先按主动管理基础法则试 α=IC·z，本机实测 29 条行业指数的有效独立标的数只有 6.2（ρ̄=0.132、BR≈25）、三个估值口径 IC 全为负且 BH-FDR 与 Bonferroni 存活均 0 ⇒ **指数层面无法产出 α，该口径否决**；改用**基本成分三分解**——总收益 = ① 支付收益率（股息率＋净回购率）+ ② 预期现金流增长率（EPS）+ ③ 预期估值变化（P/E 均值回归）。三项均可观测，故不要求过 IC 显著性检验；**「含③／不含③」两版并列强制，只有两版同号的方向才可建仓**；③ 的收敛速度不假定、由年度采样 AR(1) 估 ρ 与半衰期，ρ ≥ 1 一律记 0。③ **失效条款重述与新增**：C 重述——原结论否证的是「① 项单独作为唯一来源」而非「股息不被支付」（用价格比值回归失败去否决股息支付属对象替换）；新增 D——③ 的准入与两版建仓规则。④ **闸门 A/B 扩充**：闸门 A 增至**七条**（新增第 7 条「收益口径折减与 p-hacking 拦截」——算术口径须扣方差/2、A 股禁沿用海外 2% 锚；须披露调参次数与阈值档位；少于 30 个观测不单独下结论）；闸门 B 增至**六条**（新增第 6 条「杠杆水位与生存约束」——含仓位/杠杆的结论须声明自身杠杆上限（κ 取 2–3）、触发式止损在极端时的失效、「正确但被强平」风险与缓冲额度；崩盘识别用杠杆水位而非价格跌幅）。⑤ **新增/扩充数据源**：接入 westock CLI（申万行业估值／一致预期／财报 TTM、外汇历史）、北向持仓、**个股级横截面因子**，并新接**中证官网 index-perf 一手面板**（价格 + 滚动 PE + 全收益，2015 起，覆盖 20 个行业）——使 ① 项从「代理检验」升级为一手可观测分量。⑥ **知识底座 38 → 46 源 / 43 → 54 份精读**：新增 8 本著作（Miranda-Agrippino & Rey 2021 GFC、Campbell、Paleologo、Falkenstein、Donnelly、Ferson、Kim & Brown、Costello）+ 2 份内部综合（周期定位专题、跨著作比对协议）。⑦ **语言硬规则（v35）**：产出与内部文档一律不得用「腿」这一比喻称呼头寸、标的或口径，拥挤度统一称「三条口径」；加粗只给数字与关键术语、破折号只作「即/也就是」补充、长句拆短。⑧ **元判据增补**：新增「三问定位」（结构定方向 → 时钟定状态 → 情绪定仓位），并把有效独立标的数 N_eff 与 ρ̄ 列为「值不值得下注」的必报量。⑨ 实体侧同步：`nine-layer-framework` 更名并扩为 **`thirteen-layer-framework`**；本体补 9 实体 + 10 关系；禁例 token 由 90 增至 106（含 8 本新著作题名/作者词干与语言硬规则）。
 

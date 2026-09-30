@@ -1,10 +1,10 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
-  "description": "包内可执行工具。数据获取走平台 provider 层（wind / zyt / beike）与公开口径自算，本包不自建数据引擎。",
-  "note": "两种「能力」是不同口径，别当成同一张表：①【本包声明的能力】＝下面 capabilities（须带 transport 才能被调度，故只有三方对撞一条）；②【数据引擎契约】＝data-contracts/capability-contract.csv（public.kline.self-compute、macro.official.verify），描述自建数据引擎的输入输出契约，不是包内可调度能力；③ 场景 toolPolicy 里的 wind / zyt / beike 由【平台 provider 层】解析，本包不声明其能力、也不持有其凭据。scripts/check-pack.mjs 会对①②做对照并给出 note（不同口径，非缺陷）。",
+  "description": "包内可执行工具。数据获取**一律先试 Wind CLI**，取不到再走平台 provider 层（zyt / beike）与公开口径自算；本包不自建数据引擎。",
+  "note": "两种「能力」是不同口径，别当成同一张表：①【本包声明的能力】＝下面 capabilities（须带 transport 才能被调度，故只有三方对撞一条）；②【数据引擎契约】＝data-contracts/capability-contract.csv（public.kline.self-compute、macro.official.verify），描述自建数据引擎的输入输出契约，不是包内可调度能力；③ 场景 toolPolicy 里的 wind / zyt / beike 由【平台 provider 层】解析，本包不声明其能力、也不持有其凭据。scripts/check-pack.mjs 会对①②做对照并给出 note（不同口径，非缺陷）。 ④【取数优先级 · v2.8.0 新增】取数优先级（强制 · v2.8.0 起）：**任何数据一律先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败 / 超时）**再退回其他方式**，退回顺序为 westock CLI → 公开接口自算 → 外部口径（须标来源与 as-of）。**禁止跳过 Wind CLI 直接走公开接口**；本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明。各档的机器可读顺序见 `scenarios/*.json` 的 `toolPolicy.allowed`（wind 置于首位）与 `quality-policies/baseline.json` 的 `number-consistency.config.dataSourcePriority`。",
   "capabilities": [
     {
       "capability": "macro.collision.check",

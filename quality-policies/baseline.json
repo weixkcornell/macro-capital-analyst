@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -147,7 +147,7 @@
     },
     {
       "id": "number-consistency",
-      "name": "数字一致 + 摘要—正文—底座三方对撞",
+      "name": "数字一致 + 摘要—正文—底座三方对撞 + 取数档位声明",
       "kind": "deterministic",
       "severity": "hard",
       "appliesTo": [
@@ -155,13 +155,21 @@
         "html",
         "pdf"
       ],
-      "description": "正文所有数字与数据底座逐一对照；摘要、正文、底座三方对撞，关键概括必须能在底座找到同口径证据；改数只改底座一处。",
+      "description": "正文所有数字与数据底座逐一对照；摘要、正文、底座三方对撞，关键概括必须能在底座找到同口径证据；改数只改底座一处。**每个数字另须可回溯到其取数档位**：先试 Wind CLI，取不到再退回（westock → 公开接口 → 外部口径），本期实际档位与未走 Wind 的原因须在「方法可靠性声明」写明。",
       "config": {
         "rules": [
           "正文数字与数据底座逐项一致。",
           "摘要中的每条概括必须在正文找到对应论据、并在底座找到同口径证据。",
-          "三方不一致时不得发布，先回底座查错。"
-        ]
+          "三方不一致时不得发布，先回底座查错。",
+          "每个数字的取数档位可回溯：Wind CLI 优先；未走 Wind 的须在「方法可靠性声明」给出原因与实际来源。"
+        ],
+        "dataSourcePriority": [
+          "wind",
+          "westock",
+          "public-selfcompute",
+          "external-with-citation"
+        ],
+        "requiresSourceTierDeclaration": true
       }
     },
     {
