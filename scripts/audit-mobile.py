@@ -116,10 +116,16 @@ def main():
     # 键**必须保持字符串**：下面按 body_min.get(str(vp["w"])) 查询。
     # 此前这里建的是 int 键、查询用 str 键 ⇒ 类型不匹配、每次落空 ⇒ 声明的逐视口正文字号**从未生效**，
     # 一律回退到写死的 17（2026-09-30 由交付方用「故意偏离默认的合成策略」实测发现；今天不造成假过，但是静默失守）。
-    body_min = {str(k): int(v) for k, v in (cfg.get("criteria", {}).get("bodyFontMinPx") or {}).items()
-                if str(k).isdigit()}
-    if not body_min:
-        body_min = {str(v["w"]): v["bodyMin"] for v in DEFAULT_VIEWPORTS}
+    # 只收「视口宽 → 像素下限」的数值项；映射里混入的说明键（如旧的 note）必须忽略，
+    # 否则解析器稍有不慎就会拿字符串去 int() 抛错。
+    body_min_policy = {}
+    for k, v in (cfg.get("criteria", {}).get("bodyFontMinPx") or {}).items():
+        if str(k).isdigit():
+            try:
+                body_min_policy[str(k)] = int(v)
+            except (TypeError, ValueError):
+                continue
+    body_min = dict(body_min_policy) or {str(v["w"]): v["bodyMin"] for v in DEFAULT_VIEWPORTS}
     fig_min = float(cfg.get("criteria", {}).get("figureLabelMinEffectivePx", {}).get("min", 11))
     tap_min = float(cfg.get("criteria", {}).get("tapTargetMinPx", 44))
     table_min_font = float(cfg.get("criteria", {}).get("tableFontMinPx", 14))
@@ -253,7 +259,8 @@ def main():
                 probs.append(f"表格既非卡片堆叠也无可横滚容器：{len(unscrollable)} 张")
 
             report["viewports"].append({"viewport": f"{vp['w']}x{vp['h']}", "bodyFontNeedPx": need,
-                                        "bodyFontNeedSource": "policy" if str(vp["w"]) in body_min else "builtin-default",
+                                        # 三态如实标注：policy（键来自声明）/ builtin-default（该视口未声明，取内置默认）
+                                        "bodyFontNeedSource": "policy" if str(vp["w"]) in body_min_policy else "builtin-default",
                                         "bodyMedianFontPx": res["body"]["medianFontPx"],
                                         "pageOverflowPx": res["page"]["overflowPx"],
                                         "clipped": res["page"]["clipped"],

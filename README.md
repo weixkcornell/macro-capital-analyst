@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.12-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.13-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -139,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.13**（2026-10-01）：**修掉复审指出的三处「loaded vs in-effect」残余与文档卫生 + 立「复核期间冻结修订」规则** —— ① `audit-mobile.py` 的 `bodyFontNeedSource` **未加载策略时仍报 `policy`**（无参运行三档全报 policy 而 `policySource=None`）：现改为**三态如实**（键来自声明＝`policy`；该视口未声明、取内置默认＝`builtin-default`），实测无参运行三档均为 `builtin-default`。② `check-wind-provenance.py` 的 `load_policy` **只接受目录**，传单文件会**静默回退**且不披露（与 `audit-mobile.py` 同一 flag 行为不一致）：现两种入参都接受，并在报告里新增 `policyFallback` 与 `warnings`（显式给了 `--policy-dir` 却没解析到本门 config ⇒ 披露而非静默）。③ 文档卫生：`mobile-readability.criteria.bodyFontMinPx` 映射内混着的说明键 `note` 已移出到同级 `bodyFontMinPxNote`（映射只放 `<视口>:<像素下限>`，解析器并对非数值项显式忽略）。④ **立规**（写进 `RELEASING.md`）：给复核任务下达时**必须写明被复核的包修订号**并在窗口内冻结包改动；确需并行推进须在结论里注明整包重发，且不得据过期钉扎写现值 —— 动因是一次复核期间包从 2.8.11 重发到 2.8.12（30+ 文件），复核方只能改用「可归属钉扎」才使结论站得住。⑤ 自校准回归：移动端 7/7、Wind 6/6、接线 5/5。纯增量：产物侧与既有判据语义零变更。
 
 - **2.8.12**（2026-09-30）：**把「判据来源」做成事前可机检——新增门禁接线检查（13 门）** —— ① 动因：本包在一天内连续踩到**三例同源缺陷**（`audit-mobile.py` 策略加载器只判文件、`check-wind-provenance.py` 读到 `cfg` 却从未消费、`bodyFontMinPx` 建整数键按字符串键查询）—— 共同形态是**「声明被加载」≠「声明生效」**，而门禁照样报 PASS。事后靠「偏离默认必须改变判定」的自校准抓住；本版补的是**事前**手段。② 新增 `scripts/check-gate-wiring.mjs`：每道有 `config` 的门必须声明 `config.wiring` —— **机器门**给 `executor`＋`consumesKeys`（键名须在执行器源码里按**独立标识符**出现，避免 `run_checks` 之类把 `checks` 误判为已消费），**内置判据**给 `builtin: true`＋reason，**人工/语义判据**给 `semantic: true`＋reason，文档性键须入 `notConsumed`；声明了 `selfTest` 的门，其脚本必须真被 `release-check.sh` 调用；执行器不得指向本检查自身（防自我满足的假绿灯）。③ **接线登记结果（诚实口径）**：13 门中**机器消费 config 判据的 5 门**（banned-tokens 2 键、render-overflow 4 键、section-outline 2 键、wind-provenance 3 键、mobile-readability 3 键、template-conformance 1 键＋读模板自身）、**内置判据 2 门**（number-consistency 由 i1 做对撞、placeholder-clean 为本仓约定）、**人工/语义判据 5 门**（gate-a-double-calibration、layout-audit、net-active-return-required、active-risk-budget、collision-check）—— 即：**哪些判据由机器强制、哪些只是文档，现在有可机检的登记表**。④ `release-check.sh` 加第 ⑨ 步 ⇒ **发布前八件套升为九件套**；`check-gate-wiring.mjs --selftest` 自带 **1 正向 + 4 负向**对照（删 wiring / 登记不存在的键 / 执行器不存在 / 自校准未接线）。⑤ 纯增量：产物侧与既有判据语义零变更。
 

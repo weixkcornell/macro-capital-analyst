@@ -35,15 +35,23 @@ RELIABILITY_HEAD = re.compile(r"^##+\s*方法可靠性声明", re.M)
 
 
 def load_policy(d):
-    if d and pathlib.Path(d).is_dir():
-        for f in sorted(pathlib.Path(d).glob("*.json")):
-            try:
-                j = json.loads(f.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            for g in j.get("gates", []):
-                if g.get("id") == "wind-provenance":
-                    return g.get("config", {}), str(f)
+    """入参可以是 quality-policies/ 目录，也可以是单个策略文件。
+
+    此前**只接受目录**：传单文件会**静默回退**到内置判据且不披露 —— 与 audit-mobile.py 同一 flag
+    行为不一致（2026-10-01 由复核方指出）。现两种入参都接受；调用方据 (cfg, src) 判断是否回退并必须在报告里披露。
+    """
+    if not d:
+        return {}, None
+    pp = pathlib.Path(d)
+    files = (sorted(pp.glob("*.json")) if pp.is_dir() else ([pp] if pp.is_file() else []))
+    for f in files:
+        try:
+            j = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for g in j.get("gates", []):
+            if g.get("id") == "wind-provenance":
+                return g.get("config", {}), str(f)
     return {}, None
 
 
@@ -193,8 +201,12 @@ def main():
     cfg, src = load_policy(args.policy_dir or str(p.resolve().parent.parent.parent / "quality-policies"))
 
     stats, problems = run_checks(md, cfg)   # ← cfg 必须传入（否则声明的判据形同虚设）
-    report = {"gate": "wind-provenance", "md": str(p), "policySource": src, "stats": stats,
-              "problems": problems, "verdict": "pass" if not problems else "fail"}
+    # 回退必披露：显式给了 --policy-dir 却没解析到本门 config ⇒ 记 warning，不静默
+    fallback = bool(args.policy_dir) and src is None
+    report = {"gate": "wind-provenance", "md": str(p), "policySource": src,
+              "policyFallback": fallback,
+              "warnings": (["未从 --policy-dir 解析到 wind-provenance.config ⇒ 判据走内置默认（已披露）"] if fallback else []),
+              "stats": stats, "problems": problems, "verdict": "pass" if not problems else "fail"}
     out = pathlib.Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")

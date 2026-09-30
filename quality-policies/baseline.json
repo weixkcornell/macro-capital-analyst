@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.12",
+  "version": "2.8.13",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -525,8 +525,7 @@
         "criteria": {
           "bodyFontMinPx": {
             "375": 17,
-            "320": 16,
-            "note": "读 computed style，不采信声明值"
+            "320": 16
           },
           "figureLabelMinEffectivePx": {
             "min": 11,
@@ -538,7 +537,8 @@
           "tablePolicy": "允许容器内横滚；页面级必须 0 溢出；窄屏须卡片堆叠或首列 sticky",
           "overflow": "页面级 scrollWidth − clientWidth ≤ 1px；元素级裁切/重叠 = 0",
           "contrast": "不得低于 render-overflow 基线（AA 全节点穷举、0 失败）",
-          "srOnlyExclusion": "无障碍视觉隐藏元素（position:absolute/fixed + clip/clip-path + 尺寸 ≤2px）不计裁切、不计触控目标 —— 与 render-overflow 判据的排除保持一致（否则每个视口都会误报「跳到正文」链接）"
+          "srOnlyExclusion": "无障碍视觉隐藏元素（position:absolute/fixed + clip/clip-path + 尺寸 ≤2px）不计裁切、不计触控目标 —— 与 render-overflow 判据的排除保持一致（否则每个视口都会误报「跳到正文」链接）",
+          "bodyFontMinPxNote": "读 computed style，不采信声明值（该键 2026-10-01 从映射内移出：映射只放 <视口宽>:<像素下限>，其余说明另置）"
         },
         "notGated": [
           {
