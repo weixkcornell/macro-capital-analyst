@@ -201,7 +201,10 @@ const parseVal = s => {
 }
 
 function figureSvg(type, rows, unit, tone = null) {
-  const LABEL_X = 132, PLOT_X = 146, RIGHT_PAD = 26
+  // 标签列宽＝最长标签实测宽度（有上限），避免长标签（如「沪深300（000300）」）越界
+  const maxLabW = Math.max(0, ...rows.map(r => tw(String(r[0] ?? ''), FS.label)))
+  const LABEL_X = Math.min(Math.max(Math.ceil(maxLabW) + 12, 96), 268)
+  const PLOT_X = LABEL_X + 14, RIGHT_PAD = 26
   const values = rows.map(r => parseVal(r[1])).filter(Boolean)
   const maxAbs = Math.max(...values.map(v => Math.abs(v.v)), 1e-9)
   const plotW = VB_W - PLOT_X - RIGHT_PAD
@@ -532,6 +535,27 @@ ${cal}${src}</figure>`
       const items = d.rows.map(r => `<li class="fn-item" id="fn-${esc(r[0] ?? '')}"><span class="fn-no">${esc(r[0] ?? '')}</span>${inline(r.slice(1).join(' | '))}</li>`).join('')
       return `<ol class="fn-list">${items}</ol>`
     }
+    case 'falsify': {
+      const sep = d.rows.findIndex(r => r.every(c => /^-{2,}$/.test(c)) || r[0] === '---')
+      const head = sep > 0 ? d.rows.slice(0, sep) : d.rows
+      const table = sep > 0 ? d.rows.slice(sep + 1) : []
+      const branches = head.map(r => {
+        const tag = r[0] ?? ''
+        const tone = /上行/.test(tag) ? 'up' : 'down'
+        return `<div class="falsify-branch falsify-branch--${tone}"><span class="falsify-tag">${inline(tag)}</span><div class="falsify-body">${inline(r.slice(1).join(' | '))}</div></div>`
+      }).join('')
+      const sig = table.length > 1
+        ? `<div class="falsify-signals"><div class="table-head">证伪信号</div>${renderTable(table[0], table.slice(1))}</div>`
+        : ''
+      return `<aside class="falsify">${branches}${sig}</aside>`
+    }
+    case 'ladder': {
+      const steps = d.rows.map(r => `<li class="ladder-step"><span class="ladder-badge">${inline(r[0] ?? '')}</span>
+<div class="ladder-cond">${inline(r[1] ?? '')}</div><div class="ladder-act">${inline(r.slice(2).join(' | '))}</div></li>`).join('')
+      const cap = kv.caption ? `<div class="table-head">${inline(kv.caption)}</div>` : ''
+      const src = kv.source ? `<div class="table-source">来源：${inline(kv.source)}</div>` : ''
+      return `<figure class="table-fig ladder-fig" role="group" aria-label="${esc(kv.caption ?? '条件阶梯')}">${cap}<ol class="ladder">${steps}</ol>${src}</figure>`
+    }
     case 'kpis': {
       const tiles = d.rows.map(r => {
         const [label, value, tone = 'neutral', note = ''] = r
@@ -559,11 +583,23 @@ ${t.note ? `<div class="kpi-note">${inline(t.note)}</div>` : ''}</div>`).join(''
     case 'inferences':
       return `<ol class="inferences">${d.rows.map(r => `<li class="inference"><span class="inference-no"></span><span class="inference-body">${inline(r.join(' | '))}</span></li>`).join('')}</ol>`
     case 'figure': {
+      // body 里的 `caption: …` / `note: …` / `caliber: …` 是元信息，不是数据行
+      const meta = { }
+      const dataRows = []
+      for (const r of d.rows) {
+        if (r.length === 1) {
+          const m = /^(caption|note|caliber)\s*[:：]\s*(.*)$/.exec(r[0])
+          if (m) { meta[m[1]] = m[2].trim(); continue }
+        }
+        dataRows.push(r)
+      }
+      if (meta.caption) kv.caption = meta.caption
+      if (meta.note) kv.note = [kv.note, meta.note].filter(Boolean).join('；')
       const type = kv.type ?? 'bars'
       if (!FIG_TYPES.has(type)) fail(`figure type=${type} 不在模板 figures.types 白名单`)
       const qualitative = kv.qualitative === 'true'
       currentTone = kv.tone ?? null
-      const rec = { no: figureRegistry.length + 1, title: kv.title ?? '', type, rows: d.rows, unit: kv.unit ?? '', source: kv.source ?? '', caption: kv.caption ?? '', qualitative, tone: kv.tone ?? null }
+      const rec = { no: figureRegistry.length + 1, title: kv.title ?? '', type, rows: dataRows, unit: kv.unit ?? '', source: kv.source ?? '', caption: kv.caption ?? '', qualitative, tone: kv.tone ?? null }
       figureRegistry.push(rec)
       return `<!--FIGURE:${rec.no}-->`
     }
@@ -634,7 +670,7 @@ html = html.replace(/<!--FIGURE:(\d+)-->/g, (_, n) => {
   const rec = figureRegistry[Number(n) - 1]
   const noCn = rec.no
   const qual = rec.qualitative ? '　定性示意' : ''
-  const cap = rec.caption ? `<figcaption class="fig-caption"><strong>图${noCn}</strong> · ${inline(rec.caption)}</figcaption>` : ''
+  const cap = (rec.caption || rec.note) ? `<figcaption class="fig-caption"><strong>图${noCn}</strong> · ${inline(rec.caption ?? '')}${rec.note ? `${rec.caption ? '；' : ''}${inline(rec.note)}` : ''}</figcaption>` : ''
   const src = rec.source ? `<div class="fig-source">来源：${inline(rec.source)}</div>` : ''
   return `<figure class="figure" id="fig${noCn}" role="group" aria-label="图${noCn}｜${esc(rec.title)}">
 <div class="fig-eyebrow">图${noCn} · ${inline(rec.title)}${qual}</div>
@@ -816,6 +852,20 @@ th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
   font-weight:var(--fw-semibold);color:var(--c-teal700);margin:0 0 var(--sp-8)}
 .table-caliber,.table-source{margin:var(--sp-4) 0 0;font-family:var(--ff-ui);font-size:var(--fs-micro);line-height:1.55;color:var(--c-ink500)}
 .table-source{color:var(--c-ink600)}
+/* ── 双向证伪 / 条件阶梯（严谨层） ── */
+.falsify{margin:var(--sp-24) 0;padding:var(--sp-16);background:var(--c-surface);border:1px solid var(--c-hair);border-radius:var(--r-md);box-shadow:var(--sh-s1)}
+.falsify-branch{display:grid;gap:var(--sp-4);padding:var(--sp-8) 0;border-bottom:1px dashed var(--c-hair)}
+.falsify-branch--down{border-bottom:0}
+.falsify-tag{font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);font-weight:var(--fw-semibold);color:var(--c-teal700)}
+.falsify-branch--down .falsify-tag{color:var(--c-amber700)}
+.falsify-body{font-size:var(--fs-table);line-height:1.65;color:var(--c-ink800)}
+.falsify-signals{margin-top:var(--sp-16)}
+.ladder{list-style:none;counter-reset:ld;margin:0;padding:0}
+.ladder-step{position:relative;padding:var(--sp-12) 0 var(--sp-12) var(--sp-32);border-bottom:1px dashed var(--c-hair)}
+.ladder-step:last-child{border-bottom:0}
+.ladder-badge{position:absolute;left:0;top:var(--sp-12);font-family:var(--ff-num);font-size:var(--fs-label);font-weight:var(--fw-semibold);color:var(--c-teal700)}
+.ladder-cond{font-size:var(--fs-table);line-height:1.6;color:var(--c-ink800)}
+.ladder-act{margin-top:var(--sp-4);font-family:var(--ff-ui);font-size:var(--fs-caption);color:var(--c-teal700);font-weight:var(--fw-semibold)}
 /* ── 脚注（严谨层） ── */
 .fn-ref{font-family:var(--ff-num);font-size:.7em;line-height:0;vertical-align:super}
 .fn-ref a{text-decoration:none;padding:0 2px}

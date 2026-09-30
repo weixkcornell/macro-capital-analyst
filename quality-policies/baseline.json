@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.7",
+  "version": "2.8.8",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -381,7 +381,8 @@
         "failClosed": [
           "AUTH_ERROR / CREDENTIAL_MISSING ⇒ 如实报通道不可用 + 已试凭据路径 + 错误码，并写入「方法可靠性声明」",
           "禁止重装 skill/provider 作为修法；禁止改走 analytics_data / wind-alice 绕过；禁止静默降级",
-          "使用降级通道（westock / 公开自算 / 外部口径）的每个数字须逐项标注降级理由与来源"
+          "使用降级通道（westock / 公开自算 / 外部口径）的每个数字须逐项标注降级理由与来源",
+          "三态须分清：AUTH_ERROR/CREDENTIAL_MISSING＝凭据或 HOME 解析问题；PARAM_VALIDATION_ERROR＝入参错；backend_error『积分余额不足』＝鉴权正常但**额度耗尽**（2026-09-30 实测），不得读成凭据缺失、不得据此改判档位"
         ],
         "negationContext": "『未重装/未绕走/未静默降级』这类**否定语境的提及不算违规**（纪律声明本身必须能写出这些词）；仅在非否定语境下才判禁止动作",
         "executable": "scripts/check-wind-provenance.py --md <final.md> --out <json>（--selftest 自校准：2 正向 + 3 反向）",
@@ -393,7 +394,13 @@
             "M0000612 中国:CPI:当月同比 %/国家统计局/月(截至20260831)"
           ]
         },
-        "homeRequirement": "CLI 按 homedir() 解析 ~/.wind-aifinmarket/config；若进程 HOME 不是凭据所在用户的家目录（本例 HOME=workspace），会误报 AUTH_ERROR『WIND_API_KEY 未配置』。凭据存在时的正确调用是 `HOME=/root node …cli.mjs …`；**此误报不等于凭据缺失**，须先按 homedir 复核再判定 fail-closed。"
+        "homeRequirement": "CLI 按 homedir() 解析 ~/.wind-aifinmarket/config；若进程 HOME 不是凭据所在用户的家目录（本例 HOME=workspace），会误报 AUTH_ERROR『WIND_API_KEY 未配置』。凭据存在时的正确调用是 `HOME=/root node …cli.mjs …`；**此误报不等于凭据缺失**，须先按 homedir 复核再判定 fail-closed。",
+        "quotaState": {
+          "observedAt": "2026-09-30T22:35+08:00",
+          "code": "backend_error",
+          "meaning": "鉴权正常、额度耗尽",
+          "operatorAction": "充值后方可使用档位 1"
+        }
       }
     },
     {

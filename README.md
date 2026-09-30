@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.7-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.8-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -139,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.8**（2026-09-30）：**吸收 WorkBuddy 严谨形制（双向证伪 / 条件阶梯 / 标题即判断）+ Wind 三态口径** —— ① 对标外部研报（WorkBuddy《A股未来3个月走势研判》2026-09-30）后新增两个组件：`:::falsify`（**双向证伪**：上行风险 / 下行风险两支 + 证伪信号表「变量 | 阈值 / 触发条件 | 含义」）与 `:::ladder`（**条件阶梯**：档位 | 触发条件 | 处置，机械事前写死）。② 新增 4 条 register 硬规则：**标题即判断**（章/节标题须是「名词 + 一句话结论」）、**结论须可证伪**（任何方向性判断含「不发布」都要给双向风险与证伪信号表）、**置信度只能来自已声明的概率口径**（禁止另编主观概率，无口径则写条件式）、**路径用条件而非时间**（不写「某月会怎样」的时间预测）。③ **Wind 三态口径**（实测驱动）：`dataChannels.wind-edb.failureSemantics` 与 `wind-provenance.failClosed` 明确区分 AUTH_ERROR/CREDENTIAL_MISSING（凭据或 HOME 解析错位，含 HOME≠/root 的**误报**）、PARAM_VALIDATION_ERROR（入参错）、**backend_error『账户积分余额不足』＝鉴权正常但额度耗尽**（2026-09-30 期后复核实测，凭据 mtime 未变）；三者都 fail-closed，但**不得混为一谈、不得据此改判档位**。`lastProbe` 由过期的「AUTH_ERROR」更正为**当日成功实跑 + 期后额度耗尽**两态并附命令与算子动作（充值）。④ 实测：v8 在 2.8.8 的 8 件门禁下整链 exit 0（含 ⑧ 18 类组件齐备）。⑤ 纯增量：既有判据结构、取数优先级与 fail-closed 纪律不变。
 
 - **2.8.7**（2026-09-30）：**杂志 register 与「严谨+表格」风格兼容：两层阅读（同源不分叉）** —— ① **问题**：把 register 改成移动端杂志后，本包最要紧的品质（表、口径、编号推论、脚注的可核验性）会不会被杂志化挤掉？② **裁定（写进 `register.twoLayers`）**：**同一份内容两种读法，不是两个版本**。杂志层＝结论 / 一句话 / 图 / 读懂这一节（默认阅读路径）；严谨层＝表 / 口径依据 / 编号推论 / 脚注（**一个数字都不删**，随时可查）。硬规则：杂志层的每一句判断、每一条「读懂」，都必须有严谨层落点（正文写「见表N」「见图N」或挂脚注上标）；**数字只在严谨层出现一次**（表/图/脚注），杂志层只做引用与翻译。③ **表格：移动端变形而非删除**（写进 `designSystem.tables`）——≥5 列→卡片堆叠（每行一张卡，字段名由 `data-label` 回填）；≤4 列→紧凑表 + 容器内横滚；桌面端一律还原完整表格（首列可 sticky、数字列右对齐 + tabular-nums）。新增 `:::table` 指令：自动编号 **表N** + 表题「表N · 一句话读法」+ **表题下方**写口径与来源（口径不塞进单元格）。实测：5 列表在 375 下渲染为 11 张数据卡、在 1440 下渲染为完整表格，两侧数字一致。④ **脚注体系（严谨层）**：正文 `[^n]` → 上标（tabular、链接触控 ≥44×44，靠 padding+负 margin 撑开而不改行长）；文末 `:::fn` 清单（编号 + 来源账号 + 可点击链接 + 回链）。新增渲染期断言：**脚注引用与清单必须一一对应**（有孤儿引用或有未被引用的条目都直接 fail-closed）。⑤ **桌面＝研究札记密度（严谨档）**：≥1081px 行长更宽（780px）、段落行高更紧（1.72）、章节间距更小、表格内边距收紧、脚注字号提高；移动端＝杂志密度。同一模板、同一内容，靠断点切节奏。⑥ 实测：`render-overflow` 六视口 0 溢出 + 对比度 **497/497**；`mobile-readability` 320/375/390 全 PASS；`template-conformance` PASS。⑦ 纯增量：不改任何既有判据、取数优先级与 fail-closed 纪律；不新增知识源与实体。
 

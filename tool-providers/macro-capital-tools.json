@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.8.7",
+  "version": "2.8.8",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
   "description": "包内可执行工具。数据获取**一律先试 Wind CLI**，取不到再走平台 provider 层（zyt / beike）与公开口径自算；本包不自建数据引擎。",
@@ -41,7 +41,7 @@
         "<skill>/config.json (wind_api_key)",
         "环境变量 WIND_API_KEY"
       ],
-      "failureSemantics": "AUTH_ERROR / CREDENTIAL_MISSING ⇒ fail-closed：如实报通道不可用 + 已试凭据路径 + 错误码并写入「方法可靠性声明」；禁止重装、禁止绕走 analytics_data/wind-alice、禁止静默降级",
+      "failureSemantics": "三态必须分清（2026-09-30 实测）：① AUTH_ERROR / CREDENTIAL_MISSING＝凭据缺失或 HOME 解析错位（CLI 按 homedir() 找 ~/.wind-aifinmarket/config；HOME≠/root 会**误报**『WIND_API_KEY 未配置』）；② PARAM_VALIDATION_ERROR＝入参错（传给 query 的 indicator_code 不被接受）；③ backend_error『账户积分余额不足』＝**鉴权正常但额度耗尽**（凭据未变、mtime 未动），与 ① 不同，不得读成凭据缺失、也不得据此改判档位。三态都 fail-closed：如实报状态 + 已试凭据路径 + 错误码并写入「方法可靠性声明」；禁止重装、禁止绕走 analytics_data/wind-alice、禁止静默降级。",
       "fallback": "westock CLI → 公开接口自算 → 外部口径（须标来源与 as-of，逐项标注降级理由）",
       "gates": [
         "number-consistency(取数档位声明)",
@@ -49,8 +49,11 @@
       ],
       "notSchedulableReason": "本包不持有 Wind 凭据（在用户侧），故不声明为 capabilities/transports —— 否则其 smokeArgs 会在无凭据环境失败，把『凭据缺失』误报成『包损坏』。真伪判据由 scripts/check-wind-provenance.py 在产物侧执行。",
       "lastProbe": {
-        "date": "2026-09-30",
-        "result": "AUTH_ERROR：WIND_API_KEY 未配置（三处凭据位均已检查）"
+        "date": "2026-09-30T22:35+08:00",
+        "result": "backend_error：账户积分余额不足（鉴权正常、额度耗尽）—— 与 AUTH_ERROR 不同态",
+        "command": "HOME=/root node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data query_economic_indicator_data '{\"question\":\"中国CPI当月同比\",\"beginDate\":\"2026-08-01\",\"endDate\":\"2026-08-31\"}'",
+        "successfulProbeSameDay": "2026-09-30T20:54+08:00 exit 0（M0342072 沪深300收盘价 2026-09-28=4340.755；M0000612 CPI 当月同比 2026-08=0.8）",
+        "operatorAction": "需在 Wind 侧充值后方可继续用档位 1；额度未恢复前一律走降级档并逐项标注"
       },
       "probeEvidence": {
         "date": "2026-09-30",
@@ -88,6 +91,11 @@
               "202608": 0.8
             }
           }
+        ],
+        "states": [
+          "ok（20:54 实跑成功）",
+          "backend_error/额度耗尽（22:35 期后复核）",
+          "AUTH_ERROR（仅当 HOME≠/root 时的误报）"
         ]
       }
     }
