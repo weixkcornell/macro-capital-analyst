@@ -122,6 +122,10 @@ else
   say "⑦ wind-provenance：未提供 --md，跳过"
 fi
 
+# ⑧ template-conformance：产物是否真的按输出模板的 designSystem 渲染（tokens/components/指令）
+say "⑧ template-conformance：产物与输出模板的一致性（tokens / components / 指令）"
+node "$PACK/scripts/check-template-conformance.mjs" --template "$TPL" ${MD:+--md "$MD"} ${HTML:+--html "$HTML"} || rc=1
+
 say "汇总"
-if [ "$rc" -eq 0 ]; then echo "✓ 交付级门禁（7 件）全部通过（报告见 $OUT/）"; else echo "✗ 有硬门未通过 —— 不得发布（详见 $OUT/）"; fi
+if [ "$rc" -eq 0 ]; then echo "✓ 交付级门禁（8 件）全部通过（报告见 $OUT/）"; else echo "✗ 有硬门未通过 —— 不得发布（详见 $OUT/）"; fi
 exit "$rc"

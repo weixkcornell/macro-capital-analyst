@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.3",
+  "version": "2.8.4",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -450,6 +450,34 @@
         ],
         "rationale": "实测：viewBox=640 的 SVG 在 375 宽下缩放 0.586× ⇒ 图内 11–12.5px 实际渲染 6.4–7.3px（不可读）；宽表靠横滚；正文 16.5px 偏小。",
         "executable": "scripts/audit-mobile.py --html <index.html> --out <json>"
+      }
+    },
+    {
+      "id": "template-conformance",
+      "name": "输出模板一致性门（tokens / components / 指令，可执行）",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html"
+      ],
+      "description": "把「输出模板」从愿望清单变成可核对的契约：模板声明的 tokens 必须逐条落在产物 :root 且取值相同、声明的组件类名必须出现在产物、md 里的 ::: 指令必须在模板白名单内；并核对模板 role 对比度声明（按 token 值重算）与同包各模板核心 token 一致（一个包一个视觉身份）。由 scripts/check-template-conformance.mjs 执行。",
+      "config": {
+        "executor": "scripts/check-template-conformance.mjs",
+        "templateSource": "output-templates/*.json 的 designSystem（判据在模板里，不在执行器里）",
+        "criteria": {
+          "rolesContrast": "designSystem.roles 的每条 (前景 on 背景) 对比度由 token 值重算，必须 ≥ 声明的 minRatio（WCAG AA）",
+          "tokenEmission": ":root 必须逐条声明模板 token（--c-* / --fs-* / --lh-* / --ls-* / --sp-* / --r-* / --sh-*），且取值与模板逐字相同",
+          "components": "组件是否被使用以其首个声明类为锚点；已使用组件的非 optionalClasses 类名必须齐备",
+          "discipline": [
+            "不得出现 #fff/#000 底色（染色中性色底线）",
+            "CSS 里 font-size 只能是 var(--fs-*) 或相对单位（禁档外字号）"
+          ],
+          "directives": "md 的 ::: 名必须在模板 directives.list 白名单内；未声明指令 fail-closed（渲染器同步失败）",
+          "crossTemplate": "同包内声明了 designSystem 的各模板，其核心色阶/字号阶/行高/字距/间距阶/圆角/投影/断点必须一致"
+        },
+        "selftest": "node scripts/check-template-conformance.mjs --selftest（2 正向 + 5 负向对照，当前 7/7）",
+        "why": "此前 5 道门禁都只看产物，没有一道看「产物是否真的按模板渲染」——于是模板可以是一份与实现无关的愿望清单（v1 实况：版式写死在渲染器里、每次交付另写一套脚本）。本门禁补位。"
       }
     }
   ],

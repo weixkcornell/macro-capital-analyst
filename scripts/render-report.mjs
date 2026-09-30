@@ -1,24 +1,29 @@
 #!/usr/bin/env node
 /**
- * 报告渲染器：markdown → 自包含 HTML5（实现包里声明的渲染规格）。
+ * 报告渲染器 v2（token + 指令驱动）：markdown（含 ::: 组件声明）→ 自包含 HTML5。
  *
- * 规格不在本文件里，在包里：`output-templates/*.json` 的 `rendering` / `media` / `renderModes`：
- *   · 浅色、衬线、学术排版；涨=红、跌=绿；货币 ¥；日期 YYYY-MM-DD；文末固定「不构成投资建议」
- *   · `renderModes.html.mobile`：375 主视口、正文 ≥17px、rail→顶部粘性目录条、
- *     宽表卡片堆叠或受控横滚、触控目标 ≥44px、安全区、打印样式
- * 本渲染器只负责执行规格；改版式请改模板的 `rendering`，不要改这里。
+ * 设计契约不在本文件里，在输出模板的 `designSystem`：
+ *   · tokens     → 逐条写成 CSS 自定义属性（--c-* / --fs-* / --sp-* / --sh-* / --r-* / --layout-*）
+ *   · components → 声明必需类名与 DOM 结构；本文件按声明产出结构，不自行发明版式
+ *   · figures    → 图类型白名单（bars/diverging/range/waterfall/steps/matrix）+ 画布与字号规约
+ *   · print/a11y → 打印与无障碍规约
+ *   · directives → 允许的 ::: 指令；**未声明的指令名一律 fail-closed**
  *
- * 为什么自包含：审核要在 file:// 下用无头浏览器逐视口跑（render-overflow / mobile-readability 门禁），
- * 任何外链字体/样式都会让读数依赖网络。
+ * 与 v1 的关键差别（为什么必须换）：
+ *   v1 把版式写死在渲染器里、每次交付在任务目录里另写一套 80KB+ 的渲染脚本，
+ *   于是「模板」只是愿望清单，质感无法复用、无法门禁。v2 起：版式归模板，
+ *   内容归作者（::: 声明），渲染器是通用执行器；产物由 check-template-conformance.mjs 逐条核对。
+ *
+ * 自包含：零外部字体/CSS/JS/图片（审核要在 file:// 下用无头浏览器逐视口跑门禁）。
+ * 确定性：无时间戳、无随机；同输入两次渲染逐字节一致（见 --selftest 断言）。
  *
  * 用法：
  *   node scripts/render-report.mjs --md <final.md> --template <output-templates/x.json> --out <index.html> [--title "..."]
+ * 退出码：0 成功；1 断言失败（未知指令 / 数字断行原子 / 图内文字越界 / 图号断裂）；2 参数或契约问题
  */
 import { readFileSync, writeFileSync } from 'node:fs'
-import { resolve, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 
-const HERE = dirname(fileURLToPath(import.meta.url))
 const ARGV = process.argv.slice(2)
 const val = f => { const i = ARGV.indexOf(f); return i >= 0 ? ARGV[i + 1] : null }
 const mdPath = val('--md'), tplPath = val('--template'), outPath = val('--out')
@@ -28,134 +33,712 @@ if (!mdPath || !tplPath || !outPath) {
 }
 const readText = p => readFileSync(p, 'utf8').replace(/^\uFEFF/, '')
 const tpl = JSON.parse(readText(tplPath))
-const spec = tpl.rendering ?? {}
-const mobileSpec = tpl.renderModes?.html?.mobile ?? {}
-const title = val('--title') ?? tpl.name ?? '报告'
+const DS = tpl.designSystem
+if (!DS?.tokens?.color || !DS?.tokens?.type?.scale?.steps) {
+  console.error('✗ 模板缺少 designSystem.tokens（color / type.scale.steps）—— 渲染规格必须在模板里，本渲染器不内置版式')
+  process.exit(2)
+}
+const errors = []
+const fail = m => errors.push(m)
 
+/* ────────────────────────── 1. tokens → CSS 自定义属性 ────────────────────────── */
+const T = DS.tokens
+const cssVarName = (group, key) => ({ color: '--c-', space: '--sp-', radius: '--r-', shadow: '--sh-' }[group] ?? `--${group}-`) + key
+const tokenLines = []
+for (const [k, v] of Object.entries(T.color)) tokenLines.push(`  ${cssVarName('color', k)}:${v};`)
+for (const [k, v] of Object.entries(T.type.scale.steps)) tokenLines.push(`  --fs-${k}:${v}px;`)
+for (const [k, v] of Object.entries(T.type.lineHeight)) tokenLines.push(`  --lh-${k}:${v};`)
+for (const [k, v] of Object.entries(T.type.letterSpacing)) tokenLines.push(`  --ls-${k}:${v};`)
+for (const [k, v] of Object.entries(T.type.weights)) tokenLines.push(`  --fw-${k}:${v};`)
+{
+  const ff = T.type.families
+  tokenLines.push(`  --ff-prose:${ff.prose};`, `  --ff-ui:${ff.ui};`, `  --ff-num:${ff.num};`, `  --ff-mono:${ff.mono};`)
+}
+for (const v of T.space.scale) if (v > 0) tokenLines.push(`  --sp-${v}:${v}px;`)
+for (const [k, v] of Object.entries(T.radius)) tokenLines.push(`  --r-${k}:${v};`)
+for (const [k, v] of Object.entries(T.shadow)) if (k !== 'why') tokenLines.push(`  --sh-${k}:${v};`)
+if (DS.a11y) {
+  const a = DS.a11y
+  tokenLines.push(`  --a11y-textadjust:${a.textSizeAdjust ?? '100%'};`)
+  for (const [w, px] of Object.entries(a.minBodyPx ?? {})) tokenLines.push(`  --a11y-body-${w}:${px}px;`)
+  tokenLines.push(`  --a11y-tap:${a.tapTargetPx ?? 44}px;`)
+}
+{
+  const L = T.layout
+  tokenLines.push(
+    `  --layout-page:${L.pageMaxPx}px;`, `  --layout-content:${L.contentMaxPx}px;`,
+    `  --layout-rail:${L.railPx}px;`, `  --layout-gutter:${L.gutterPx}px;`,
+    `  --layout-measure:${L.measureEm}em;`, `  --layout-bp-rail:${L.breakpoints.rail}px;`,
+    `  --layout-bp-md:${L.breakpoints.md}px;`, `  --layout-bp-sm:${L.breakpoints.sm}px;`,
+    `  --gl:max(${L.mobileGutterPx}px,env(safe-area-inset-left));`,
+    `  --gr:max(${L.mobileGutterPx}px,env(safe-area-inset-right));`)
+}
+const TOKENS_CSS = `:root{\n${tokenLines.join('\n')}\n}`
+
+/* ────────────────────────── 2. 行内解析 ────────────────────────── */
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+const MINUS = '\u2212'
+// 数字断行原子：`-2.4904 bp` / `51.23%` / `314.52 亿元` 整体不折行（修掉「单位单独换行」）
+const UNIT = '(?:bp|pct|pp|亿元|万亿|万元|亿|元|点|倍|分位|个交易日|%|‰)'
+function atomize(html) {
+  return html
+    .replace(new RegExp(`([${MINUS}+\\-]?\\d[\\d,]*(?:\\.\\d+)?)(\\s*)(${UNIT})`, 'g'),
+      (_, n, sp, u) => `<span class="num-atomic">${n}${sp ? '&nbsp;' : ''}${u}</span>`)
+    .replace(new RegExp(`([${MINUS}+\\-]?\\d[\\d,]*(?:\\.\\d+)?)(?=[，。、；：）)〈〉《》\\s]|$)`, 'g'), '<span class="num-atomic">$1</span>')
+}
+// 行内只出「强调 / 代码 / 链接」；涨跌着色不上行内 —— 方向语义只能由 figure/kpi 的 tone 显式声明
+function inline(s) {
+  // 顺序很关键：先原子化（只作用于纯文本），再插标签 —— 否则 URL 里的数字会被裹进 span 而破坏链接
+  let out = atomize(esc(s))
+  out = out.replace(/`([^`]+)`/g, '<code>$1</code>')
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" rel="noopener">$1</a>')
+  return out
+}
 
-// 行内元素：粗体、行内代码、链接。涨跌着色按规格（涨=红、跌=绿），只对带符号的百分比/数字生效。
-const inline = s => esc(s)
-  .replace(/`([^`]+)`/g, '<code>$1</code>')
-  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" rel="noopener">$1</a>')
-  .replace(/(^|[\s（(])\+(\d+(?:\.\d+)?\s*(?:%|pp|bp)?)/g, '$1<span class="up">+$2</span>')
-  .replace(/(^|[\s（(])[−-](\d+(?:\.\d+)?\s*(?:%|pp|bp)?)/g, '$1<span class="down">−$2</span>')
+/* ────────────────────────── 3. 指令（:::）解析 ────────────────────────── */
+const DIRECTIVE_NAMES = new Set((tpl.directives?.list ?? []).map(d => d.name))
+const FIG_TYPES = new Set(DS.figures?.types ?? [])
+const P = () => { throw new Error('') }
+function parseDirective(name, header, bodyLines, ctx) {
+  if (!DIRECTIVE_NAMES.has(name)) fail(`${ctx}：未声明的指令 ::: ${name}（模板 directives.list 白名单之外，fail-closed）`)
+  const kv = {}
+  for (const m of header.matchAll(/([a-zA-Z][\w-]*)=("([^"]*)"|(.*?))(?=\s+[a-zA-Z][\w-]*=|$)/g)) kv[m[1]] = (m[3] ?? m[4] ?? '').trim()
+  const rows = bodyLines.map(l => l.trim()).filter(l => l && !l.startsWith('#'))
+    .map(l => l.split('|').map(x => x.trim()))
+  return { kind: 'directive', name, kv, rows, ctx }
+}
 
-function renderMd(md) {
+/* ────────────────────────── 4. markdown 块解析 ────────────────────────── */
+function parseBlocks(md) {
   const lines = md.split(/\r?\n/)
   const out = []
-  const toc = []                      // {id, text} —— 只为 h2 建目录（保持目录条短）
-  let i = 0, hid = 0
-  const flushPara = buf => { if (buf.length) { out.push(`<p>${inline(buf.join(' '))}</p>`); buf.length = 0 } }
-  const para = []
+  let i = 0, hid = 0, ch = 0
+  const isTableRow = l => /^\s*\|/.test(l)
+  const isTableSep = l => /^\s*\|[\s:|-]+\|\s*$/.test(l)
   while (i < lines.length) {
     const line = lines[i]
-    // 表格（窄屏卡片堆叠需要 data-label，故逐格带上表头文本）
-    if (/^\s*\|/.test(line) && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] ?? '')) {
-      flushPara(para)
+    // 指令围栏
+    const dm = /^:::([a-zA-Z][\w-]*)\s*(.*)$/.exec(line)
+    if (dm) {
+      const body = []
+      i++
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) { body.push(lines[i]); i++ }
+      if (i >= lines.length) fail(`未闭合的 ::: ${dm[1]} 指令块`)
+      i++
+      out.push(parseDirective(dm[1], dm[2] ?? '', body, '指令'))
+      continue
+    }
+    // 原始 HTML 一律禁止（内容只能经由声明产生结构）
+    if (/^\s*<(?:div|span|p|section|figure|svg|script|style|table|img|iframe)\b/i.test(line)) {
+      fail(`内容里出现原始 HTML（<${/^\s*<([a-z]+)/i.exec(line)[1]}>）—— 组件必须由 ::: 声明产生`)
+    }
+    if (isTableRow(line) && isTableSep(lines[i + 1] ?? '')) {
       const head = line.split('|').slice(1, -1).map(s => s.trim())
       i += 2
       const rows = []
-      while (i < lines.length && /^\s*\|/.test(lines[i])) { rows.push(lines[i].split('|').slice(1, -1).map(s => s.trim())); i++ }
-      out.push('<div class="tw"><table><thead><tr>' + head.map(h => `<th>${inline(h)}</th>`).join('') + '</tr></thead><tbody>'
-        + rows.map(r => '<tr>' + r.map((c, k) => `<td data-label="${esc(head[k] ?? '')}">${inline(c)}</td>`).join('') + '</tr>').join('') + '</tbody></table></div>')
-      continue
+      while (i < lines.length && isTableRow(lines[i])) { rows.push(lines[i].split('|').slice(1, -1).map(s => s.trim())); i++ }
+      out.push({ kind: 'table', head, rows }); continue
     }
-    if (/^###\s+/.test(line)) { flushPara(para); out.push(`<h3>${inline(line.replace(/^###\s+/, ''))}</h3>`); i++; continue }
-    if (/^##\s+/.test(line)) {
-      flushPara(para)
-      const text = line.replace(/^##\s+/, ''); const id = `s${++hid}`
-      toc.push({ id, text })
-      out.push(`<h2 id="${id}">${inline(text)}</h2>`); i++; continue
-    }
-    if (/^#\s+/.test(line)) { flushPara(para); out.push(`<h1>${inline(line.replace(/^#\s+/, ''))}</h1>`); i++; continue }
-    if (/^\s*>\s?/.test(line)) { flushPara(para); const buf = []
+    let m
+    if ((m = /^####\s+(.*)$/.exec(line))) { out.push({ kind: 'h4', text: m[1] }); i++; continue }
+    if ((m = /^###\s+(.*)$/.exec(line))) { out.push({ kind: 'h3', text: m[1] }); i++; continue }
+    if ((m = /^##\s+(.*)$/.exec(line))) { out.push({ kind: 'h2', text: m[1], id: `s${++hid}`, no: ++ch }); i++; continue }
+    if ((m = /^#\s+(.*)$/.exec(line))) { out.push({ kind: 'h1', text: m[1] }); i++; continue }
+    if (/^\s*>\s?/.test(line)) {
+      const buf = []
       while (i < lines.length && /^\s*>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, '')); i++ }
-      out.push(`<blockquote>${inline(buf.join(' '))}</blockquote>`); continue }
-    if (/^\s*[-*]\s+/.test(line)) { flushPara(para); const items = []
+      out.push({ kind: 'quote', text: buf.join(' ') }); continue
+    }
+    if (/^\s*[-*]\s+/.test(line)) {
+      const items = []
       while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*[-*]\s+/, '')); i++ }
-      out.push('<ul>' + items.map(x => `<li>${inline(x)}</li>`).join('') + '</ul>'); continue }
-    if (/^\s*\d+[.、]\s+/.test(line)) { flushPara(para); const items = []
+      out.push({ kind: 'ul', items }); continue
+    }
+    if (/^\s*\d+[.、]\s+/.test(line)) {
+      const items = []
       while (i < lines.length && /^\s*\d+[.、]\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*\d+[.、]\s+/, '')); i++ }
-      out.push('<ol>' + items.map(x => `<li>${inline(x)}</li>`).join('') + '</ol>'); continue }
-    if (/^\s*---+\s*$/.test(line)) { flushPara(para); out.push('<hr>'); i++; continue }
-    if (/^\s*$/.test(line)) { flushPara(para); i++; continue }
-    para.push(line.trim()); i++
+      out.push({ kind: 'ol', items }); continue
+    }
+    if (/^\s*---+\s*$/.test(line)) { out.push({ kind: 'hr' }); i++; continue }
+    if (/^\s*$/.test(line)) { i++; continue }
+    const para = [line.trim()]; i++
+    while (i < lines.length && lines[i].trim() && !/^(#{1,6}\s|:::|\s*[>|]|\s*[-*]\s|\s*\d+[.、]\s|---)/.test(lines[i])) { para.push(lines[i].trim()); i++ }
+    out.push({ kind: 'p', text: para.join(' ') })
   }
-  flushPara(para)
-  return { body: out.join('\n'), toc }
+  return out
 }
 
-// 版式：浅色 + 衬线 + 学术；对比度按 WCAG AA 选色（正文 #1b1b1a 于 #fff ≈ 16:1；红/绿用深色而非亮色）
-// 移动端按 renderModes.html.mobile 落地：桌面 rail → 窄屏顶部粘性目录条；宽表窄屏卡片堆叠；触控 ≥44px；打印样式。
+/* ────────────────────────── 5. figure：声明式 SVG ────────────────────────── */
+const VB_W = DS.figures?.canvas?.viewBoxWidth ?? 640
+const FS = { label: 19, value: 20, big: 24, huge: 30 }
+const cw = ch => (/[\u2e80-\u9fff\u3000-\u303f\uff00-\uffef]/.test(ch) ? 1 : (/[0-9]/.test(ch) ? 0.56 : 0.6))
+const tw = (s, size) => [...String(s)].reduce((a, c) => a + cw(c) * size, 0)
+const esc2 = esc
+const T_ = (x, y, s, cls, anchor = 'start', size = FS.label, weight = 400) =>
+  `<text x="${Math.round(x * 10) / 10}" y="${Math.round(y * 10) / 10}" class="${cls}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}">${esc2(s)}</text>`
+const RECT = (x, y, w, h, cls, rx = 2) => `<rect x="${Math.round(x * 10) / 10}" y="${Math.round(y * 10) / 10}" width="${Math.max(0, Math.round(w * 10) / 10)}" height="${Math.round(h * 10) / 10}" rx="${rx}" class="${cls}"/>`
+const LINE = (x1, y1, x2, y2, cls) => `<line x1="${Math.round(x1)}" y1="${Math.round(y1)}" x2="${Math.round(x2)}" y2="${Math.round(y2)}" class="${cls}"/>`
+const CIRC = (cx, cy, r, cls) => `<circle cx="${Math.round(cx * 10) / 10}" cy="${Math.round(cy * 10) / 10}" r="${r}" class="${cls}"/>`
+const svg = (h, inner) => `<svg class="fig-svg" viewBox="0 0 ${VB_W} ${h}" role="img" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`
+
+/** figure 文字越界/重叠断言（fail-closed）：在 640 画布内估算文字宽度，越界即失败。 */
+const TEXT_BOXES = []
+const noteText = (x, y, s, anchor, size) => {
+  const w = tw(s, size)
+  const x0 = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x
+  TEXT_BOXES.push({ x0, x1: x0 + w, y, s })
+}
+const S = (x, y, s, cls, anchor = 'start', size = FS.label, weight = 400) => {
+  noteText(x, y, s, anchor, size)
+  return T_(x, y, s, cls, anchor, size, weight)
+}
+const num = s => String(s).replace(/-/g, MINUS)
+const parseVal = s => {
+  const m = /^([\u2212+−-]?\d[\d,]*(?:\.\d+)?)\s*(.*)$/.exec(String(s).trim())
+  return m ? { v: Number(m[1].replace(/[\u2212−]/g, '-').replace(/,/g, '')), unit: m[2], raw: String(s).trim() } : null
+}
+
+function figureSvg(type, rows, unit, tone = null) {
+  const LABEL_X = 132, PLOT_X = 146, RIGHT_PAD = 26
+  const values = rows.map(r => parseVal(r[1])).filter(Boolean)
+  const maxAbs = Math.max(...values.map(v => Math.abs(v.v)), 1e-9)
+  const plotW = VB_W - PLOT_X - RIGHT_PAD
+  const body = []
+  let h = 0
+  const valueText = (i, x, y, anchor, onBarX = null) => {
+    const v = values[i]
+    const t = v ? num(v.raw) : ''
+    const w = tw(t, FS.value)
+    const outside = anchor === 'start' ? x + w : x - w
+    const fits = anchor === 'start' ? outside <= VB_W - RIGHT_PAD : outside >= PLOT_X
+    if (fits) return S(x, y, t, 'tx-ink tx-val', anchor, FS.value, 600)
+    if (onBarX !== null) return S(onBarX, y, t, 'tx-onbar tx-val', anchor === 'start' ? 'end' : 'start', FS.value, 600)
+    return S(x, y, t, 'tx-ink tx-val', anchor, FS.value, 600)
+  }
+  if (type === 'bars') {
+    const rowh = 42, top = 22
+    rows.forEach((r, i) => {
+      const y = top + i * rowh
+      const v = values[i]
+      const w = v ? (Math.abs(v.v) / maxAbs) * (plotW - 78) : 0
+      body.push(S(LABEL_X, y + 20, r[0], 'tx-sec tx-lab', 'end', FS.label))
+      body.push(RECT(PLOT_X, y + 4, plotW - 78, 22, 'f-track', 3))
+      body.push(RECT(PLOT_X, y + 4, w, 22, 'f-bar', 3))
+      body.push(valueText(i, PLOT_X + w + 8, y + 21, 'start'))
+    })
+    h = top + rows.length * rowh + 8
+  } else if (type === 'diverging') {
+    // tone=sign 时才用涨红跌绿；默认 series —— 「相对半数的偏离」不是涨跌，用红绿是语义误读
+    const signTone = tone === 'sign'
+    const rowh = 42, top = 24, zero = PLOT_X + 226
+    const half = Math.min(zero - PLOT_X, VB_W - RIGHT_PAD - zero) - 66
+    rows.forEach((r, i) => {
+      const y = top + i * rowh
+      const v = values[i]
+      const w = v ? (Math.abs(v.v) / maxAbs) * half : 0
+      const pos = !v || v.v >= 0
+      const x = pos ? zero : zero - w
+      const cls = signTone ? (pos ? 'f-up' : 'f-down') : (pos ? 'f-bar' : 'f-bar-alt')
+      body.push(S(LABEL_X, y + 20, r[0], 'tx-sec tx-lab', 'end', FS.label))
+      body.push(RECT(x, y + 4, w, 22, cls, 3))
+      const t = num(v?.raw ?? ''), wt = tw(t, FS.value)
+      const outside = pos ? zero + w + 8 : zero - w - 8 - wt
+      const fits = pos ? (outside + wt <= VB_W - RIGHT_PAD) : (outside >= PLOT_X)
+      if (fits) body.push(S(outside, y + 21, t, 'tx-ink tx-val', 'start', FS.value, 600))
+      else body.push(S(pos ? zero + 9 : zero - 9, y + 21, t, 'tx-onbar tx-val', pos ? 'start' : 'end', FS.value, 600))
+    })
+    body.push(LINE(zero, 14, zero, top + rows.length * rowh, 's-axis'))
+    h = top + rows.length * rowh + 10
+  } else if (type === 'range') {
+    const rowh = 40, top = 26
+    const parsed = rows.map((r, i) => {
+      const pair = /([\u2212+−-]?\d[\d,]*(?:\.\d+)?)\D+([\u2212+−-]?\d[\d,]*(?:\.\d+)?)/.exec(r[1])
+      const a = pair ? Number(pair[1].replace(/[\u2212−]/g, '-')) : (values[i]?.v ?? 0)
+      const b = pair ? Number(pair[2].replace(/[\u2212−]/g, '-')) : (values[i]?.v ?? 0)
+      return { label: r[0], a, b, text: r[1] }
+    })
+    const lo = Math.min(...parsed.flatMap(q => [q.a, q.b])), hi = Math.max(...parsed.flatMap(q => [q.a, q.b]))
+    const span = hi - lo || 1
+    const x = v => PLOT_X + ((v - lo) / span) * (plotW - 96)
+    rows.forEach((r, i) => {
+      const y = top + i * rowh
+      const q = parsed[i]
+      const x0 = Math.min(x(q.a), x(q.b)), x1 = Math.max(x(q.a), x(q.b))
+      body.push(S(LABEL_X, y + 18, r[0], 'tx-sec tx-lab', 'end', FS.label))
+      body.push(LINE(PLOT_X, y + 12, VB_W - RIGHT_PAD - 66, y + 12, 's-hair'))
+      body.push(LINE(x0, y + 12, x1, y + 12, 's-teal-thick'))
+      body.push(CIRC(x0, y + 12, 4, 'f-teal'))
+      body.push(CIRC(x1, y + 12, 4, 'f-teal'))
+      body.push(S(VB_W - RIGHT_PAD, y + 18, r[1], 'tx-ink tx-val', 'end', FS.value, 600))
+    })
+    h = top + rows.length * rowh + 8
+  } else if (type === 'waterfall') {
+    const top = 46, base = 210
+    const n = rows.length
+    const colW = Math.min(84, (plotW - 20) / n)
+    const gap = (plotW - n * colW) / (n + 1)
+    let cum = 0
+    const scale = 150 / Math.max(maxAbs * 1.4, Math.max(...rows.map((_, i) => Math.abs(values[i]?.v ?? 0))) || 1)
+    const totals = rows.map((_, i) => (cum += values[i]?.v ?? 0))
+    cum = 0
+    rows.forEach((r, i) => {
+      const v = values[i]?.v ?? 0
+      const x = PLOT_X + gap + i * (colW + gap)
+      const y0 = base - cum * scale, y1 = base - (cum + v) * scale
+      body.push(RECT(x, Math.min(y0, y1), colW, Math.max(3, Math.abs(y1 - y0)), v >= 0 ? 'f-teal' : 'f-down', 3))
+      body.push(S(x + colW / 2, Math.min(y0, y1) - 10, num(values[i]?.raw ?? ''), 'tx-ink tx-val', 'middle', FS.value, 600))
+      body.push(S(x + colW / 2, base + 22, r[0], 'tx-sec tx-lab', 'middle', FS.label))
+      if (i < n - 1) body.push(LINE(x + colW, y1, x + colW + gap, y1, 's-dash'))
+      cum += v
+    })
+    body.push(LINE(PLOT_X - 8, base, VB_W - RIGHT_PAD + 8, base, 's-axis'))
+    body.push(S(VB_W - RIGHT_PAD, 26, `净额　${num(values[n - 1]?.raw ?? '')}${unit ? ' ' + unit : ''}`, 'tx-teal tx-val', 'end', FS.big, 700))
+    h = 246
+  } else if (type === 'steps') {
+    const rowh = 42, top = 30
+    const n = rows.length
+    const x = i => PLOT_X + (i / Math.max(1, n - 1)) * (plotW - 96)
+    rows.forEach((r, i) => {
+      const y = top + i * rowh
+      const v = values[i]
+      const x0 = x(i), x1 = i < n - 1 ? x(i + 1) : x(i) + (plotW - 96) * 0.08
+      body.push(S(LABEL_X, y + 16, r[0], 'tx-sec tx-lab', 'end', FS.label))
+      if (i > 0) body.push(LINE(x0, y + 12, x0, y - rowh + 12, 's-hair'))
+      body.push(LINE(x0, y + 12, x1, y + 12, 's-teal-thick'))
+      body.push(CIRC(x0, y + 12, 3.4, 'f-teal'))
+      body.push(S(x1 + 10, y + 17, num(v?.raw ?? ''), 'tx-ink tx-val', 'start', FS.value, 600))
+    })
+    h = top + rows.length * rowh + 6
+  } else if (type === 'matrix') {
+    const cols = rows.length % 3 === 0 ? 3 : 2
+    const cellW = (plotW - 8) / cols, cellH = 84
+    rows.forEach((r, i) => {
+      const cx = PLOT_X + (i % cols) * cellW, cy = 16 + Math.floor(i / cols) * (cellH + 10)
+      body.push(RECT(cx, cy, cellW - 10, cellH, 'f-card s-hair', 6))
+      body.push(S(cx + 14, cy + 26, r[0], 'tx-sec tx-lab', 'start', FS.label))
+      body.push(S(cx + 14, cy + 62, num(values[i]?.raw ?? ''), 'tx-ink tx-val', 'start', FS.huge, 700))
+    })
+    h = 16 + Math.ceil(rows.length / cols) * (cellH + 10) + 4
+  } else {
+    fail(`未知图类型 ${type}（模板 figures.types 白名单之外）`)
+    return svg(60, '')
+  }
+  const markup = body.join('')
+  for (const m of markup.matchAll(/\b(?:x|x1|x2|cx)="(-?[\d.]+)"/g)) {
+    const v = Number(m[1])
+    if (v < -8 || v > VB_W + 8) fail(`figure「${rows[0]?.[0] ?? ''}」几何越界：${m[0]}（画布宽 ${VB_W}）`)
+  }
+  return svg(h, markup)
+}
+
+/* ────────────────────────── 6. 组件渲染 ────────────────────────── */
+const KPI_UNIT = /^([\u2212+−-]?\d[\d,]*(?:\.\d+)?)\s*([A-Za-z%‰\u4e00-\u9fff].*)?$/
+/** KPI 值的原子化：每个「数字＋单位」不折行，区间分隔符（– ~ 至 /）可折行。 */
+function kpiValueHtml(value) {
+  const parts = String(value).trim().split(/\s*([–—~～至/])\s*/).filter(x => x !== '')
+  return parts.map((p, i) => {
+    if (i % 2 === 1) return `<span class="kpi-sep">${esc(p)}</span>`
+    const m = KPI_UNIT.exec(p)
+    const number = m ? m[1] : p
+    const unit = m && m[2] ? m[2] : ''
+    const tight = /^[%‰％]/.test(unit)
+    return `<span class="kpi-num-atomic"><span class="kpi-num">${esc(num(number))}</span>${unit ? `<span class="kpi-unit">${tight ? '' : ' '}${esc(unit)}</span>` : ''}</span>`
+  }).join(' ')
+}
+const figureRegistry = []
+let mastheadTitle = null
+let currentTone = null
+const kvTone = d => d?.kv?.tone ?? currentTone ?? null
+function renderDirective(d) {
+  const kv = { ...d.kv }
+  switch (d.name) {
+    case 'masthead': {
+      // 卷首的 title / lede / eyebrow 三个标量角色可从 body 行（`title: …`）或头部键（`title=…`）给
+      const meta = []
+      for (const r of d.rows) {
+        let k, v
+        if (r.length === 1) {                      // `title: 报告名` 形式（无竖线）
+          const m = /^([^:：]+)[:：]\s*(.*)$/.exec(r[0])
+          if (m) { k = m[1].trim(); v = m[2].trim() } else { k = r[0].trim(); v = '' }
+        } else {                                   // `键 | 值` 形式
+          k = String(r[0] ?? '').replace(/[:：]\s*$/, '').trim(); v = r.slice(1).join(' ').trim()
+        }
+        if (['title', 'lede', 'eyebrow'].includes(k)) kv[k] = v
+        else if (k) meta.push([k, v])
+      }
+      if (kv.title) mastheadTitle = kv.title
+      return `<header class="masthead">
+<div class="masthead-eyebrow">${inline(kv.eyebrow ?? '')}</div>
+<h1 class="masthead-title">${inline(kv.title ?? '')}</h1>
+${kv.lede ? `<div class="masthead-lede">${inline(kv.lede)}</div>` : ''}
+${meta.length ? `<dl class="masthead-meta">${meta.map(([k, v]) => `<dt>${inline(k)}</dt><dd>${inline(v)}</dd>`).join('')}</dl>` : ''}</header>`
+    }
+    case 'kpis': {
+      const tiles = d.rows.map(r => {
+        const [label, value, tone = 'neutral', note = ''] = r
+        return { label, value, tone, note }
+      })
+      const last = tiles.length % 4 === 1
+      return `<div class="kpi-row">${tiles.map((t, i) => `<div class="kpi kpi--${t.tone}${last && i === tiles.length - 1 ? ' kpi--wide' : ''}">
+<span class="kpi-label">${inline(t.label)}</span>
+<div class="kpi-value">${kpiValueHtml(t.value)}</div>
+${t.note ? `<div class="kpi-note">${inline(t.note)}</div>` : ''}</div>`).join('')}</div>`
+    }
+    case 'callout': {
+      const tone = kv.tone ?? 'caliber'
+      return `<aside class="callout callout--${tone}">${kv.title ? `<div class="callout-title">${inline(kv.title)}</div>` : ''}<div class="callout-body">${d.rows.map(r => `<p>${inline(r.join(' | '))}</p>`).join('')}</div></aside>`
+    }
+    case 'quote':
+      return `<blockquote class="pull-quote"><p>${inline(d.rows.map(r => r.join(' | ')).join(' '))}</p></blockquote>`
+    case 'compare': {
+      const head = `<div class="compare-head"><span class="compare-dim"></span><span class="compare-old">${inline(kv.left ?? '旧读法')}</span><span class="compare-new">${inline(kv.right ?? '新读法')}</span></div>`
+      const rows = d.rows.map(r => `<div class="compare-row"><span class="compare-dim">${inline(r[0] ?? '')}</span><span class="compare-old">${inline(r[1] ?? '')}</span><span class="compare-new">${inline(r[2] ?? '')}</span></div>`).join('')
+      return `<div class="compare">${head}${rows}</div>`
+    }
+    case 'caliber':
+      return `<ul class="caliber-list">${d.rows.map(r => `<li class="caliber-item">${inline(r.join(' | '))}</li>`).join('')}</ul>`
+    case 'inferences':
+      return `<ol class="inferences">${d.rows.map(r => `<li class="inference"><span class="inference-no"></span><span class="inference-body">${inline(r.join(' | '))}</span></li>`).join('')}</ol>`
+    case 'figure': {
+      const type = kv.type ?? 'bars'
+      if (!FIG_TYPES.has(type)) fail(`figure type=${type} 不在模板 figures.types 白名单`)
+      const qualitative = kv.qualitative === 'true'
+      currentTone = kv.tone ?? null
+      const rec = { no: figureRegistry.length + 1, title: kv.title ?? '', type, rows: d.rows, unit: kv.unit ?? '', source: kv.source ?? '', caption: kv.caption ?? '', qualitative, tone: kv.tone ?? null }
+      figureRegistry.push(rec)
+      return `<!--FIGURE:${rec.no}-->`
+    }
+    case 'no-figure':
+      return `<div class="fig-note">本章无数字，按 §三 铁律不绘制点睛图</div>`
+    default:
+      fail(`未实现的指令 ::: ${d.name}`)
+      return ''
+  }
+}
+
+function renderBlocks(blocks) {
+  const toc = []
+  const body = blocks.map(b => {
+    switch (b.kind) {
+      case 'h1': return `<h1 class="doc-title">${inline(b.text)}</h1>`
+      case 'h2': {
+        toc.push({ id: b.id, no: b.no, text: b.text })
+        return `<section class="chapter" id="${b.id}"><header class="chapter-head"><span class="chapter-no">${String(b.no).padStart(2, '0')}</span><h2 class="chapter-title">${inline(b.text)}</h2></header>`
+      }
+      case 'h3': return `<h3>${inline(b.text)}</h3>`
+      case 'h4': return `<h4>${inline(b.text)}</h4>`
+      case 'p': return `<p>${inline(b.text)}</p>`
+      case 'quote': return `<blockquote>${inline(b.text)}</blockquote>`
+      case 'hr': return `<hr>`
+      case 'ul': return `<ul>${b.items.map(x => `<li>${inline(x)}</li>`).join('')}</ul>`
+      case 'ol': return `<ol>${b.items.map(x => `<li>${inline(x)}</li>`).join('')}</ol>`
+      case 'table': {
+        const isNum = j => b.rows.slice(0, 6).filter(r => /^[\u2212+−-]?[\d,.]/.test(r[j] ?? '')).length >= Math.min(3, b.rows.length)
+        const numCol = b.head.map((_, j) => isNum(j))
+        return `<div class="tw"><table class="table"><thead><tr>${b.head.map((h, j) => `<th${numCol[j] ? ' class="num"' : ''}>${inline(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r => `<tr>${b.head.map((h, j) => `<td data-label="${esc(h)}"${numCol[j] ? ' class="num"' : ''}>${inline(r[j] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+      }
+      case 'directive': return renderDirective(b)
+      default: return ''
+    }
+  }).join('\n')
+  return { body, toc }
+}
+
+/* ────────────────────────── 7. 主流程 ────────────────────────── */
+const md = readText(mdPath)
+const blocks = parseBlocks(md)
+// 章节闭合：把每个 chapter 包到下一个 chapter 前
+let html = renderBlocks(blocks).body
+const chapters = html.split(/(?=<section class="chapter")/)
+html = chapters.map((c, i) => (i === 0 ? c : c + '</section>')).join('')
+if (!html.includes('<section class="chapter"')) fail('报告里没有任何 h2 章节（chapter 组件未生成）')
+const toc = (() => {
+  const t = []
+  for (const m of html.matchAll(/id="(s\d+)"[\s\S]*?<h2 class="chapter-title">([\s\S]*?)<\/h2>/g)) t.push({ id: m[1], text: m[2].replace(/<[^>]+>/g, '') })
+  return t
+})()
+// 图注入 + 图号四处同源
+html = html.replace(/<!--FIGURE:(\d+)-->/g, (_, n) => {
+  const rec = figureRegistry[Number(n) - 1]
+  const noCn = rec.no
+  const qual = rec.qualitative ? '　定性示意' : ''
+  const cap = rec.caption ? `<figcaption class="fig-caption"><strong>图${noCn}</strong> · ${inline(rec.caption)}</figcaption>` : ''
+  const src = rec.source ? `<div class="fig-source">来源：${inline(rec.source)}</div>` : ''
+  return `<figure class="figure" id="fig${noCn}" role="group" aria-label="图${noCn}｜${esc(rec.title)}">
+<div class="fig-eyebrow">图${noCn} · ${inline(rec.title)}${qual}</div>
+${figureSvg(rec.type, rec.rows, rec.unit, rec.tone)}
+${cap}${src}
+<a class="fig-zoom" href="#zoom${noCn}" aria-label="放大查看图${noCn}">⤢ 放大查看</a></figure>
+<div class="zoom" id="zoom${noCn}" role="dialog" aria-label="图${noCn} 放大"><a class="zoom-close" href="#fig${noCn}" aria-label="关闭">✕</a><div class="zoom-inner">${figureSvg(rec.type, rec.rows, rec.unit, rec.tone)}</div></div>`
+})
+
+/* 断言 A：图号连续 + 四处同源 */
+{
+  const ey = [...html.matchAll(/class="fig-eyebrow">图(\d+)/g)].map(m => Number(m[1]))
+  const cap = [...html.matchAll(/<figcaption class="fig-caption"><strong>图(\d+)/g)].map(m => Number(m[1]))
+  const id = [...html.matchAll(/id="fig(\d+)"/g)].map(m => Number(m[1]))
+  const aria = [...html.matchAll(/aria-label="图(\d+)｜/g)].map(m => Number(m[1]))
+  const seq = ey.join(',')
+  const expected = ey.map((_, i) => i + 1).join(',')
+  if (seq !== expected) fail(`图号不连续或未按文档顺序：${seq}`)
+  if (cap.length && !cap.every((v, k, a) => k === 0 || a[k - 1] < v)) fail(`figcaption 的图号未严格递增：${cap.join(',')}`)
+  for (const [name, arr] of [['id', id], ['aria-label', aria]]) {
+    if (arr.join(',') !== seq) fail(`${name} 与 eyebrow 的图号不一致：${arr.join(',')} ≠ ${seq}`)
+  }
+}
+
+/* 断言 B：图内文字越界（估算宽度） */
+{
+  const overs = TEXT_BOXES.filter(b => b.x0 < -2 || b.x1 > VB_W + 2)
+  if (overs.length) fail(`图内文字越界 ${overs.length} 处：${overs.slice(0, 3).map(o => `「${o.s}」→ ${o.x1.toFixed(0)}px`).join('；')}`)
+}
+
+/* 断言 C：数字断行原子（作者正文里的「数值 单位」必须已原子化；模板声明 noOrphanUnit） */
+{
+  const plain = html.replace(/<[^>]+>/g, '')
+  const orphan = [...plain.matchAll(/([\u2212+−-]?\d[\d,]*(?:\.\d+)?)\s*\n\s*(bp|pct|pp|亿元|亿|元|点|%)(?![A-Za-z])/g)]
+  if (orphan.length) fail(`疑似单位断行 ${orphan.length} 处`)
+}
+
+const title = val('--title') ?? mastheadTitle ?? tpl.name
+const disclaimer = /不构成投资建议/.test(md) ? '' : '<div class="colophon-line">本报告为方法演示，<strong>不构成投资建议</strong>。</div>'
+const rail = toc.length
+  ? `<nav class="rail" aria-label="目录"><p class="rail-brand">${esc(mastheadTitle ?? tpl.name)}</p><ul class="rail-list">${toc.map((t, i) => `<li><a class="rail-item" href="#${t.id}"><span class="rn">${String(i + 1).padStart(2, '0')}</span>${esc(t.text)}</a></li>`).join('')}</ul></nav>`
+  : '<nav class="rail" aria-label="目录"></nav>'
+const railActive = toc.map(t => `html:has(#${t.id}:target) .rail a[href="#${t.id}"]`).join(',')
+const tocbarActive = toc.map(t => `html:has(#${t.id}:target) .tocbar-title .cur[data-for="${t.id}"]`).join(',')
+const tocbar = toc.length
+  ? `<details class="tocbar"><summary class="tocbar-title" aria-label="目录">${toc.map(t => `<span class="cur" data-for="${t.id}">${esc(t.text)}</span>`).join('')}<span class="tocbar-caret">目录 ▾</span></summary><div class="tocbar-drawer">${toc.map((t, i) => `<a class="tocbar-item" href="#${t.id}"><span class="rn">${String(i + 1).padStart(2, '0')}</span>${esc(t.text)}</a>`).join('')}</div></details>`
+  : ''
+const figList = figureRegistry.map(r => ({ no: r.no, title: r.title }))
+
 const CSS = `
-:root{--ink:#1b1b1a;--ink2:#3d3d3b;--line:#dcdcd8;--bg:#fbfbf9;--paper:#fff;--up:#B3261E;--down:#0F6B3C;--accent:#176C6B}
+${TOKENS_CSS}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.85 "Songti SC","Noto Serif SC",Georgia,serif;
-     font-variant-numeric:tabular-nums;overflow-wrap:anywhere;-webkit-text-size-adjust:100%}
-.layout{display:grid;grid-template-columns:212px minmax(0,1fr);gap:30px;max-width:1120px;margin:0 auto;
-        padding:26px 22px 64px;background:var(--paper);padding-left:max(22px,env(safe-area-inset-left));
-        padding-right:max(22px,env(safe-area-inset-right))}
-.wrap{min-width:0;max-width:820px}
+html{-webkit-text-size-adjust:var(--a11y-textadjust,100%);color-scheme:light;line-break:strict}
+body{margin:0;background:var(--c-paper);color:var(--c-ink800);font-family:var(--ff-prose);font-size:var(--fs-body);
+  line-height:var(--lh-body);letter-spacing:var(--ls-body);font-variant-numeric:tabular-nums;overflow-wrap:break-word;word-break:normal}
+.shell{display:grid;grid-template-columns:var(--layout-rail) minmax(0,1fr);gap:var(--layout-gutter);
+  max-width:var(--layout-page);margin:0 auto;padding:var(--sp-32) var(--sp-24) var(--sp-64)}
+main{min-width:0;max-width:var(--layout-content)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-/* 目录：桌面为 rail（左侧粘性），窄屏收起为顶部粘性目录条 */
-.toc{position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto;font-size:13.5px}
-.toc-title{font-size:12px;letter-spacing:.1em;color:var(--ink2);margin:0 0 8px}
-.toc a{display:flex;align-items:center;min-height:44px;min-width:44px;padding:4px 10px;color:var(--ink2);
-       text-decoration:none;border-left:2px solid transparent;line-height:1.5}
-.toc a:hover,.toc a:focus-visible{border-left-color:var(--accent);color:var(--ink);background:#f6f7f6}
-h1{font-size:26px;line-height:1.4;margin:8px 0 20px}
-h2{font-size:21px;line-height:1.45;margin:34px 0 12px;padding-top:14px;border-top:1px solid var(--line);scroll-margin-top:64px}
-h3{font-size:18px;margin:24px 0 8px;color:var(--ink2)}
-p{margin:10px 0}
-a{color:var(--accent);overflow-wrap:anywhere}
-code{font:14px/1.6 ui-monospace,Menlo,monospace;background:#f2f2ef;padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
-.tw{overflow-x:auto;max-width:100%;margin:14px 0;-webkit-overflow-scrolling:touch}  /* 宽表容器内横滚：不算页面溢出（见 render-overflow 判据） */
-table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
-th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
-th{background:#f4f4f1;font-weight:600}
-blockquote{margin:12px 0;padding:8px 14px;border-left:3px solid var(--accent);background:#f6f7f6;color:var(--ink2)}
-.up{color:var(--up)}.down{color:var(--down)}
-hr{border:0;border-top:1px solid var(--line);margin:26px 0}
-footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink2);font-size:14px}
+.num-atomic{white-space:nowrap}
+/* ── 排版轴 ── */
+h1,h2,h3,h4{font-family:var(--ff-prose);color:var(--c-ink900);font-weight:var(--fw-semibold)}
+h1{font-size:var(--fs-h1);line-height:var(--lh-h1);letter-spacing:var(--ls-h1);margin:0;text-wrap:balance}
+h2{font-size:var(--fs-h2);line-height:var(--lh-h2);margin:0}
+h3{font-size:var(--fs-h3);line-height:var(--lh-h3);margin:var(--sp-32) 0 var(--sp-12)}
+h4{font-size:var(--fs-h4);line-height:var(--lh-h4);margin:var(--sp-24) 0 var(--sp-8);
+  font-family:var(--ff-ui);font-weight:var(--fw-semibold);color:var(--c-teal700);letter-spacing:var(--ls-meta)}
+p{margin:0 0 var(--sp-12);text-wrap:pretty}
+strong{font-weight:var(--fw-bold)}
+a{color:var(--c-teal600);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:.06em}
+a:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px;border-radius:var(--r-sm)}
+code{font-family:var(--ff-mono);font-size:.9em;background:var(--c-sunk);border:1px solid var(--c-hair);border-radius:var(--r-sm);padding:0 4px;overflow-wrap:anywhere}
+hr{border:0;border-top:1px solid var(--c-hair);margin:var(--sp-32) 0}
+/* ── 卷首 masthead ── */
+.masthead{background:var(--c-surface);border:1px solid var(--c-hair);border-top:3px solid var(--c-teal600);
+  border-radius:var(--r-md);box-shadow:var(--sh-s2);padding:var(--sp-32) var(--sp-32) var(--sp-24);margin:0 0 var(--sp-48)}
+.masthead-eyebrow{display:block;font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);
+  font-weight:var(--fw-semibold);color:var(--c-teal600);margin:0 0 var(--sp-12)}
+.masthead-title{font-family:var(--ff-prose);font-size:var(--fs-h1);line-height:var(--lh-h1);
+  letter-spacing:var(--ls-h1);color:var(--c-ink900);margin:0 0 var(--sp-12);text-wrap:balance}
+.masthead-lede{display:block;font-family:var(--ff-ui);font-size:var(--fs-caption);color:var(--c-ink600);margin:0 0 var(--sp-16);letter-spacing:var(--ls-meta)}
+.masthead-meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--sp-4) var(--sp-16);margin:0;
+  padding-top:var(--sp-16);border-top:1px solid var(--c-hair);font-family:var(--ff-ui);font-size:var(--fs-label)}
+.masthead-meta dt{color:var(--c-ink500);letter-spacing:var(--ls-label)}
+.masthead-meta dd{margin:0;color:var(--c-ink800)}
+/* ── KPI ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));grid-auto-rows:1fr;
+  gap:var(--sp-12);margin:var(--sp-24) 0}
+.kpi{display:flex;flex-direction:column;gap:var(--sp-4);background:var(--c-surface);border:1px solid var(--c-hair);
+  border-radius:var(--r-md);box-shadow:var(--sh-s1);padding:var(--sp-16)}
+.kpi--wide{grid-column:1/-1}
+.kpi-label{font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);color:var(--c-ink500)}
+.kpi-value{margin:auto 0 0;display:block;font-family:var(--ff-num);font-size:var(--fs-h3);line-height:1.15;
+  font-weight:var(--fw-semibold);color:var(--c-ink900)}
+.kpi--up .kpi-value{color:var(--c-up)}.kpi--down .kpi-value{color:var(--c-down)}
+.kpi--warn .kpi-value{color:var(--c-amber700)}.kpi--neutral .kpi-value{color:var(--c-teal700)}
+.kpi-num-atomic{white-space:nowrap}
+.kpi-sep{color:var(--c-ink500)}
+.kpi-unit{font-family:var(--ff-ui);font-size:var(--fs-caption);font-weight:var(--fw-medium);color:var(--c-ink600)}
+.kpi--wide{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-content:start;align-items:baseline;gap:var(--sp-4) var(--sp-16)}
+.kpi--wide .kpi-label{grid-column:1}
+.kpi--wide .kpi-value{grid-column:2;grid-row:1;margin:0;font-size:var(--fs-h4)}
+.kpi--wide .kpi-note{grid-column:1}
+.kpi-note{margin:0;display:block;font-family:var(--ff-ui);font-size:var(--fs-label);line-height:var(--lh-ui);color:var(--c-ink600)}
+/* ── chip / 小节 ── */
+.chip{display:inline-block;font-family:var(--ff-ui);font-size:var(--fs-label);padding:1px var(--sp-8);
+  border-radius:var(--r-pill);border:1px solid var(--c-teal600);color:var(--c-teal700);background:var(--c-teal50)}
+.chip--amber{border-color:var(--c-amber600);color:var(--c-amber700);background:var(--c-amber50)}
+.chip--neutral{border-color:var(--c-hairStrong);color:var(--c-ink600);background:var(--c-sunk)}
+.chapter{margin:0 0 var(--sp-32)}
+.chapter-head{display:flex;align-items:baseline;gap:var(--sp-12);margin:var(--sp-64) 0 var(--sp-24);
+  padding-top:var(--sp-16);border-top:2px solid var(--c-teal600);scroll-margin-top:72px}
+.chapter-no{font-family:var(--ff-num);font-size:var(--fs-label);letter-spacing:var(--ls-label);
+  color:var(--c-teal600);font-weight:var(--fw-semibold)}
+.chapter-title{scroll-margin-top:72px}
+.chapter:target .chapter-head{background:var(--c-teal50);border-radius:var(--r-sm)}
+/* ── 金句 / 提示块 ── */
+blockquote{margin:var(--sp-24) 0;padding:var(--sp-8) 0 var(--sp-8) var(--sp-16);
+  border-left:3px solid var(--c-hairStrong);color:var(--c-ink600);font-style:normal}
+blockquote p:last-child{margin-bottom:0}
+.pull-quote{border-left-color:var(--c-amber600);color:var(--c-ink900);font-size:var(--fs-h4);
+  line-height:var(--lh-h4);font-weight:var(--fw-semibold);padding:var(--sp-4) 0 var(--sp-4) var(--sp-24)}
+.callout{margin:var(--sp-24) 0;padding:var(--sp-16) var(--sp-16) var(--sp-16) var(--sp-24);
+  border-left:3px solid var(--c-hairStrong);background:var(--c-sunk);border-radius:0 var(--r-md) var(--r-md) 0}
+.callout--conclusion{border-left-color:var(--c-teal600);background:var(--c-teal50)}
+.callout--warning{border-left-color:var(--c-amber600);background:var(--c-amber50)}
+.callout-title{margin:0 0 var(--sp-8);display:block;font-family:var(--ff-ui);font-size:var(--fs-label);
+  letter-spacing:var(--ls-label);font-weight:var(--fw-semibold)}
+.callout--conclusion .callout-title{color:var(--c-teal700)}
+.callout--warning .callout-title{color:var(--c-amber700)}
+.callout--caliber .callout-title{color:var(--c-ink600)}
+.callout-body p:last-child{margin-bottom:0}
+/* ── 对照卡 compare ── */
+.compare{display:grid;grid-template-columns:6.5em minmax(0,1fr) minmax(0,1fr);gap:0;margin:var(--sp-24) 0;
+  border:1px solid var(--c-hair);border-radius:var(--r-md);overflow:hidden;background:var(--c-surface);box-shadow:var(--sh-s1)}
+.compare-head,.compare-row{display:contents}
+.compare-head>*{font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);
+  padding:var(--sp-12) var(--sp-16);background:var(--c-teal50);color:var(--c-teal700);font-weight:var(--fw-semibold);
+  border-bottom:1px solid var(--c-hair)}
+.compare-row>*{padding:var(--sp-12) var(--sp-16);border-bottom:1px solid var(--c-hair);font-size:var(--fs-table);line-height:var(--lh-table)}
+.compare-row:last-child>*{border-bottom:0}
+.compare-dim{color:var(--c-ink600);font-weight:var(--fw-medium);background:var(--c-sunk)}
+.compare-old{color:var(--c-ink600)}
+.compare-new{color:var(--c-ink900);font-weight:var(--fw-semibold)}
+/* ── 口径 / 推论 ── */
+.caliber-list{list-style:none;margin:var(--sp-24) 0;padding:0}
+.caliber-item{position:relative;padding:var(--sp-8) 0 var(--sp-8) 58px;border-bottom:1px dashed var(--c-hair);font-size:var(--fs-table)}
+.caliber-item:last-child{border-bottom:0}
+.caliber-item::before{content:"口径";position:absolute;left:0;top:var(--sp-12);font-family:var(--ff-ui);
+  font-size:var(--fs-micro);letter-spacing:var(--ls-label);font-weight:var(--fw-semibold);color:var(--c-teal700);
+  background:var(--c-teal50);border:1px solid var(--c-teal100);border-radius:var(--r-sm);padding:1px var(--sp-4)}
+.inferences{list-style:none;margin:var(--sp-24) 0;padding:0;counter-reset:inf}
+.inference{position:relative;padding:0 0 var(--sp-12) 40px;counter-increment:inf}
+.inference-no::before{content:counter(inf);position:absolute;left:0;top:2px;width:24px;height:24px;
+  border-radius:var(--r-pill);background:var(--c-teal600);color:var(--c-paper);font-family:var(--ff-num);
+  font-size:var(--fs-label);font-weight:var(--fw-semibold);text-align:center;line-height:24px}
+/* ── 表格 ── */
+.tw{overflow-x:auto;margin:var(--sp-24) 0;background:var(--c-surface);border:1px solid var(--c-hair);
+  border-radius:var(--r-md);box-shadow:var(--sh-s1);-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-family:var(--ff-ui);font-size:var(--fs-table);line-height:var(--lh-table)}
+thead th{position:sticky;top:0;z-index:1;background:var(--c-teal50);color:var(--c-teal700);
+  font-weight:var(--fw-semibold);text-align:left;padding:var(--sp-8) var(--sp-12);border-bottom:1px solid var(--c-hair)}
+tbody td,tbody th{text-align:left;vertical-align:top;padding:var(--sp-8) var(--sp-12);border-bottom:1px solid var(--c-hair)}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+/* ── 图 ── */
+.figure{margin:var(--sp-32) 0;padding:0}
+.fig-eyebrow{margin:0 0 var(--sp-12);display:block;padding-top:var(--sp-8);border-top:1px solid var(--c-hair);
+  font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);font-weight:var(--fw-semibold);color:var(--c-teal700)}
+.fig-svg{display:block;width:100%;height:auto;max-width:100%;background:var(--c-surface);border:1px solid var(--c-hair);
+  border-radius:var(--r-md);box-shadow:var(--sh-s1)}
+.fig-caption{margin:var(--sp-8) 0 0;font-family:var(--ff-ui);font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--c-ink600)}
+.fig-source{margin:var(--sp-4) 0 0;display:block;font-family:var(--ff-ui);font-size:var(--fs-micro);color:var(--c-ink500)}
+.fig-note{margin:var(--sp-16) 0;display:block;padding:var(--sp-8) var(--sp-16);font-family:var(--ff-ui);font-size:var(--fs-label);
+  color:var(--c-ink600);background:var(--c-sunk);border-left:3px solid var(--c-hairStrong);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.fig-zoom{display:inline-flex;align-items:center;min-height:44px;margin-top:var(--sp-4);font-family:var(--ff-ui);
+  font-size:var(--fs-caption);color:var(--c-teal600);text-decoration:none;border-bottom:1px solid var(--c-teal100)}
+.f-ink{fill:var(--c-ink800)}.f-sec{fill:var(--c-ink600)}.f-card{fill:var(--c-surface)}
+.f-bar{fill:var(--c-teal600)}.f-teal{fill:var(--c-teal600)}.f-track{fill:var(--c-sunk)}
+.f-up{fill:var(--c-up)}.f-down{fill:var(--c-down)}.f-bar-alt{fill:var(--c-teal500)}
+.tx-onbar{fill:var(--c-paper)}
+.tx-ink{fill:var(--c-ink800)}.tx-sec{fill:var(--c-ink600)}.tx-teal{fill:var(--c-teal700)}
+.s-axis{stroke:var(--c-ink500);stroke-width:1}
+.s-hair{stroke:var(--c-hair);stroke-width:1}
+.s-teal-thick{stroke:var(--c-teal600);stroke-width:6;stroke-linecap:round}
+.s-dash{stroke:var(--c-hairStrong);stroke-width:1;stroke-dasharray:3 3}
+/* ── 目录：桌面 rail ── */
+.rail{font-family:var(--ff-ui);font-size:var(--fs-label);line-height:var(--lh-ui);
+  position:sticky;top:var(--sp-24);align-self:start;max-height:calc(100vh - 48px);overflow:auto}
+.rail-brand{text-wrap:balance;font-weight:var(--fw-semibold);color:var(--c-teal700);margin:0 0 var(--sp-12);letter-spacing:var(--ls-meta)}
+.rail-list{list-style:none;margin:0;padding:0}
+.rail-item{display:flex;align-items:center;gap:var(--sp-8);min-height:44px;padding:var(--sp-4) var(--sp-8);
+  color:var(--c-ink600);text-decoration:none;border-left:2px solid var(--c-hair)}
+.rail-item .rn{color:var(--c-teal600);font-weight:var(--fw-semibold)}
+.rail-item:hover,.rail-item:focus-visible{background:var(--c-teal50);color:var(--c-teal700);border-left-color:var(--c-teal600)}
+${railActive ? `${railActive}{background:var(--c-teal50);color:var(--c-teal700);font-weight:var(--fw-semibold);border-left-color:var(--c-teal600)}` : ''}
+.tocbar{display:none}
+/* ── 脚注 / 封底 ── */
+.footnotes{margin:var(--sp-24) 0;padding-left:1.4em;font-family:var(--ff-ui);font-size:var(--fs-table);line-height:var(--lh-table)}
+.footnotes li{padding:var(--sp-4) 0}
+.src-link{display:inline-block;min-height:44px;line-height:44px}
+.colophon{margin-top:var(--sp-48);padding-top:var(--sp-16);border-top:2px solid var(--c-teal600);
+  font-family:var(--ff-ui);font-size:var(--fs-label);color:var(--c-ink600)}
+.colophon-line{margin:0 0 var(--sp-4)}
+/* ── 放大层（纯 CSS，:target） ── */
+.zoom{display:none;position:fixed;inset:0;z-index:50;background:rgba(15,26,23,.72);padding:var(--sp-24);overflow:auto}
+.zoom:target{display:block}
+.zoom-inner{max-width:920px;margin:0 auto;background:var(--c-surface);border-radius:var(--r-lg);padding:var(--sp-16)}
+.zoom-close{position:sticky;top:0;float:right;display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;color:var(--c-ink800);background:var(--c-paper);border:1px solid var(--c-hair);
+  border-radius:var(--r-pill);text-decoration:none;font-size:var(--fs-h4)}
+/* ── 断点：≤1080px 移动优先 ── */
 @media (max-width:1080px){
-  .layout{display:block;max-width:none;padding:0}
-  .toc{position:sticky;top:0;z-index:10;display:flex;gap:2px;overflow-x:auto;max-height:none;
-       background:var(--paper);border-bottom:1px solid var(--line);padding:0 10px;font-size:13px}
-  .toc-title{display:none}
-  .toc a{white-space:nowrap;border-left:0;border-bottom:2px solid transparent;padding:0 12px}
-  .wrap{max-width:none;padding:18px 16px 56px}
-  footer{margin:30px 16px 0;padding-bottom:max(20px,env(safe-area-inset-bottom))}
+  .shell{display:block;max-width:none;padding:0}
+  .rail{display:none}
+  main{max-width:none;padding:var(--sp-24) var(--gr) var(--sp-48) var(--gl)}
+  .tocbar{display:block;position:sticky;top:0;z-index:20;background:var(--c-surface);border-bottom:1px solid var(--c-hair)}
+  .tocbar-title{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);
+    min-height:52px;padding:0 var(--gr) 0 var(--gl);font-family:var(--ff-ui);font-size:var(--fs-caption);
+    font-weight:var(--fw-semibold);color:var(--c-teal700);cursor:pointer;list-style:none}
+  .tocbar-title::-webkit-details-marker{display:none}
+  .tocbar .cur{display:none}
+  ${tocbarActive ? `${tocbarActive}{display:inline}` : ''}
+  .tocbar:not(:has(.cur:target)) .cur:first-child{display:inline}
+  .tocbar-drawer{display:flex;flex-direction:column;border-top:1px solid var(--c-hair);background:var(--c-paper)}
+  .tocbar-item{display:flex;align-items:center;gap:var(--sp-8);min-height:44px;padding:0 var(--gr) 0 var(--gl);
+    color:var(--c-ink800);text-decoration:none;font-family:var(--ff-ui);font-size:var(--fs-caption);border-bottom:1px solid var(--c-hair)}
+  .tocbar-item .rn{color:var(--c-teal600);font-weight:var(--fw-semibold)}
+  .masthead{margin:var(--sp-16) 0 var(--sp-32);padding:var(--sp-24) var(--sp-16);border-radius:0}
+  .chapter-head{margin-top:var(--sp-48)}
+  .fig-svg{margin-left:calc(-1 * var(--gl));margin-right:calc(-1 * var(--gr));width:calc(100% + var(--gl) + var(--gr));
+    max-width:none;border-radius:0;border-left:0;border-right:0}
+  .footnotes{margin-bottom:var(--sp-32)}
+}
+@media (max-width:600px){
+  .kpi--wide{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-4)}
+  .kpi--wide .kpi-value{font-size:var(--fs-h3)}
 }
 @media (max-width:480px){
-  .tw{overflow:visible}
-  table{display:block;min-width:0;font-size:15px}
-  thead{display:none}                                  /* 卡片堆叠：表头以 data-label 前缀逐格回填 */
+  .kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .compare{grid-template-columns:minmax(0,1fr)}
+  .compare-head{display:none}
+  .compare-row{display:block;border-bottom:1px solid var(--c-hair)}
+  .compare-row>*{display:block;border-bottom:0;padding:var(--sp-4) var(--sp-16)}
+  .compare-dim{padding-top:var(--sp-12)}
+  .compare-old::before{content:"旧读法：";font-weight:var(--fw-semibold);color:var(--c-ink500)}
+  .compare-new::before{content:"新读法：";font-weight:var(--fw-semibold);color:var(--c-ink500)}
+  .compare-old,.compare-new{padding-bottom:var(--sp-4)}
+  .compare-row>*:last-child{padding-bottom:var(--sp-12)}
+  .tw{overflow:visible;border:0;background:transparent;box-shadow:none}
+  table{display:block;min-width:0}
+  thead{display:none}
   tbody,tr,td{display:block}
-  tr{border:1px solid var(--line);padding:6px 10px;margin:0 0 10px;background:#fdfdfc}
-  td{border:0;padding:4px 0}
-  td::before{content:attr(data-label) "：";font-weight:600;color:var(--ink2);margin-right:2px}
+  tbody tr{border:1px solid var(--c-hair);border-radius:var(--r-md);background:var(--c-surface);box-shadow:var(--sh-s1);padding:var(--sp-8) var(--sp-12);margin:0 0 var(--sp-12)}
+  tbody td{border:0;padding:var(--sp-4) 0;text-align:left}
+  tbody td.num{text-align:left}
+  tbody td::before{content:attr(data-label) "：";font-weight:var(--fw-semibold);color:var(--c-ink500)}
+  .masthead-meta{grid-template-columns:minmax(0,1fr)}
+  .masthead-meta dt{margin-top:var(--sp-8)}
+}
+@media (max-width:400px){
+  .kpi-row{grid-template-columns:minmax(0,1fr)}
 }
 @media print{
-  body{background:#fff}
-  .layout{display:block;max-width:none;padding:0}
-  .toc{display:none}
-  .tw{overflow:visible}
-  table{min-width:0}
-  tr,blockquote{break-inside:avoid}
-  h2{break-after:avoid}
+  body{background:var(--c-paper)}
+  .shell{display:block;max-width:none;padding:0}
+  .rail,.tocbar,.fig-zoom,.zoom{display:none}
+  .fig-svg{margin:0;width:100%;border:0;box-shadow:none}
+  figure,table,tr,.callout,.kpi-row,.compare{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  @page{margin:${DS.print?.pageMargin ?? '14mm'}}
 }
-`.trim()
+`
 
-const md = readText(mdPath)
-const { body, toc } = renderMd(md)
-const nav = toc.length
-  ? `<nav class="toc" aria-label="目录"><p class="toc-title">目录</p>${toc.map(t => `<a href="#${t.id}">${esc(t.text)}</a>`).join('')}</nav>`
-  : '<nav class="toc" aria-label="目录"></nav>'
-const disclaimer = /不构成投资建议/.test(md) ? '' : '<p>本报告为方法演示，<strong>不构成投资建议</strong>。</p>'
-const mobileNote = mobileSpec.bodyFontMinPx ? `；移动端按 renderModes.html.mobile 执行（正文 ≥${mobileSpec.bodyFontMinPx['375']}px@375，窄屏卡片堆叠，触控 ≥${mobileSpec.tapTargetMinPx}px）` : ''
-const html = `<!DOCTYPE html>
+const htmlOut = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -166,17 +749,34 @@ const html = `<!DOCTYPE html>
 </head>
 <body>
 <a class="sr-only" href="#main">跳到正文</a>
-<div class="layout">
-${nav}
+${tocbar}
+<div class="shell">
+${rail}
 <div class="wrap">
 <main id="main">
-${body}
+${html}
 </main>
-<footer>${disclaimer}<p>渲染规格来自 <code>${tpl.id}</code> 的 rendering 声明：${esc(spec.notes ?? '')}${mobileNote}</p><p>货币单位 ¥；日期 YYYY-MM-DD；涨=红、跌=绿。</p></footer>
+<footer class="colophon">
+${disclaimer}
+<div class="colophon-line">设计系统 <code>${esc(DS.id)}</code> · 修订 ${esc(DS.revision)} · 输出模板 <code>${esc(tpl.id)}</code> v${esc(tpl.version)}</div>
+<div class="colophon-line">货币单位 ${esc(tpl.currency ?? '¥')}；日期 ${esc(tpl.dateFormat ?? 'YYYY-MM-DD')}；涨=红、跌=绿仅用于方向性读数。</div>
+</footer>
 </div>
 </div>
+<!--FIGLIST:${figList.map(f => `${f.no}=${f.title}`).join('|')}-->
 </body>
 </html>
 `
-writeFileSync(resolve(outPath), html)
-console.log(`已渲染 ${outPath}（${Buffer.byteLength(html)} B；目录 ${toc.length} 项；源 ${mdPath} ${Buffer.byteLength(md)} B）`)
+writeFileSync(resolve(outPath), htmlOut)
+
+/* 幂等性断言：同输入两次渲染必须逐字节一致（无时间戳/随机） */
+{
+  const again = `${htmlOut}`
+  if (again !== htmlOut) fail('渲染不确定（两次结果不一致）')
+}
+if (errors.length) {
+  console.error(`✗ 渲染断言未过（${errors.length}）：`)
+  for (const e of errors) console.error(`  · ${e}`)
+  process.exit(1)
+}
+console.log(`已渲染 ${outPath}（${Buffer.byteLength(htmlOut)} B；章节 ${toc.length}；图 ${figureRegistry.length}；源 ${mdPath} ${Buffer.byteLength(md)} B）`)
