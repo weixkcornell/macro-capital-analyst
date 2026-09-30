@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.1-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.2-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -138,6 +138,8 @@ macro-capital-analyst/
 英文概览见 [`README.en.md`](README.en.md)，贡献与提交前检查见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
 
 ## 版本历史
+
+- **2.8.2**（2026-09-30）：**修正 Wind 取数的真实调用签名 + 记录 HOME 陷阱（实测驱动）** —— ① 实测发现：`query_economic_indicator_data` **只收 `question`**（+可选 `beginDate`/`endDate`/`observation`/`targetMagnitude`/`targetCurrency`/`targetFrequency`），**不收 `indicator_code`**（传即 `PARAM_VALIDATION_ERROR`）；2.8.1 在 `data-contracts.wind.edb.query.input_schema`、`tool-providers.dataChannels.command` 与 `wind-provenance.cliRoute` 里把它写成了入参 ⇒ **文档中的命令跑不通**。本版改为「search 取码（用于引用）→ query 传 question+日期」，并写入实测证据。② **HOME 陷阱**：CLI 按 `homedir()` 解析 `~/.wind-aifinmarket/config`；当进程 `HOME` 非凭据所在用户家目录（本例为 workspace）时会**误报** `AUTH_ERROR『WIND_API_KEY 未配置』`。已写入 `wind-provenance.config.homeRequirement`：**该误报不等于凭据缺失**，须先按 homedir 复核再判 fail-closed。③ **首次实跑取数成功**并留证：`M0342072 沪深300指数:收盘价`（点·上海证券交易所·日频）2026-09-28/29/30 = **4340.755 / 4345.2088 / 4357.6155**，与公开 K 线自算 4340.76/4345.21 **两源一致**；`M0000612 中国:CPI:当月同比`（%·国家统计局·月频，截至 20260831）= 0.2/1.3/1.0/1.2/1.2/1.0/0.5/**0.8**。④ 本版为**纯修正**：不改判据结构、不动 2.8.0/2.8.1 的其它内容；取数优先级（Wind 第 1 档）与 fail-closed 纪律不变。
 
 - **2.8.1**（2026-09-30）：**移动端可读性入包 + Wind 取数档位可执行化（在 2.8.0 取数优先级之上叠加）** —— ① **新增门 `mobile-readability`（visual/hard）**：375 主视口（覆盖 320/390）正文 ≥17px、图内文字**等效字号** ≥11px 或提供放大入口、触控目标 ≥44px、宽表卡片堆叠或受控横滚、页面级 0 溢出与 0 裁切重叠；`render-overflow` 视口补 **375×812**。② **新增门 `wind-provenance`（deterministic/hard）**：在 2.8.0 的「取数档位链（Wind→westock→公开→外部）」之上，把**凭据缺失 fail-closed、禁止重装/绕走、降级须逐项标注**落成可执行检查；`tool-providers` 增 `dataChannels.wind-edb` 声明（命令/三级凭据阶梯/失败语义/`lastProbe` 实测 `AUTH_ERROR`），`data-contracts` 增 `wind.edb.query` 与 `wind.edb.metadata`。③ **两个门禁执行工具**：`scripts/audit-mobile.py`（playwright 实测 computed style，含 `sr-only` 排除，避免把无障碍 skip-link 误报为裁切/小触控目标）与 `scripts/check-wind-provenance.py`（含 `--selftest`：2 正向 + 3 反向 —— 其 v1 曾因裸正则把纪律句「未绕走 analytics_data」判违规而**不可满足**，由正向对照抓出并修复）；`scripts/audit-delivery.sh` 由 5 件扩为 **7 件**（RELEASING.md 门禁表同步）。④ **包自带渲染器补齐移动端**：`scripts/render-report.mjs` 增桌面 rail → 窄屏顶部粘性目录条（h2 自动建目录、触控 ≥44px）、窄屏宽表卡片堆叠（`data-label` 逐格回填）、`tabular-nums`、`env(safe-area-inset-*)`、`@media print`；实测 `render-overflow` 六视口 0 溢出 + 对比度 **958/958**、`mobile-readability` 320/375/390 全 PASS —— 『声明移动端规格』与『工具能实现该规格』对齐。⑤ 与 2.8.0 的关系：**取数优先级规则保留上游原文并叠加**，不重复也不改写；本版为**纯增量**（上游 20 个文件的 2.8.0 改动全部保留）。⑥ 本版不新增知识源、不新增能力层。
 

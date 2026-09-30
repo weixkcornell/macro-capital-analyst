@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
   "description": "包内可执行工具。数据获取**一律先试 Wind CLI**，取不到再走平台 provider 层（zyt / beike）与公开口径自算；本包不自建数据引擎。",
@@ -35,7 +35,7 @@
       "id": "wind-edb",
       "role": "取数优先级第 1 档（v2.8.0 起强制先试）",
       "caliber": "Wind EDB 口径",
-      "command": "node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data search_economic_indicator '{\"question\":\"…\"}' → query_economic_indicator_data（必填 beginDate/endDate）",
+      "command": "① 取指标代码（用于引用）：node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data search_economic_indicator '{\"question\":\"沪深300指数收盘价\"}' → 返回 M0342072；② 取时序：node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data query_economic_indicator_data '{\"question\":\"沪深300指数收盘价\",\"beginDate\":\"2026-08-01\",\"endDate\":\"2026-09-30\"}'。**query 只收 question（+可选 beginDate/endDate/observation 等），不收 indicator_code** —— 传 indicator_code 返回 PARAM_VALIDATION_ERROR（2026-09-30 实测）",
       "credentialLadder": [
         "~/.wind-aifinmarket/config (WIND_API_KEY)",
         "<skill>/config.json (wind_api_key)",
@@ -51,6 +51,44 @@
       "lastProbe": {
         "date": "2026-09-30",
         "result": "AUTH_ERROR：WIND_API_KEY 未配置（三处凭据位均已检查）"
+      },
+      "probeEvidence": {
+        "date": "2026-09-30",
+        "credentialPath": "/root/.wind-aifinmarket/config（注意：CLI 按 homedir() 找 ~/.wind-aifinmarket/config，需 HOME=/root 才能读到；HOME 指向别处会误报『WIND_API_KEY 未配置』）",
+        "samples": [
+          {
+            "question": "沪深300指数收盘价",
+            "code": "M0342072",
+            "unit": "点",
+            "source": "上海证券交易所",
+            "freq": "日",
+            "updateDate": "20260930",
+            "values": {
+              "20260928": 4340.755,
+              "20260929": 4345.2088,
+              "20260930": 4357.6155
+            },
+            "crossCheck": "与公开K线自算 4340.76/4345.21 一致（两源独立）"
+          },
+          {
+            "question": "中国CPI当月同比",
+            "code": "M0000612",
+            "unit": "%",
+            "source": "国家统计局",
+            "freq": "月",
+            "endDate": "20260831",
+            "values": {
+              "202601": 0.2,
+              "202602": 1.3,
+              "202603": 1.0,
+              "202604": 1.2,
+              "202605": 1.2,
+              "202606": 1.0,
+              "202607": 0.5,
+              "202608": 0.8
+            }
+          }
+        ]
       }
     }
   ]

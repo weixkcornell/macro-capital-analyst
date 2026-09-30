@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -371,7 +371,7 @@
       "description": "在 number-consistency 的「取数档位声明」判据之上，把「先试 Wind、不得静默降级、降级须逐项标注」落成可执行检查（由 scripts/check-wind-provenance.py 执行）。",
       "config": {
         "primaryChannel": "Wind CLI（wind-mcp-skill）",
-        "cliRoute": "node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data search_economic_indicator '{\"question\":\"…\"}' → query_economic_indicator_data（必填 beginDate/endDate 或 observation）",
+        "cliRoute": "search_economic_indicator '{\"question\":\"…\"}' → 取指标代码（用于引用）；query_economic_indicator_data '{\"question\":\"…\",\"beginDate\":\"YYYY-MM-DD\",\"endDate\":\"YYYY-MM-DD\"}' → 取时序。**query 只收 question（+可选日期/observation/target*），不收 indicator_code**（传即 PARAM_VALIDATION_ERROR，2026-09-30 实测）",
         "credentialLadder": [
           "~/.wind-aifinmarket/config (WIND_API_KEY)",
           "<skill>/config.json (wind_api_key)",
@@ -387,8 +387,13 @@
         "executable": "scripts/check-wind-provenance.py --md <final.md> --out <json>（--selftest 自校准：2 正向 + 3 反向）",
         "lastProbe": {
           "date": "2026-09-30",
-          "result": "AUTH_ERROR（WIND_API_KEY 未配置，三处凭据位均已检查）"
-        }
+          "result": "ok（HOME=/root 下 search 与 query 均成功）",
+          "samples": [
+            "M0342072 沪深300指数:收盘价 点/上交所/日",
+            "M0000612 中国:CPI:当月同比 %/国家统计局/月(截至20260831)"
+          ]
+        },
+        "homeRequirement": "CLI 按 homedir() 解析 ~/.wind-aifinmarket/config；若进程 HOME 不是凭据所在用户的家目录（本例 HOME=workspace），会误报 AUTH_ERROR『WIND_API_KEY 未配置』。凭据存在时的正确调用是 `HOME=/root node …cli.mjs …`；**此误报不等于凭据缺失**，须先按 homedir 复核再判定 fail-closed。"
       }
     },
     {
