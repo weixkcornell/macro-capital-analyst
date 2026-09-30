@@ -1,6 +1,6 @@
 {
   "id": "a-share-outlook",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "schemaVersion": 2,
   "name": "A 股市场观点看板输出模板",
   "media": [
@@ -14,7 +14,40 @@
       "academic": true,
       "upColor": "red",
       "downColor": "green",
-      "anonymize": true
+      "anonymize": true,
+      "mobile": {
+        "viewportPrimary": {
+          "w": 375,
+          "h": 812
+        },
+        "viewportRange": [
+          [
+            320,
+            800
+          ],
+          [
+            390,
+            844
+          ]
+        ],
+        "bodyFontMinPx": {
+          "375": 17,
+          "320": 16
+        },
+        "lineHeight": [
+          1.85,
+          2.0
+        ],
+        "measureMaxCJK": 38,
+        "rail": "≥1080px 左侧粘性 rail；≤1080px 收起为顶部粘性目录条（≤56px，含章名与展开控件）",
+        "tables": "卡片堆叠或首列 sticky 的受控横滚 + 可横滑提示；表内字号 ≥14px",
+        "figures": "全出血；图内文字等效字号 ≥11px（font-size × 视口宽/viewBox宽）或提供点击全屏查看",
+        "tapTargetMinPx": 44,
+        "safeArea": "env(safe-area-inset-*)",
+        "textSizeAdjust": "100%",
+        "kpiCards": "4 列 → 移动端 2×2",
+        "h1MaxPxMobile": 26
+      }
     }
   },
   "sections": [
@@ -137,7 +170,8 @@
   },
   "rendering": {
     "format": "markdown → HTML5",
-    "notes": "浅色、衬线、学术排版；涨=红、跌=绿；货币 ¥；日期 YYYY-MM-DD；文末固定「不构成投资建议」；语言密度须过闸门（无「腿」比喻、加粗不包整句、破折号不作冒号使用）"
+    "notes": "浅色、衬线、学术排版；涨=红、跌=绿；货币 ¥；日期 YYYY-MM-DD；文末固定「不构成投资建议」；语言密度须过闸门（无「腿」比喻、加粗不包整句、破折号不作冒号使用）",
+    "mobileNotes": "移动端优先：正文 ≥17px@375、图内文字等效 ≥11px 或可放大、宽表不造成页面级横滚、触控 ≥44px、打印样式；桌面端不得退化。门禁见 quality-policies 的 mobile-readability。"
   },
   "description": "A 股市场观点看板输出骨架（六章）。v2.7.0 起主动收益按基本成分三分解标注来源，并列输出「含③/不含③」两版净预期主动收益。"
 }

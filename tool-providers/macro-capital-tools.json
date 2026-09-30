@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
   "description": "包内可执行工具。数据获取**一律先试 Wind CLI**，取不到再走平台 provider 层（zyt / beike）与公开口径自算；本包不自建数据引擎。",
@@ -28,6 +28,30 @@
         "--selftest"
       ],
       "smokeNote": "声明即承诺：scripts/smoke-test.mjs 照 smokeArgs 真跑一次本 transport —— 静态存在性由 check-pack 把关，可执行性由本字段把关。"
+    }
+  ],
+  "dataChannels": [
+    {
+      "id": "wind-edb",
+      "role": "取数优先级第 1 档（v2.8.0 起强制先试）",
+      "caliber": "Wind EDB 口径",
+      "command": "node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data search_economic_indicator '{\"question\":\"…\"}' → query_economic_indicator_data（必填 beginDate/endDate）",
+      "credentialLadder": [
+        "~/.wind-aifinmarket/config (WIND_API_KEY)",
+        "<skill>/config.json (wind_api_key)",
+        "环境变量 WIND_API_KEY"
+      ],
+      "failureSemantics": "AUTH_ERROR / CREDENTIAL_MISSING ⇒ fail-closed：如实报通道不可用 + 已试凭据路径 + 错误码并写入「方法可靠性声明」；禁止重装、禁止绕走 analytics_data/wind-alice、禁止静默降级",
+      "fallback": "westock CLI → 公开接口自算 → 外部口径（须标来源与 as-of，逐项标注降级理由）",
+      "gates": [
+        "number-consistency(取数档位声明)",
+        "wind-provenance"
+      ],
+      "notSchedulableReason": "本包不持有 Wind 凭据（在用户侧），故不声明为 capabilities/transports —— 否则其 smokeArgs 会在无凭据环境失败，把『凭据缺失』误报成『包损坏』。真伪判据由 scripts/check-wind-provenance.py 在产物侧执行。",
+      "lastProbe": {
+        "date": "2026-09-30",
+        "result": "AUTH_ERROR：WIND_API_KEY 未配置（三处凭据位均已检查）"
+      }
     }
   ]
 }

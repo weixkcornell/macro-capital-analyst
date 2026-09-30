@@ -1,6 +1,6 @@
 {
   "id": "cycle-positioning-team",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "schemaVersion": 2,
   "parameters": {
     "type": "object",
@@ -168,6 +168,13 @@
     {
       "policy": "baseline",
       "gate": "gate-a-double-calibration",
+      "appliesTo": [
+        "deliverable"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "wind-provenance",
       "appliesTo": [
         "deliverable"
       ]

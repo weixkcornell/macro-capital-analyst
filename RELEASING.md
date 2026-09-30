@@ -74,7 +74,7 @@ bash scripts/audit-delivery.sh --md <final.md> --html <index.html> \
                                --pool "data/computed.json data/alpha.json data/cycle-inputs.json"
 ```
 
-它跑五件（判据全部**从包里读**，不写死在工具里）：
+它跑七件（判据全部**从包里读**，不写死在工具里）：
 
 | 门禁 | 工具 | 判据来源 |
 |---|---|---|
@@ -82,7 +82,9 @@ bash scripts/audit-delivery.sh --md <final.md> --html <index.html> \
 | section-outline（章节齐备与顺序） | `scripts/check-sections.mjs` | `.../section-outline` 的 `config`（含**规范化规则**） |
 | placeholder-clean（占位符残留 ＋ **未注入空值**） | 内联扫描 | `.../placeholder-clean` ＋ 本仓约定（生成器须自带空值自检） |
 | banned-tokens（禁例 token） | 内联扫描 | `.../banned-tokens`（含通用术语豁免表） |
-| render-overflow（五档视口溢出 + WCAG AA 对比度） | `scripts/audit-render.py`（playwright） | `.../render-overflow` 的 `config` |
+| render-overflow（六档视口溢出 + WCAG AA 对比度） | `scripts/audit-render.py`（playwright） | `.../render-overflow` 的 `config` |
+| **mobile-readability（移动端可读性：正文字号／图内等效字号／触控目标／表格滚动／零溢出）** | `scripts/audit-mobile.py`（playwright） | `.../mobile-readability` 的 `config`（320/375/390 三档；**读 computed style，不采信声明值**） |
+| **wind-provenance（Wind 主定量源口径 + 凭据 fail-closed）** | `scripts/check-wind-provenance.py`（确定性） | `.../wind-provenance` 的 `config`（引用须带指标代码；禁静默降级；禁重装/绕过） |
 
 **报告生成器必须自带空值自检**：注入失败产生的 `None/nan/inf` 与未渲染占位符必须让**生成失败**（数字一致性门禁只核对数字，抓不到 `None`；本仓一次真实交付即因此让缺陷进了正文）。
 

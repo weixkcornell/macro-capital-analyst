@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -219,6 +219,10 @@
             "h": 844
           },
           {
+            "w": 375,
+            "h": 812
+          },
+          {
             "w": 768,
             "h": 1024
           },
@@ -353,6 +357,95 @@
         ]
       },
       "description": "摘要中的每条概括必须在正文找到对应论据、并在数据底座找到同口径证据；三方不一致不得发布。由 toolProviders/macro-capital-tools 的 macro.collision.check 执行（SKILL.md §3.3）。"
+    },
+    {
+      "id": "wind-provenance",
+      "name": "Wind 取数档位口径与凭据 fail-closed（可执行）",
+      "kind": "deterministic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "description": "在 number-consistency 的「取数档位声明」判据之上，把「先试 Wind、不得静默降级、降级须逐项标注」落成可执行检查（由 scripts/check-wind-provenance.py 执行）。",
+      "config": {
+        "primaryChannel": "Wind CLI（wind-mcp-skill）",
+        "cliRoute": "node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data search_economic_indicator '{\"question\":\"…\"}' → query_economic_indicator_data（必填 beginDate/endDate 或 observation）",
+        "credentialLadder": [
+          "~/.wind-aifinmarket/config (WIND_API_KEY)",
+          "<skill>/config.json (wind_api_key)",
+          "环境变量 WIND_API_KEY"
+        ],
+        "citationFormat": "（Wind EDB，<发布机构>，截至 <年-月>）；成功必附「数据来源于万得 Wind 金融数据服务」+ 指标代码",
+        "failClosed": [
+          "AUTH_ERROR / CREDENTIAL_MISSING ⇒ 如实报通道不可用 + 已试凭据路径 + 错误码，并写入「方法可靠性声明」",
+          "禁止重装 skill/provider 作为修法；禁止改走 analytics_data / wind-alice 绕过；禁止静默降级",
+          "使用降级通道（westock / 公开自算 / 外部口径）的每个数字须逐项标注降级理由与来源"
+        ],
+        "negationContext": "『未重装/未绕走/未静默降级』这类**否定语境的提及不算违规**（纪律声明本身必须能写出这些词）；仅在非否定语境下才判禁止动作",
+        "executable": "scripts/check-wind-provenance.py --md <final.md> --out <json>（--selftest 自校准：2 正向 + 3 反向）",
+        "lastProbe": {
+          "date": "2026-09-30",
+          "result": "AUTH_ERROR（WIND_API_KEY 未配置，三处凭据位均已检查）"
+        }
+      }
+    },
+    {
+      "id": "mobile-readability",
+      "name": "移动端可读性门",
+      "kind": "visual",
+      "severity": "hard",
+      "appliesTo": [
+        "html"
+      ],
+      "description": "移动端（375 主视口，覆盖 320/390）可读性下限：正文字号／页面溢出／裁切／触控目标／表格滚动／图内等效字号。",
+      "config": {
+        "viewports": [
+          {
+            "w": 320,
+            "h": 800
+          },
+          {
+            "w": 375,
+            "h": 812
+          },
+          {
+            "w": 390,
+            "h": 844
+          }
+        ],
+        "criteria": {
+          "bodyFontMinPx": {
+            "375": 17,
+            "320": 16,
+            "note": "读 computed style，不采信声明值"
+          },
+          "figureLabelMinEffectivePx": {
+            "min": 11,
+            "docs": "等效字号 = font-size × 视口宽/viewBox 宽；viewBox=640 时 @375 ⇒ ≥18.8px",
+            "alternative": "提供点击全屏查看入口（纯 CSS :target 或内联 JS，仍须自包含）"
+          },
+          "tapTargetMinPx": 44,
+          "tableFontMinPx": 14,
+          "tablePolicy": "允许容器内横滚；页面级必须 0 溢出；窄屏须卡片堆叠或首列 sticky",
+          "overflow": "页面级 scrollWidth − clientWidth ≤ 1px；元素级裁切/重叠 = 0",
+          "contrast": "不得低于 render-overflow 基线（AA 全节点穷举、0 失败）",
+          "srOnlyExclusion": "无障碍视觉隐藏元素（position:absolute/fixed + clip/clip-path + 尺寸 ≤2px）不计裁切、不计触控目标 —— 与 render-overflow 判据的排除保持一致（否则每个视口都会误报「跳到正文」链接）"
+        },
+        "notGated": [
+          {
+            "item": "目录/rail 的版式偏好",
+            "reason": "属 renderModes.html.mobile 规格；本门只判可读性下限（包自带 render-report.mjs 已实现桌面 rail → 窄屏顶部粘性目录条）"
+          },
+          {
+            "item": "KPI 卡 4 列 → 2×2",
+            "reason": "属交付物版式，纯文本渲染器不生成 KPI 卡"
+          }
+        ],
+        "rationale": "实测：viewBox=640 的 SVG 在 375 宽下缩放 0.586× ⇒ 图内 11–12.5px 实际渲染 6.4–7.3px（不可读）；宽表靠横滚；正文 16.5px 偏小。",
+        "executable": "scripts/audit-mobile.py --html <index.html> --out <json>"
+      }
     }
   ],
   "notes": "硬门未过 → 完成被阻断并返回修正指引；软门 → 警告放行（gate_warnings）；通过后产出 0-100 质量分烙进任务标题（质 NN）。建议落盘 GATE 文件（哈希 + 抽样截图）。 v2.7.0：禁例 token 同步至 46 源派生词干 + 语言硬规则（禁「腿」）；gate-a-double-calibration 补收益口径折减与 p-hacking 拦截两项交付侧判据。"

@@ -106,6 +106,22 @@ else
   say "⑤ render-overflow：未提供 --html，跳过"
 fi
 
+# ⑥ mobile-readability：移动端可读性（320/375/390；读 computed style，不采信声明值）
+if [ -n "$HTML" ]; then
+  say "⑥ mobile-readability：移动端可读性（320×800 / 375×812 / 390×844）"
+  python3 "$PACK/scripts/audit-mobile.py" --html "$HTML" --out "$OUT/mobile-audit.json" --policy-dir "$PACK/quality-policies" || rc=1
+else
+  say "⑥ mobile-readability：未提供 --html，跳过"
+fi
+
+# ⑦ wind-provenance：Wind 主定量源口径与凭据 fail-closed（禁静默降级）
+if [ -n "$MD" ]; then
+  say "⑦ wind-provenance：Wind 主定量源口径与凭据 fail-closed"
+  python3 "$PACK/scripts/check-wind-provenance.py" --md "$MD" --out "$OUT/wind-provenance.json" --policy-dir "$PACK/quality-policies" || rc=1
+else
+  say "⑦ wind-provenance：未提供 --md，跳过"
+fi
+
 say "汇总"
-if [ "$rc" -eq 0 ]; then echo "✓ 交付级门禁全部通过（报告见 $OUT/）"; else echo "✗ 有硬门未通过 —— 不得发布（详见 $OUT/）"; fi
+if [ "$rc" -eq 0 ]; then echo "✓ 交付级门禁（7 件）全部通过（报告见 $OUT/）"; else echo "✗ 有硬门未通过 —— 不得发布（详见 $OUT/）"; fi
 exit "$rc"

@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.0-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.1-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -138,6 +138,8 @@ macro-capital-analyst/
 英文概览见 [`README.en.md`](README.en.md)，贡献与提交前检查见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
 
 ## 版本历史
+
+- **2.8.1**（2026-09-30）：**移动端可读性入包 + Wind 取数档位可执行化（在 2.8.0 取数优先级之上叠加）** —— ① **新增门 `mobile-readability`（visual/hard）**：375 主视口（覆盖 320/390）正文 ≥17px、图内文字**等效字号** ≥11px 或提供放大入口、触控目标 ≥44px、宽表卡片堆叠或受控横滚、页面级 0 溢出与 0 裁切重叠；`render-overflow` 视口补 **375×812**。② **新增门 `wind-provenance`（deterministic/hard）**：在 2.8.0 的「取数档位链（Wind→westock→公开→外部）」之上，把**凭据缺失 fail-closed、禁止重装/绕走、降级须逐项标注**落成可执行检查；`tool-providers` 增 `dataChannels.wind-edb` 声明（命令/三级凭据阶梯/失败语义/`lastProbe` 实测 `AUTH_ERROR`），`data-contracts` 增 `wind.edb.query` 与 `wind.edb.metadata`。③ **两个门禁执行工具**：`scripts/audit-mobile.py`（playwright 实测 computed style，含 `sr-only` 排除，避免把无障碍 skip-link 误报为裁切/小触控目标）与 `scripts/check-wind-provenance.py`（含 `--selftest`：2 正向 + 3 反向 —— 其 v1 曾因裸正则把纪律句「未绕走 analytics_data」判违规而**不可满足**，由正向对照抓出并修复）；`scripts/audit-delivery.sh` 由 5 件扩为 **7 件**（RELEASING.md 门禁表同步）。④ **包自带渲染器补齐移动端**：`scripts/render-report.mjs` 增桌面 rail → 窄屏顶部粘性目录条（h2 自动建目录、触控 ≥44px）、窄屏宽表卡片堆叠（`data-label` 逐格回填）、`tabular-nums`、`env(safe-area-inset-*)`、`@media print`；实测 `render-overflow` 六视口 0 溢出 + 对比度 **958/958**、`mobile-readability` 320/375/390 全 PASS —— 『声明移动端规格』与『工具能实现该规格』对齐。⑤ 与 2.8.0 的关系：**取数优先级规则保留上游原文并叠加**，不重复也不改写；本版为**纯增量**（上游 20 个文件的 2.8.0 改动全部保留）。⑥ 本版不新增知识源、不新增能力层。
 
 
 - **2.8.0**（2026-09-30）：**同步 macro-capital-market-analysis v37 —— 取数优先级：Wind CLI 优先** —— ① **新增强制规则（取数优先级）**：**任何数据一律先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败 / 超时）**再退回其他方式**，退回顺序为 **westock CLI → 公开接口自算（新浪 / 腾讯 fqkline / 中证 `index-perf` / 东财）→ 外部口径（须标来源与 as-of）**。**禁止跳过 Wind CLI 直接走公开接口**；**本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明**。② **落地位置**：`pack.json` 的口径声明把 Wind 由「可选主定量源」升为「**取数优先级第 1 档**」；`experts` 的 `methodProfile.dataPreference` 置顶该规则，并补 1 条 `mentalModel`、2 条 `antiPattern`、1 条 `vetoRule`，`blindSpots` 由「本机无 Wind/iFinD」改为「Wind 不可用时的缺口」；`quality-policies/baseline.json` 的 `number-consistency` 门禁新增「取数档位声明」判据（`dataSourcePriority = [wind, westock, public-selfcompute, external-with-citation]`）；两个 scenario 的 `description`、`tool-providers` 的 `description` 与 `note`、包内 `skills/macro-capital-framework/SKILL.md` 的 §2 均写入该优先级。③ **同步全文因该规则而不成立的绝对陈述**（skill 侧 10 处、包侧 2 处）：「本机无 Wind/iFinD，forward EPS 与盈利预测修正层缺失」→「取数先试 Wind CLI，取不到再退回；实际档位须声明」；汇率与美元指数历史序列由「本机无历史」改为「先试 Wind CLI，不可用时自建序列」；附录 B gap-003 的补齐路径改为 Wind CLI 优先。④ **一处如实提示（非本包可解）**：规则是策略性的、自带退回条款；**本机当前未解析到 Wind CLI**（PATH 无 `wind`、无 Wind 安装目录），故在 Wind 就绪前所有运行都会落到退回档，此时「方法可靠性声明」须写明实际档位与原因。⑤ 本版**不新增知识源**（46 源 / 54 份精读不变）、**不新增实体**（43 个不变）；能力层、两道闸门判据的**内容**零变更。
