@@ -1,6 +1,6 @@
 {
   "id": "a-share-outlook",
-  "version": "2.8.9",
+  "version": "2.8.10",
   "schemaVersion": 2,
   "name": "A 股市场观点看板输出模板",
   "media": [
@@ -919,7 +919,7 @@
       {
         "name": "figure",
         "keys": [
-          "type=bars|diverging|range|waterfall|steps|matrix",
+          "type=bars|diverging|range|waterfall|steps|matrix|sparkline|donut|gauge|pictogram|timeline|microbar",
           "title",
           "unit",
           "source",

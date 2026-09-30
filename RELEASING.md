@@ -90,6 +90,8 @@ bash scripts/audit-delivery.sh --md <final.md> --html <index.html> \
 | **wind-provenance（Wind 主定量源口径 + 凭据 fail-closed）** | `scripts/check-wind-provenance.py`（确定性） | `.../wind-provenance` 的 `config`（引用须带指标代码；禁静默降级；禁重装/绕过；**三态须分清**：AUTH_ERROR＝凭据/`HOME` 解析问题 · PARAM_VALIDATION_ERROR＝入参错 · `backend_error`『积分余额不足』＝鉴权正常但额度耗尽） |
 | **template-conformance（产物 ↔ 输出模板一致性）** | `scripts/check-template-conformance.mjs` | 输出模板的 `designSystem`（tokens／roles／components／directives）：产物 `:root` 的 token 取值须与模板逐字相同、已用组件类名齐备、禁 `#fff/#000` 底、禁档外字号、指令白名单、同包各模板核心 token 一致 |
 
+**判据来源审计（2026-09-30 由交付方实测 + 本仓修复）**：交付门禁自称"判据来自包里"，但实测发现**有两个门的声明判据从未被加载/消费** —— `audit-mobile.py` 的 `load_policy` 只判 `is_file()`，而 `audit-delivery.sh` 传的是**目录**，目录恒不满足 ⇒ 一律走内置默认（声明与内置默认逐值相等，故对当时判定零数值影响）；`check-wind-provenance.py` 读到了 `cfg` 但**从未传入 `run_checks`** ⇒ 判据全是内置的。**v2.8.10 已修**：前者支持目录/文件（实测 `policySource` 由 `null` 变为 `baseline.json`），后者真正消费 3 个开关，并各自补了**「判据来源」自校准对照**（同一样本随声明值改变而改变判定）；`directives.list[figure].keys.type` 与 `designSystem.figures.types` 的枚举漂移也一并对齐并加了两条负向对照。**结论**：现在真正加载并强制声明判据的是 `render-overflow`、`section-outline`、`mobile-readability`、`wind-provenance`、`banned-tokens`（内联读包里禁例表）、`template-conformance`（读模板 designSystem）；`placeholder-clean` 的判据为**本仓约定**（生成器须自带空值自检），不来自 `baseline.json`。
+
 **报告生成器必须自带空值自检**：注入失败产生的 `None/nan/inf` 与未渲染占位符必须让**生成失败**（数字一致性门禁只核对数字，抓不到 `None`；本仓一次真实交付即因此让缺陷进了正文）。
 
 渲染这一步由 `scripts/render-report.mjs` 执行：markdown → **自包含** HTML5，版式规格（浅色/衬线/学术、涨=红跌=绿、¥、YYYY-MM-DD、文末「不构成投资建议」）**从输出模板的 `rendering` 声明读**。

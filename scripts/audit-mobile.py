@@ -24,8 +24,13 @@ ZOOM_HINT = re.compile(r"放大|全屏|zoom|fullscreen|expand|enlarge|lightbox",
 def load_policy(policy_path):
     """从包的 quality-policies/*.json 读判据；读不到则用内置默认（并在报告里声明 adopted_defaults）。"""
     cfg, src, adopted = {}, None, []
-    if policy_path and pathlib.Path(policy_path).is_file():
-        for f in sorted(pathlib.Path(policy_path).glob("*.json")):
+    # 入参既可能是 quality-policies/ 目录（audit-delivery.sh 传的就是目录），也可能是单个策略文件。
+    # 此前只判 is_file() ⇒ 传目录时恒为假 ⇒ 声明的判据**永不加载**、一律走内置默认（2026-09-30 由交付方实测发现）。
+    _pp = pathlib.Path(policy_path) if policy_path else None
+    _files = (sorted(_pp.glob("*.json")) if (_pp and _pp.is_dir())
+              else ([_pp] if (_pp and _pp.is_file()) else []))
+    if _files:
+        for f in _files:
             try:
                 d = json.loads(f.read_text(encoding="utf-8"))
             except Exception:

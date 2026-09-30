@@ -136,6 +136,28 @@ function check({ template, html, md, pack = PACK }) {
     }
   }
 
+  /* ⑤b 图型枚举：directives.list[figure].keys.type 必须与 designSystem.figures.types 一致 */
+  {
+    const figDir = (template.directives?.list ?? []).find(d => d.name === 'figure')
+    const keySpec = (figDir?.keys ?? []).find(k => String(k).startsWith('type='))
+    const declared = new Set(DS.figures?.types ?? [])
+    const fromKey = keySpec ? new Set(String(keySpec).replace(/^type=/, '').split('|')) : new Set()
+    info.figureTypes = { declared: [...declared], fromDirective: [...fromKey] }
+    const onlyKey = [...fromKey].filter(x => !declared.has(x))
+    const onlyDecl = [...declared].filter(x => !fromKey.has(x))
+    if (keySpec && (onlyKey.length || onlyDecl.length)) {
+      problems.push({ code: 'figure-type-enum-drift', msg: `图型枚举不一致：仅 directives 有 [${onlyKey}]；仅 figures.types 有 [${onlyDecl}]` })
+    }
+    if (md != null) {
+      const used = [...md.matchAll(/^:::figure\s+([^\n]*)$/gm)]
+        .map(m => (/type=([\w|]+)/.exec(m[1]) ?? [, 'bars'])[1])
+        .flatMap(t => String(t).split('|'))
+      const bad = [...new Set(used)].filter(t => !declared.has(t))
+      info.figureTypes.used = [...new Set(used)]
+      if (bad.length) problems.push({ code: 'figure-type-undeclared', msg: `md 使用了未声明图型：${bad.join('、')}` })
+    }
+  }
+
   /* ⑥ 指令完整性（md ↔ 模板白名单） */
   if (md != null) {
     const allowed = new Set((template.directives?.list ?? []).map(d => d.name))
@@ -254,6 +276,18 @@ title: 一致性门禁试样
   mkdirSync(join(driftRoot, 'output-templates'), { recursive: true })
   const t2 = JSON.parse(JSON.stringify(tpl0)); t2.id = 'other-template'; t2.designSystem.tokens.color.teal600 = '#0e6a56'
   writeFileSync(join(driftRoot, 'output-templates', 'other-template.json'), JSON.stringify(t2))
+  // 负向 6：directives 的 figure 枚举被裁窄（figures.types 不动）⇒ figure-type-enum-drift
+  const tEnum = JSON.parse(JSON.stringify(tpl0))
+  tEnum.directives.list.find(x => x.name === 'figure').keys[0] = 'type=bars|diverging'
+  writeFileSync(join(tmp, 'enum.json'), JSON.stringify(tEnum))
+  cases.push(['负向：figure 图型枚举与 figures.types 漂移 ⇒ figure-type-enum-drift',
+    check({ template: tEnum, md: null, html: null, pack: null }).problems.some(p => p.code === 'figure-type-enum-drift')])
+
+  // 负向 7：md 用了未声明图型 ⇒ figure-type-undeclared
+  cases.push(['负向：md 使用未声明图型 ⇒ figure-type-undeclared',
+    check({ template: JSON.parse(JSON.stringify(tpl0)), md: md + '\n:::figure type=sankey title=x source=y\na | 1\n:::\n', html: null, pack: null })
+      .problems.some(p => p.code === 'figure-type-undeclared')])
+
   const drift = check({ template: JSON.parse(JSON.stringify(tpl0)), md: null, html: null, pack: driftRoot })
   cases.push(['负向：同包另一模板色阶漂移 ⇒ template-token-drift', drift.problems.some(p => p.code === 'template-token-drift')])
 

@@ -47,8 +47,17 @@ def load_policy(d):
     return {}, None
 
 
-def run_checks(md):
-    """返回 (stats, problems)。纯函数：自校准与实跑共用同一条判据路径。"""
+def run_checks(md, cfg=None):
+    """返回 (stats, problems)。纯函数：自校准与实跑共用同一条判据路径。
+
+    cfg ＝ 包里 quality-policies 的 `wind-provenance.config`。**必须被真正消费**：
+    此前 load_policy 读到了 cfg 却从未传进来 ⇒ 判据全是内置的（2026-09-30 由交付方实测发现），
+    于是「改 baseline.json 也不生效」。下列开关均取自声明，缺省时才退回内置值。
+    """
+    cfg = cfg or {}
+    require_code = cfg.get("requireIndicatorCode", True)
+    require_err = cfg.get("requireErrorCodeInReliability", True)
+    require_path = cfg.get("requireCredentialPathInReliability", True)
     problems, stats = [], {}
     paras = re.split(r"\n(?=## )", md)
 
@@ -68,7 +77,8 @@ def run_checks(md):
     stats["windCitations"] = wind_marks
     stats["windCitationsWithCode"] = CODE_ok
     stats["windCitationsMissingCode"] = CODE_missing
-    if CODE_missing:
+    stats["cfg.requireIndicatorCode"] = require_code
+    if CODE_missing and require_code:
         problems.append(f"Wind 引用缺指标代码/待补：{CODE_missing} 处 —— 例：{miss_examples[0] if miss_examples else ''}")
 
     # B. 凭据 fail-closed（禁止静默降级）
@@ -87,9 +97,9 @@ def run_checks(md):
         else:
             if not has_wind_record:
                 problems.append("静默降级：使用降级通道但「方法可靠性声明」未记录 Wind 通道状态")
-            if not has_err:
+            if not has_err and require_err:
                 problems.append("静默降级：降级记录未含错误码（AUTH_ERROR / CREDENTIAL_MISSING）或「通道不可用」")
-            if not has_path:
+            if not has_path and require_path:
                 problems.append("降级记录未说明已试凭据路径（WIND_API_KEY / ~/.wind-aifinmarket/config / config.json）")
 
     # C. 禁止动作——**否定语境内的提及不算**（纪律声明本身必须能写出这些词）
@@ -146,7 +156,18 @@ def selftest():
         if got_pass != expect_pass and problems:
             for p in problems:
                 print(f"        · {p}")
-    print(f"\n{'PASS' if ok else 'FAIL'}: {sum(1 for n,m,e,w in FIXTURES if (not run_checks(m)[1])==e)}/{len(FIXTURES)} 自校准样本按预期")
+    # 附加对照（**判据来源**，2026-09-30 补）：证明「声明被真正消费」——
+    # 同一份缺指标代码的产物，在声明 requireIndicatorCode=true 时 FAIL、=false 时 PASS。
+    n_code = sum(1 for n, m, e, w in FIXTURES if (not run_checks(m)[1]) == e)
+    fixture = "# 产物\n\n## 四、结论\n\n沪深300 收盘价 4340.76（Wind EDB，上海证券交易所，截至 2026-09）。此处**没有**指标代码。\n"
+    strict = run_checks(fixture, {"requireIndicatorCode": True})[1]
+    loose = run_checks(fixture, {"requireIndicatorCode": False})[1]
+    policy_live = bool(strict) and not loose
+    print(f"{'ok  ' if policy_live else 'FAIL'} {'判据来源：policy.requireIndicatorCode 生效':34s} 期望 声明可改变判定，"
+          f"实得 strict={'FAIL' if strict else 'PASS'} / loose={'FAIL' if loose else 'PASS'}  —— 声明必须被消费，否则是纸门")
+    ok = ok and policy_live
+    total = len(FIXTURES) + 1
+    print(f"\n{'PASS' if ok else 'FAIL'}: {n_code + (1 if policy_live else 0)}/{total} 自校准样本按预期")
     return 0 if ok else 1
 
 
@@ -171,7 +192,7 @@ def main():
     md = p.read_text(encoding="utf-8")
     cfg, src = load_policy(args.policy_dir or str(p.resolve().parent.parent.parent / "quality-policies"))
 
-    stats, problems = run_checks(md)
+    stats, problems = run_checks(md, cfg)   # ← cfg 必须传入（否则声明的判据形同虚设）
     report = {"gate": "wind-provenance", "md": str(p), "policySource": src, "stats": stats,
               "problems": problems, "verdict": "pass" if not problems else "fail"}
     out = pathlib.Path(args.out)

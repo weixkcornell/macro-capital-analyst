@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.9-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.10-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -139,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.10**（2026-09-30）：**修复两处「声明判据没被加载/消费」的门禁缺陷 + 图型枚举对齐（由独立复核实测发现）** —— ① `audit-mobile.py` 的 `load_policy` 只判 `is_file()`，而 `audit-delivery.sh` 传的是**目录**（`quality-policies`），目录恒不满足 ⇒ `glob` 永不执行、声明的 `mobile-readability.config` **从未被加载**，一律走内置默认（声明值与内置默认逐值相等，故对既有判定**零数值影响**，但"改 `baseline.json` 不生效"是潜在缺陷）。已改为**支持目录或文件**，实测 `policySource` 由 `null` 变为 `quality-policies/baseline.json`。② `check-wind-provenance.py` 虽定位到策略文件、解析出 `cfg`，却**从未传入 `run_checks`**（仅在赋值处出现）⇒ Wind 门判据同样是内置的。已改为真正消费 3 个开关（`requireIndicatorCode` / `requireErrorCodeInReliability` / `requireCredentialPathInReliability`），并新增**「判据来源」自校准对照**：同一份缺指标代码的产物在声明为真时 FAIL、为假时 PASS（**自校准 5/5 → 6/6**）。③ `directives.list[figure].keys.type` 只枚举 6 种，而 `designSystem.figures.types` 声明 12 种，且检查器未强制更窄的枚举 ⇒ **契约与检查器不一致**。已把枚举按 `figures.types` 对齐为 12 种，并在 `check-template-conformance.mjs` 新增两项检查 `figure-type-enum-drift`（两处枚举必须一致）与 `figure-type-undeclared`（md 用到的 `type=` 必须已声明），配两条负向对照（**自校准 7/7 → 9/9**）。④ `RELEASING.md` 增「判据来源审计」段：明确列出**哪些门真正加载并强制声明判据**、哪些是内置或本仓约定 —— 避免"判据来自包里"这句话再次失真。⑤ 来由：本版缺陷由 t15 **独立复核**实测发现（复核人≠执行者）；产物侧内容零变更，纯门禁机制修复。
 
 - **2.8.9**（2026-09-30）：**补全 RELEASING.md 的门禁表（发布前 ⑤–⑦ 与交付第 ⑧ 门）+ 记录 doc 自检的范围与限度** —— ① 缺陷（由交付方实测指出）：`RELEASING.md` 的发布前表只列到 ④、交付门表只列到 7 门，而 2.8.3–2.8.8 已相继加入 `smoke-test`（⑤）、`check-doc-commands`（⑥）、`check-template-conformance --selftest`（⑦）与交付第 ⑧ 门 `template-conformance` —— **文档落后于代码**，属同类 doc↔实际漂移。② 补记 ⑥ 的**范围与限度**：只扫 `.md`（不扫 `.html`）；**只比字段名、读不出意图**，故意写错的反例须以参数对象形式给出（响应与退出码照原样保留）；反斜杠续行的命令会被静默跳过（假阴性），复核命令须单行；并明确它**不是交付门禁**（不进 `baseline.json`、不在 `audit-delivery.sh` 内）。③ 交付门表补 `template-conformance` 行与 `wind-provenance` 的**三态**说明。④ 纯文档同步：判据与代码一字未改。
 
