@@ -1,0 +1,52 @@
+{
+  "id": "wind-tool-schemas",
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-30",
+  "source": "wind-mcp-skill: node <skill>/scripts/cli.mjs list-tools economic_data",
+  "note": "从后端官方 inputSchema 记录，供 scripts/check-doc-commands.mjs 做**离线**文档-契约一致性检查（避免再次把不存在的字段写进调用示例）。字段变化时须重抓本文件。",
+  "serverTypes": {
+    "economic_data": {
+      "search_economic_indicator": {
+        "required": [
+          "question"
+        ],
+        "properties": [
+          "question"
+        ]
+      },
+      "query_economic_indicator_data": {
+        "required": [
+          "question"
+        ],
+        "properties": [
+          "beginDate",
+          "endDate",
+          "observation",
+          "question",
+          "targetCurrency",
+          "targetFrequency",
+          "targetMagnitude"
+        ]
+      }
+    }
+  },
+  "knownPitfalls": [
+    {
+      "field": "indicator_code",
+      "verdict": "NOT_ACCEPTED_BY_query_economic_indicator_data",
+      "evidence": "传该字段返回 PARAM_VALIDATION_ERROR：『工具不支持字段 indicator_code；缺少必填字段 question』（2026-09-30 实测）",
+      "correct": "代码由 search_economic_indicator 取得，用于**引用/溯源**，不作为 query 入参"
+    },
+    {
+      "field": "home",
+      "verdict": "CLI 按 homedir() 解析 ~/.wind-aifinmarket/config",
+      "evidence": "HOME 非凭据所在家目录时误报 AUTH_ERROR『WIND_API_KEY 未配置』",
+      "correct": "HOME=/root node …cli.mjs …"
+    }
+  ],
+  "capabilityMap": {
+    "wind.edb.query": "economic_data.query_economic_indicator_data",
+    "wind.edb.metadata": "economic_data.search_economic_indicator"
+  },
+  "why": "CSV 的 input_schema 是**权威契约声明**；2.8.1 的缺陷正是这里写了 indicator_code（而不是 CLI 示例），故自检必须同时校验该列。"
+}

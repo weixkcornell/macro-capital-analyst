@@ -17,10 +17,12 @@ run "④ i1 解析层自检" \
     python3 skills/macro-capital-framework/references/scripts/i1_collision_check.py --selftest
 run "⑤ 冒烟测试（照 transport 的 smokeArgs 真跑一次：声明即可执行）" \
     node scripts/smoke-test.mjs
-echo "── ⑥ 覆盖率（盲区可见；含判据强度分级）"
+run "⑥ 文档-契约一致性（文档与契约里写的字段必须存在于真实 inputSchema；离线）" \
+    node scripts/check-doc-commands.mjs --dir .
+echo "── ⑦ 覆盖率（盲区可见；含判据强度分级）"
 node scripts/check-pack.mjs --coverage 2>/dev/null | sed -n '/覆盖率/,$p'
-echo "── ⑦ 判据登记表（查了什么／没查什么）"
+echo "── ⑧ 判据登记表（查了什么／没查什么）"
 node scripts/check-pack.mjs 2>/dev/null >/dev/null; node -e "const t=require('fs').readFileSync('CRITERIA.md','utf8');const n=(t.match(/^\\| \`/gm)||[]).length;console.log('  CRITERIA.md 在位，登记判据 '+n+' 条（与代码逐字一致由 criteria-doc 判据把关）')"
 
-if [ "$rc" -eq 0 ]; then echo; echo "✓ 发布前五件套全通过（附覆盖率报表）"; else echo; echo "✗ 有检查未通过 —— 不要发布"; fi
+if [ "$rc" -eq 0 ]; then echo; echo "✓ 发布前六件套全通过（附覆盖率报表）"; else echo; echo "✗ 有检查未通过 —— 不要发布"; fi
 exit "$rc"

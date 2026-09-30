@@ -1,7 +1,7 @@
 ---
 name: macro-capital-framework
 description: '观澜宏观与资本市场分析工艺：第 0 层定基准与额度、十三层能力取机制、六步内化组织行文、两道闸门把关统计可信与实施成本、主动收益基本成分三分解、语言硬规则、十道起步门禁验收。Triggers on "宏观研判", "A股策略", "周期定位", "风格配置", "资产配置", "因子归因", "市场观点看板", "净预期主动收益", "预期收益", "主动收益"'
-version: 2.8.2
+version: 2.8.3
 user-invocable: true
 argument-hint: "[写/审] 中国宏观与 A 股 [主题]"
 license: MIT
@@ -39,6 +39,7 @@ metadata:
 **取数优先级（强制）**：取数优先级（强制 · v2.8.0 起）：**任何数据一律先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败 / 超时）**再退回其他方式**，退回顺序为 westock CLI → 公开接口自算 → 外部口径（须标来源与 as-of）。**禁止跳过 Wind CLI 直接走公开接口**；本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明。
     - **凭据缺失 fail-closed（v2.8.1 补 · 与上条同源）**：若 Wind CLI 因未配置凭据返回 `AUTH_ERROR` / `CREDENTIAL_MISSING`，须如实报「通道不可用」＋**已试凭据路径**（`~/.wind-aifinmarket/config` → skill `config.json` → 环境变量 `WIND_API_KEY`）＋错误码，并连同**本期实际档位**一并写入「方法可靠性声明」；**禁止以重装 skill/provider 作为修法、禁止绕走 `analytics_data` / `wind-alice`、禁止静默降级**。降级通道（westock → 公开接口自算 → 外部口径）的每个数字须**逐项标注降级理由与来源**。门禁 `wind-provenance`（执行工具 `<pack>/scripts/check-wind-provenance.py`，含 `--selftest` 自校准：2 正向 + 3 反向）。
     - **移动端可读性（v2.8.1 补）**：交付 HTML 须过 `mobile-readability` —— 375 主视口（覆盖 320/390）正文 ≥17px、图内文字**等效字号** ≥11px（＝font-size × 视口宽/viewBox 宽）或提供点击全屏入口、触控目标 ≥44px、宽表卡片堆叠或受控横滚、页面级 0 溢出与 0 裁切重叠。规格见 `output-templates/*.json` 的 `renderModes.html.mobile`；执行工具 `<pack>/scripts/audit-mobile.py`。
+    - **Wind CLI 调用示例（v2.8.3 补 · 可直接复制）**：**先取码、再取数** —— ① `HOME=<凭据用户家目录> node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data search_economic_indicator '{"question":"沪深300指数收盘价"}'` → 返回 `M0342072`（代码用于**引用/溯源**）；② `HOME=<凭据用户家目录> node /root/.agents/skills/wind-mcp-skill/scripts/cli.mjs call economic_data query_economic_indicator_data '{"question":"沪深300指数收盘价","beginDate":"2026-09-01","endDate":"2026-09-30"}'` → 返回日频时序。**字段真相（2026-09-30 实测）**：`query_economic_indicator_data` **只收 `question`**（+可选 `beginDate`/`endDate`/`observation`/`targetMagnitude`/`targetCurrency`/`targetFrequency`），**不收 `indicator_code`**（传即 `PARAM_VALIDATION_ERROR`）；**`HOME` 会影响凭据解析** —— CLI 按 `homedir()` 找 `~/.wind-aifinmarket/config`，HOME 不指向凭据所在家目录时会误报 `AUTH_ERROR`。字段真相存于 `data-contracts/wind-tool-schemas.json`（由 `list-tools` 记录）；**发布前由 `node <pack>/scripts/check-doc-commands.mjs` 离线校验「文档/契约里写的字段 ⊆ 真实 inputSchema」** —— 该门正是为 v2.8.1 那次「把 indicator_code 当入参、文档命令跑不通」的缺陷而补。
 
 1. **口径锚定**：宏观数字先读对——名义/实际、同比/环比、结构拆解、基数与季节性；锚定官方口径。
 2. **四级数据标注**：每个非引用数字必须落到一级——`测算`（模型算，给参数）/ `估算`（量级推断）/ `研判推断`（分析性判断）/ `待补`（进观察清单）。
