@@ -42,6 +42,9 @@ bash scripts/release-check.sh
 | ② | `selftest-gates.mjs` | **门禁自己的负向对照**（11 例注入式缺陷，任一未被抓住即 FAIL）——门禁若只在真品上跑过，等于没校准 |
 | ③ | `repin-digests.mjs --dry-run` | digest 是否该重钉（dry-run 不写盘） |
 | ④ | `i1_collision_check.py --selftest` | 技能脚本解析层 8 例（含负向样本） |
+| ⑤ | `smoke-test.mjs` | 照 `transports` 的 `smokeArgs` 真跑一次（断言"声明即可执行"） |
+| ⑥ | `check-doc-commands.mjs --dir .` | **文档-契约一致性（离线）**：文档里的 CLI 示例与 `data-contracts/*.csv` 的 `input_schema` 字段，必须落在**真实 `inputSchema`** 内（判据来自 `data-contracts/wind-tool-schemas.json`）。**范围与限度（2026-09-30 实测补记）**：只扫 `.md`（**不扫 `.html`**）；**只比字段名、读不出意图** —— 故意写错的反例若以完整命令字面量给出会被当成缺陷，故反例须以**参数对象形式**给出（错误响应与退出码照原样保留，证据不缩水）；反斜杠续行的命令会被静默跳过（假阴性），复核命令须写成单行。**它不是交付门禁**：不进 `baseline.json`、不是 `audit-delivery.sh` 的一步 |
+| ⑦ | `check-template-conformance.mjs --selftest` | 输出模板一致性门自身的**负向对照**（2 正向 + 5 负向，必须 7/7）—— 与 ② 同理由：门禁不校准等于没门禁 |
 
 **任何一项红：不要发布。**
 
@@ -84,7 +87,8 @@ bash scripts/audit-delivery.sh --md <final.md> --html <index.html> \
 | banned-tokens（禁例 token） | 内联扫描 | `.../banned-tokens`（含通用术语豁免表） |
 | render-overflow（六档视口溢出 + WCAG AA 对比度） | `scripts/audit-render.py`（playwright） | `.../render-overflow` 的 `config` |
 | **mobile-readability（移动端可读性：正文字号／图内等效字号／触控目标／表格滚动／零溢出）** | `scripts/audit-mobile.py`（playwright） | `.../mobile-readability` 的 `config`（320/375/390 三档；**读 computed style，不采信声明值**） |
-| **wind-provenance（Wind 主定量源口径 + 凭据 fail-closed）** | `scripts/check-wind-provenance.py`（确定性） | `.../wind-provenance` 的 `config`（引用须带指标代码；禁静默降级；禁重装/绕过） |
+| **wind-provenance（Wind 主定量源口径 + 凭据 fail-closed）** | `scripts/check-wind-provenance.py`（确定性） | `.../wind-provenance` 的 `config`（引用须带指标代码；禁静默降级；禁重装/绕过；**三态须分清**：AUTH_ERROR＝凭据/`HOME` 解析问题 · PARAM_VALIDATION_ERROR＝入参错 · `backend_error`『积分余额不足』＝鉴权正常但额度耗尽） |
+| **template-conformance（产物 ↔ 输出模板一致性）** | `scripts/check-template-conformance.mjs` | 输出模板的 `designSystem`（tokens／roles／components／directives）：产物 `:root` 的 token 取值须与模板逐字相同、已用组件类名齐备、禁 `#fff/#000` 底、禁档外字号、指令白名单、同包各模板核心 token 一致 |
 
 **报告生成器必须自带空值自检**：注入失败产生的 `None/nan/inf` 与未渲染占位符必须让**生成失败**（数字一致性门禁只核对数字，抓不到 `None`；本仓一次真实交付即因此让缺陷进了正文）。
 

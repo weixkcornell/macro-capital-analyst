@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.8-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.9-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -139,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.9**（2026-09-30）：**补全 RELEASING.md 的门禁表（发布前 ⑤–⑦ 与交付第 ⑧ 门）+ 记录 doc 自检的范围与限度** —— ① 缺陷（由交付方实测指出）：`RELEASING.md` 的发布前表只列到 ④、交付门表只列到 7 门，而 2.8.3–2.8.8 已相继加入 `smoke-test`（⑤）、`check-doc-commands`（⑥）、`check-template-conformance --selftest`（⑦）与交付第 ⑧ 门 `template-conformance` —— **文档落后于代码**，属同类 doc↔实际漂移。② 补记 ⑥ 的**范围与限度**：只扫 `.md`（不扫 `.html`）；**只比字段名、读不出意图**，故意写错的反例须以参数对象形式给出（响应与退出码照原样保留）；反斜杠续行的命令会被静默跳过（假阴性），复核命令须单行；并明确它**不是交付门禁**（不进 `baseline.json`、不在 `audit-delivery.sh` 内）。③ 交付门表补 `template-conformance` 行与 `wind-provenance` 的**三态**说明。④ 纯文档同步：判据与代码一字未改。
 
 - **2.8.8**（2026-09-30）：**吸收 WorkBuddy 严谨形制（双向证伪 / 条件阶梯 / 标题即判断）+ Wind 三态口径** —— ① 对标外部研报（WorkBuddy《A股未来3个月走势研判》2026-09-30）后新增两个组件：`:::falsify`（**双向证伪**：上行风险 / 下行风险两支 + 证伪信号表「变量 | 阈值 / 触发条件 | 含义」）与 `:::ladder`（**条件阶梯**：档位 | 触发条件 | 处置，机械事前写死）。② 新增 4 条 register 硬规则：**标题即判断**（章/节标题须是「名词 + 一句话结论」）、**结论须可证伪**（任何方向性判断含「不发布」都要给双向风险与证伪信号表）、**置信度只能来自已声明的概率口径**（禁止另编主观概率，无口径则写条件式）、**路径用条件而非时间**（不写「某月会怎样」的时间预测）。③ **Wind 三态口径**（实测驱动）：`dataChannels.wind-edb.failureSemantics` 与 `wind-provenance.failClosed` 明确区分 AUTH_ERROR/CREDENTIAL_MISSING（凭据或 HOME 解析错位，含 HOME≠/root 的**误报**）、PARAM_VALIDATION_ERROR（入参错）、**backend_error『账户积分余额不足』＝鉴权正常但额度耗尽**（2026-09-30 期后复核实测，凭据 mtime 未变）；三者都 fail-closed，但**不得混为一谈、不得据此改判档位**。`lastProbe` 由过期的「AUTH_ERROR」更正为**当日成功实跑 + 期后额度耗尽**两态并附命令与算子动作（充值）。④ 实测：v8 在 2.8.8 的 8 件门禁下整链 exit 0（含 ⑧ 18 类组件齐备）。⑤ 纯增量：既有判据结构、取数优先级与 fail-closed 纪律不变。
 
