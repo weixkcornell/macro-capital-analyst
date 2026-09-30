@@ -92,6 +92,7 @@ function inline(s) {
   let out = atomize(esc(s))
   out = out.replace(/`([^`]+)`/g, '<code>$1</code>')
   out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  out = out.replace(/\[\^(\d+)\]/g, '<sup class="fn-ref"><a href="#fn-$1">$1</a></sup>')
   out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" rel="noopener">$1</a>')
   return out
 }
@@ -421,6 +422,17 @@ function figureSvg(type, rows, unit, tone = null) {
   return svg(h, markup)
 }
 
+/* ────────────────────────── 5.5 表格 ────────────────────────── */
+/** 表格：数字列右对齐 + 移动端卡片堆叠（data-label 回填字段名）+ 容器内横滚 */
+function renderTable(head, rows) {
+  const isNum = j => rows.slice(0, 6).filter(r => /^[\u2212+−-]?[\d,.]/.test(r[j] ?? '')).length >= Math.min(3, rows.length)
+  const numCol = head.map((_, j) => isNum(j))
+  const thead = `<thead><tr>${head.map((h, j) => `<th${numCol[j] ? ' class="num"' : ''}>${inline(h)}</th>`).join('')}</tr></thead>`
+  const tbody = `<tbody>${rows.map(r => `<tr>${head.map((h, j) => `<td data-label="${esc(h)}"${numCol[j] ? ' class="num"' : ''}>${inline(r[j] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody>`
+  return `<div class="tw"><table class="table">${thead}${tbody}</table></div>`
+}
+const tableRegistry = []
+
 /* ────────────────────────── 6. 组件渲染 ────────────────────────── */
 const KPI_UNIT = /^([\u2212+−-]?\d[\d,]*(?:\.\d+)?)\s*([A-Za-z%‰\u4e00-\u9fff].*)?$/
 /** KPI 值的原子化：每个「数字＋单位」不折行，区间分隔符（– ~ 至 /）可折行。 */
@@ -503,6 +515,23 @@ ${t.note ? `<div class="cover-stat-note">${inline(t.note)}</div>` : ''}</div>`).
       const items = d.rows.map(r => `<div class="glossary-item"><dt class="glossary-term">${inline(r[0] ?? '')}</dt><dd class="glossary-def">${inline(r.slice(1).join(' '))}</dd></div>`).join('')
       return `<dl class="glossary">${items}</dl>`
     }
+    case 'table': {
+      const head = d.rows[0] ?? []
+      const rows = d.rows.filter(r => r.length && !(r.every((c, i) => c === '' && i > 0) && r[0] === '') && !r.every(c => /^[-:\s]+$/.test(c)))
+      const body = rows.slice(1)
+      const no = tableRegistry.length + 1
+      tableRegistry.push({ no, caption: kv.caption ?? '' })
+      const cal = kv.caliber ? `<div class="table-caliber">口径：${inline(kv.caliber)}</div>` : ''
+      const src = kv.source ? `<div class="table-source">来源：${inline(kv.source)}</div>` : ''
+      return `<figure class="table-fig" id="tbl${no}" role="group" aria-label="表${no}｜${esc(kv.caption ?? '')}">
+<div class="table-head">表${no} · ${inline(kv.caption ?? '')}</div>
+${renderTable(head, body)}
+${cal}${src}</figure>`
+    }
+    case 'fn': {
+      const items = d.rows.map(r => `<li class="fn-item" id="fn-${esc(r[0] ?? '')}"><span class="fn-no">${esc(r[0] ?? '')}</span>${inline(r.slice(1).join(' | '))}</li>`).join('')
+      return `<ol class="fn-list">${items}</ol>`
+    }
     case 'kpis': {
       const tiles = d.rows.map(r => {
         const [label, value, tone = 'neutral', note = ''] = r
@@ -580,11 +609,7 @@ function renderBlockOne(b, toc) {
       case 'hr': return `<hr>`
       case 'ul': return `<ul>${b.items.map(x => `<li>${inline(x)}</li>`).join('')}</ul>`
       case 'ol': return `<ol>${b.items.map(x => `<li>${inline(x)}</li>`).join('')}</ol>`
-      case 'table': {
-        const isNum = j => b.rows.slice(0, 6).filter(r => /^[\u2212+−-]?[\d,.]/.test(r[j] ?? '')).length >= Math.min(3, b.rows.length)
-        const numCol = b.head.map((_, j) => isNum(j))
-        return `<div class="tw"><table class="table"><thead><tr>${b.head.map((h, j) => `<th${numCol[j] ? ' class="num"' : ''}>${inline(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r => `<tr>${b.head.map((h, j) => `<td data-label="${esc(h)}"${numCol[j] ? ' class="num"' : ''}>${inline(r[j] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
-      }
+      case 'table': return renderTable(b.head, b.rows)
       case 'directive': return renderDirective(b)
       default: return ''
     }
@@ -638,6 +663,16 @@ ${cap}${src}
 {
   const overs = TEXT_BOXES.filter(b => b.x0 < -2 || b.x1 > VB_W + 2)
   if (overs.length) fail(`图内文字越界 ${overs.length} 处：${overs.slice(0, 3).map(o => `「${o.s}」→ ${o.x1.toFixed(0)}px`).join('；')}`)
+}
+
+/* 断言 D：脚注上标与脚注清单一一对应（编号存在且无孤儿） */
+{
+  const refs = [...html.matchAll(/class="fn-ref"><a href="#fn-(\d+)"/g)].map(m => Number(m[1]))
+  const items = [...html.matchAll(/class="fn-item" id="fn-(\d+)"/g)].map(m => Number(m[1]))
+  const orphan = [...new Set(refs)].filter(n => !items.includes(n))
+  const unused = items.filter(n => !refs.includes(n))
+  if (orphan.length) fail(`脚注引用 [^n] 在清单里不存在：${orphan.join('、')}`)
+  if (unused.length && items.length) fail(`脚注清单有条目未被引用：${unused.join('、')}`)
 }
 
 /* 断言 C：数字断行原子（作者正文里的「数值 单位」必须已原子化；模板声明 noOrphanUnit） */
@@ -775,6 +810,19 @@ thead th{position:sticky;top:0;z-index:1;background:var(--c-teal50);color:var(--
 tbody td,tbody th{text-align:left;vertical-align:top;padding:var(--sp-8) var(--sp-12);border-bottom:1px solid var(--c-hair)}
 tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
 th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+/* ── 表格（严谨层：表题 + 表 + 口径 + 来源；移动端变形不删除） ── */
+.table-fig{margin:var(--sp-24) 0}
+.table-head{font-family:var(--ff-ui);font-size:var(--fs-label);letter-spacing:var(--ls-label);
+  font-weight:var(--fw-semibold);color:var(--c-teal700);margin:0 0 var(--sp-8)}
+.table-caliber,.table-source{margin:var(--sp-4) 0 0;font-family:var(--ff-ui);font-size:var(--fs-micro);line-height:1.55;color:var(--c-ink500)}
+.table-source{color:var(--c-ink600)}
+/* ── 脚注（严谨层） ── */
+.fn-ref{font-family:var(--ff-num);font-size:.7em;line-height:0;vertical-align:super}
+.fn-ref a{text-decoration:none;padding:0 2px}
+.fn-list{list-style:none;margin:var(--sp-16) 0 0;padding:0;font-family:var(--ff-ui);font-size:var(--fs-caption);line-height:1.65}
+.fn-item{position:relative;padding:var(--sp-4) 0 var(--sp-4) 28px;border-bottom:1px dashed var(--c-hair);color:var(--c-ink600)}
+.fn-item:last-child{border-bottom:0}
+.fn-no{position:absolute;left:0;color:var(--c-teal700);font-weight:var(--fw-semibold)}
 /* ── 图 ── */
 .figure{margin:var(--sp-32) 0;padding:0}
 .fig-eyebrow{margin:0 0 var(--sp-12);display:block;padding-top:var(--sp-8);border-top:1px solid var(--c-hair);
@@ -879,7 +927,16 @@ ${railActive ? `${railActive}{background:var(--c-teal50);color:var(--c-teal700);
   width:44px;height:44px;color:var(--c-ink800);background:var(--c-paper);border:1px solid var(--c-hair);
   border-radius:var(--r-pill);text-decoration:none;font-size:var(--fs-h4)}
 /* ── 断点：≤1080px 移动优先 ── */
+/* 桌面＝研究札记密度（严谨档）：行长更宽、章节间距更紧、表格列严格对齐；移动端＝杂志密度 */
 @media (min-width:1081px){
+  main{max-width:780px}
+  p{line-height:1.72}
+  .chapter-head{margin-top:var(--sp-32)}
+  .tw{margin:var(--sp-16) 0}
+  table{font-size:var(--fs-table)}
+  tbody td,tbody th{padding:var(--sp-8) var(--sp-12)}
+  .figure{margin:var(--sp-24) 0}
+  .fn-list{font-size:var(--fs-label)}
   .cover{padding:var(--sp-48) var(--sp-32) var(--sp-32)}
   .cover-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 var(--sp-24)}
   .cover-stat{display:block}
@@ -905,6 +962,8 @@ ${railActive ? `${railActive}{background:var(--c-teal50);color:var(--c-teal700);
     color:var(--c-ink800);text-decoration:none;font-family:var(--ff-ui);font-size:var(--fs-caption);border-bottom:1px solid var(--c-hair)}
   .tocbar-item .rn{color:var(--c-teal600);font-weight:var(--fw-semibold)}
   .masthead{margin:var(--sp-16) 0 var(--sp-32);padding:var(--sp-24) var(--sp-16);border-radius:0}
+  /* 脚注上标：视觉仍是小上标，但触控目标撑到 ≥44×44（padding 与负 margin 抵消，不改行长） */
+  .fn-ref a{display:inline-block;padding:22px 18px;margin:-22px -18px}
   /* 杂志封面：band 打满屏宽（main 已留出安全区沟槽，用负外边距抵消） */
   .cover{margin-left:calc(-1 * var(--gl));margin-right:calc(-1 * var(--gr));border-radius:0}
   .chapter-head{margin-top:var(--sp-48)}

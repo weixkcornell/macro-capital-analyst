@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.6-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.7-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -139,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.7**（2026-09-30）：**杂志 register 与「严谨+表格」风格兼容：两层阅读（同源不分叉）** —— ① **问题**：把 register 改成移动端杂志后，本包最要紧的品质（表、口径、编号推论、脚注的可核验性）会不会被杂志化挤掉？② **裁定（写进 `register.twoLayers`）**：**同一份内容两种读法，不是两个版本**。杂志层＝结论 / 一句话 / 图 / 读懂这一节（默认阅读路径）；严谨层＝表 / 口径依据 / 编号推论 / 脚注（**一个数字都不删**，随时可查）。硬规则：杂志层的每一句判断、每一条「读懂」，都必须有严谨层落点（正文写「见表N」「见图N」或挂脚注上标）；**数字只在严谨层出现一次**（表/图/脚注），杂志层只做引用与翻译。③ **表格：移动端变形而非删除**（写进 `designSystem.tables`）——≥5 列→卡片堆叠（每行一张卡，字段名由 `data-label` 回填）；≤4 列→紧凑表 + 容器内横滚；桌面端一律还原完整表格（首列可 sticky、数字列右对齐 + tabular-nums）。新增 `:::table` 指令：自动编号 **表N** + 表题「表N · 一句话读法」+ **表题下方**写口径与来源（口径不塞进单元格）。实测：5 列表在 375 下渲染为 11 张数据卡、在 1440 下渲染为完整表格，两侧数字一致。④ **脚注体系（严谨层）**：正文 `[^n]` → 上标（tabular、链接触控 ≥44×44，靠 padding+负 margin 撑开而不改行长）；文末 `:::fn` 清单（编号 + 来源账号 + 可点击链接 + 回链）。新增渲染期断言：**脚注引用与清单必须一一对应**（有孤儿引用或有未被引用的条目都直接 fail-closed）。⑤ **桌面＝研究札记密度（严谨档）**：≥1081px 行长更宽（780px）、段落行高更紧（1.72）、章节间距更小、表格内边距收紧、脚注字号提高；移动端＝杂志密度。同一模板、同一内容，靠断点切节奏。⑥ 实测：`render-overflow` 六视口 0 溢出 + 对比度 **497/497**；`mobile-readability` 320/375/390 全 PASS；`template-conformance` PASS。⑦ 纯增量：不改任何既有判据、取数优先级与 fail-closed 纪律；不新增知识源与实体。
 
 - **2.8.6**（2026-09-30）：**杂志版三处修正（桌面封面三格基线、导语未过行内解析、走势图最高值标注）** —— ① **缺陷**：`:::lede` 渲染时未走行内解析，`**不发布主动头寸**` 被原样输出为星号（导语是杂志版最显眼的「一句话说清结论」，此处失效影响最大）；② **版式**：桌面端封面三格原为「标签左 / 数字右」横排，标签折行后三格数字基线错位 ⇒ 改为纵向（标签在上、数字在下，数字降到 h4 档），三格对齐；③ **易懂**：封面走势小图的最高值原为裸数字 `4876.31`，改为 `区间最高 4876.31`，读者不必反推这个数是什么意思；④ 实测：杂志试样 `render-overflow` 六视口 0 溢出 + 对比度 **424/424**；`mobile-readability` 320/375/390 全 PASS；`template-conformance` PASS。⑤ 纯修正：判据结构、register、组件与图型集合不变。
 

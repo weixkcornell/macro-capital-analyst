@@ -1,6 +1,6 @@
 {
   "id": "a-share-outlook",
-  "version": "2.8.6",
+  "version": "2.8.7",
   "schemaVersion": 2,
   "name": "A 股市场观点看板输出模板",
   "media": [
@@ -15,6 +15,16 @@
       "soul": 0.5,
       "spectacle": 0.25,
       "density": 0.55
+    },
+    "twoLayers": {
+      "读法": "同一份内容，两种读法，**不是两个版本**：杂志层＝结论 / 一句话 / 图 / 读懂这一节（默认阅读路径）；严谨层＝表 / 口径依据 / 编号推论 / 脚注（随时可查，一个数字都不删）。",
+      "规则": [
+        "任何被杂志层引用的判断，必须有严谨层落点：每个「读懂」条目、每句结论，都要能指向某张表、某张图或某条脚注（正文里写「见表N」「见图N」）。",
+        "数字只在严谨层出现一次（表/图/脚注），杂志层只做**引用与翻译**，不得复述不同口径的数。",
+        "表格在移动端**不是消失而是变形**：≥5 列→卡片堆叠（每行=一张卡，字段名由 data-label 回填）；≤4 列→紧凑表 + 容器内横滚。桌面端一律还原为完整表格。",
+        "桌面端密度更高（研究札记节奏）：行长更宽、章节间距更紧、表格列对齐严格；移动端密度更低（杂志节奏）。同一模板、同一内容，靠断点切节奏。",
+        "严谨标记统一为：表题「表N · …」、图题「图N · …」、来源行「（来源，机构，截至 年-月）」、脚注上标 `[^n]`、口径写在表题下方而不是塞进单元格。"
+      ]
     }
   },
   "designSystem": {
@@ -579,14 +589,15 @@
         "classes": [
           "tw",
           "table",
-          "num"
+          "table-head",
+          "table-caliber",
+          "table-source"
         ],
-        "anatomy": "div.tw > table > thead/tbody；数字列 th.num / td.num；移动端每个 td 带 data-label",
+        "anatomy": "figure.table-fig > div.table-head(表N · 一句话读法) + div.tw > table + div.table-caliber(口径) + div.table-source(来源)",
         "rules": [
-          "数字列右对齐 + tabular-nums；文本列左对齐",
-          "表头 teal50 底 + teal700 字，行分隔只用 hair 细线（无竖线、无外框重线）",
-          "≤480px 卡片堆叠：tr 成卡，td::before 回填字段名",
-          "宽表只在 .tw 内横滚，绝不造成页面级横滚"
+          "**移动端变形而非删除**：≥5 列卡片堆叠（td[data-label] 回填字段名），≤4 列紧凑表 + 容器内横滚；桌面端还原完整表格",
+          "数字列右对齐 + tabular-nums；口径写在表题下方，不塞单元格",
+          "表号表N 与表题、aria-label 同源；表可被正文以「见表N」引用"
         ],
         "optionalClasses": [
           "num"
@@ -677,6 +688,20 @@
           "顶部 2px teal600 规则线收束；文字 ink600 / caption",
           "货币与日期格式声明固定写在末行"
         ]
+      },
+      {
+        "id": "footnote-ref",
+        "classes": [
+          "fn-ref",
+          "fn-list",
+          "fn-item"
+        ],
+        "anatomy": "sup.fn-ref > a[href=#fn-N] ；文末 ol.fn-list > li.fn-item",
+        "rules": [
+          "脚注上标只给编号（tabular），不写全角括号；链接触控目标 ≥44px（padding 撑开）",
+          "每条脚注含来源账号 + 可点击链接 + 回链；被引用的编号必须存在（编号连续性由渲染器断言）",
+          "严谨层用：杂志层的每一句判断都应有脚注或表图落点"
+        ]
       }
     ],
     "figures": {
@@ -759,6 +784,22 @@
       "figures": "每图有 aria-label（图N｜标题）与 role=img；语义化 figure/figcaption",
       "textSizeAdjust": "100%",
       "colorScheme": "light"
+    },
+    "tables": {
+      "numbering": "表N 按文档顺序连续编号（与图号同法，四处同源：表题 / aria-label / id / 目录不列）",
+      "captionFormat": "表N · <一句话读法>（说明这张表要读者看什么）",
+      "sourceFormat": "（来源，机构，截至 年-月）",
+      "caliberPlacement": "口径写在**表题下方**的 .table-caliber 行，不塞进单元格（单元格只放数）",
+      "mobileForm": {
+        "≥5列": "卡片堆叠",
+        "≤4列": "紧凑表 + 容器内横滚",
+        "下限": "表内字号 ≥15px；数字列右对齐 + tabular-nums"
+      },
+      "desktopForm": "完整表格；首列可 sticky；表头 teal50；行分隔只用 hair 细线",
+      "rigorRules": [
+        "每个数字必须能在表/图/底座找到同口径落点；表里不得出现未标注口径的派生值",
+        "跨表引用写「见表N」；被引用的表必须存在（引用完整性由正文与编号一致性共同保证）"
+      ]
     }
   },
   "directives": {
@@ -875,6 +916,23 @@
         "name": "glossary",
         "body": "每行：术语 | 定义",
         "renders": "glossary"
+      },
+      {
+        "name": "table",
+        "keys": [
+          "caption",
+          "source",
+          "caliber",
+          "dense=true|false"
+        ],
+        "body": "markdown 表体（首行表头、第二行分隔）",
+        "renders": "data-table（表N + 表题 + 表 + 口径 + 来源）"
+      },
+      {
+        "name": "fn",
+        "keys": [],
+        "body": "每行：编号 | 脚注正文（含来源与链接）",
+        "renders": "footnote-ref 的脚注清单（正文用 [^n] 引用）"
       }
     ],
     "unknownDirective": "遇到未声明的 ::: 名 → 渲染失败（fail-closed），不得静默透传"
