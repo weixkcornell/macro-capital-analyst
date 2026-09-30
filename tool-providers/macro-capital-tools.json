@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-tools",
-  "version": "2.8.11",
+  "version": "2.8.12",
   "schemaVersion": 2,
   "name": "观澜分析工具集",
   "description": "包内可执行工具。数据获取**一律先试 Wind CLI**，取不到再走平台 provider 层（zyt / beike）与公开口径自算；本包不自建数据引擎。",
