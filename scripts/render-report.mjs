@@ -334,7 +334,7 @@ function figureSvg(type, rows, unit, tone = null) {
     const iMax = vals.indexOf(hi), iMin = vals.indexOf(lo)
     body.push(CIRC(X(iMax), Y(hi), 4, 'f-bar'))
     body.push(CIRC(X(iMin), Y(lo), 4, 'f-bar-alt'))
-    body.push(S(VB_W - 22, 22, num(String(hi)), 'tx-oncover tx-val', 'end', FS.big, 700))
+    body.push(S(VB_W - 22, 22, `区间最高 ${num(String(hi))}`, 'tx-oncover tx-val', 'end', FS.big, 700))
     body.push(S(22, top + hgt + 28, rows[0]?.[0] ?? '', 'tx-oncoverMuted tx-lab', 'start', FS.big))
     body.push(S(VB_W - 22, top + hgt + 28, rows[rows.length - 1]?.[0] ?? '', 'tx-oncoverMuted tx-lab', 'end', FS.big))
     h = top + hgt + 40
@@ -493,7 +493,7 @@ ${t.note ? `<div class="cover-stat-note">${inline(t.note)}</div>` : ''}</div>`).
 <p class="cover-art-note">${inline(kv.title ?? '')}${kv.source ? `　${inline(kv.source)}` : ''}</p></figure>`
     }
     case 'lede':
-      return `<p class="lede">${d.rows.map(r => r.join(' | ')).join(' ')}</p>`
+      return `<p class="lede">${inline(d.rows.map(r => r.join(' | ')).join(' '))}</p>`
     case 'takeaway': {
       const items = d.rows.map(r => `<li class="takeaway-item">${inline(r.join(' | '))}</li>`).join('')
       return `<aside class="takeaway"><span class="takeaway-badge" aria-hidden="true">读</span>
@@ -882,7 +882,11 @@ ${railActive ? `${railActive}{background:var(--c-teal50);color:var(--c-teal700);
 @media (min-width:1081px){
   .cover{padding:var(--sp-48) var(--sp-32) var(--sp-32)}
   .cover-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 var(--sp-24)}
+  .cover-stat{display:block}
   .cover-stat:first-child,.cover-stat:nth-child(2),.cover-stat:nth-child(3){border-top:1px solid var(--c-hairOnCover)}
+  .cover-stat-label{display:block;margin-bottom:var(--sp-4)}
+  .cover-stat-value{font-size:var(--fs-h4)}
+  .cover-stat-note{margin-top:var(--sp-4)}
 }
 @media (max-width:1080px){
   .shell{display:block;max-width:none;padding:0}

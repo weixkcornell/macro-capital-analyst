@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.5-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.6-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -139,6 +139,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.6**（2026-09-30）：**杂志版三处修正（桌面封面三格基线、导语未过行内解析、走势图最高值标注）** —— ① **缺陷**：`:::lede` 渲染时未走行内解析，`**不发布主动头寸**` 被原样输出为星号（导语是杂志版最显眼的「一句话说清结论」，此处失效影响最大）；② **版式**：桌面端封面三格原为「标签左 / 数字右」横排，标签折行后三格数字基线错位 ⇒ 改为纵向（标签在上、数字在下，数字降到 h4 档），三格对齐；③ **易懂**：封面走势小图的最高值原为裸数字 `4876.31`，改为 `区间最高 4876.31`，读者不必反推这个数是什么意思；④ 实测：杂志试样 `render-overflow` 六视口 0 溢出 + 对比度 **424/424**；`mobile-readability` 320/375/390 全 PASS；`template-conformance` PASS。⑤ 纯修正：判据结构、register、组件与图型集合不变。
 
 - **2.8.5**（2026-09-30）：**输出模板改版为「移动端杂志」register（封面 + 读懂这一层 + 杂志向小图）** —— ① **register 变更**：2.8.4 的 register 是「印刷研究札记」，第一阅读场景默认桌面；本版改为**移动端杂志**——手机竖屏、单手、碎片时间，数据密度让位于可读性。`designSystem.register` 记明这一判断与两个 dials（soul 0.5／spectacle 0.25／density 0.55）。② **封面（新组件 5 个）**：`:::cover`（刊头 + 金色刊期 hero 56px + 标题 + 导语 + 元信息）、`:::cover-stats`（封面关键数字，深底提亮方向色 `upOnCover/downOnCover`）、`:::cover-art`（**必须真实序列**：本期用沪深300 近 60 个交易日真实收盘序列画走势小图，标出区间高低与首末日）；移动端封面 band 打满屏宽（负外边距抵消安全区沟槽）。③ **「读懂这一层」（易懂）**：新增 `:::takeaway`（每章一处、大白话 ≤3 条，金色规则线 + 「读」徽标）、`:::lede`（导语，一句话说清结论）、`:::glossary`（术语表：bp／分位／首次穿越／净预期主动收益，带换算例）——它们只做「翻译」，不得引入正文没有的新数字。④ **杂志向小图（图型 6→12 种）**：新增 `sparkline`（封面/章首走势）、`microbar`、`gauge`（单值落 0–100 量程）、`donut`（占比 + 图例）、`pictogram`（象形图，标分母）、`timeline`；全部沿用「**无数字不绘**」铁律与 640 viewBox 字号规约。⑤ **排版**：正文 17→**18px**（手机长读）、新增 hero 档 56px、章节开场改为 42px 大号编号（真实可读文本，不做低对比「幽灵数字」，以保 AA）。⑥ **同批修掉**：`takeaway` 徽标纸面字在 amber600 上仅 3.99:1（改 amber700 = 5.86:1）；封面小图非全出血致 320 档图内文字 10.06px（改全出血 + 22/24px 字号 ⇒ 320 档 12px）；封面 body 行的 `issue=2026 Q4` 未被解析（键值解析统一支持 `键=值`）；行内「裸数字」过度包裹（只保留「值+单位」原子，避免 `2026-10<span>-01</span>` 这类噪声）。⑦ **实测**：杂志试样 `render-overflow` 六视口 0 溢出 + 对比度 **423/423**；`mobile-readability` 320/375/390 全 PASS（封面小图等效字号 12 / 14.06 / 14.63px）；`template-conformance` PASS。⑧ 判据结构、取数优先级与 fail-closed 纪律不变；不新增知识源、不新增实体。
 
