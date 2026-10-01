@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.13",
+  "version": "2.8.14",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -607,6 +607,57 @@
           ],
           "selfTest": "node scripts/check-template-conformance.mjs --selftest",
           "note": "真正被消费的是**模板自身**（designSystem/directives，经 CLI 传入）；executor/criteria/templateSource/why 四键为登记与说明，不参与判定"
+        }
+      }
+    },
+    {
+      "id": "style-render",
+      "name": "文风渲染（发表前必过）",
+      "kind": "semantic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "description": "发表前必须由文风渲染专家对定稿做一次表达层改写：文字表达对标 **The Economist 与财新**的写作风格与语言习惯。**刊名不得出现在产出中**，也不得写「仿某刊风格／借鉴某刊」式表述；`财新` 仅可作**被引用的数据／报道来源**出现在脚注，不得充当风格标签。 8 条对标要点逐条过、反例命中 0、刊名出现 0，且**数字/口径与数据期/结论方向/E[R_A] 两版/脚注来源/强制章节一律不得改动**；渲染证据为 `style-report.json`，缺报告视同未渲染；渲染后须重出 HTML 使产物与定稿一致。",
+      "config": {
+        "reference": "The Economist / 财新（写作风格与语言习惯对标）",
+        "internalizeOnly": true,
+        "forbidMagazineNameAsStyleLabel": true,
+        "footnoteSourceAllowed": [
+          "财新"
+        ],
+        "mustRunLast": true,
+        "reportArtifact": "style-report.json",
+        "factLayerFrozen": [
+          "数字",
+          "口径与数据期",
+          "结论方向",
+          "E[R_A] 两版",
+          "脚注与来源",
+          "强制章节"
+        ],
+        "checklist": [
+          "开门见山：首句即判断或读数，每段首句承载信息",
+          "短句、一句一事（长定语句拆成两句）",
+          "具体压过抽象：能落数字／机构／政策名／日期就不写形容词，修饰语密度低",
+          "克制修辞：不用感叹号与「震撼／爆表／史诗级／重磅」类夸张词；冷静揶揄只在无损准确性时用",
+          "主张带归因，事实与判断分句式（「数据显示…」＝事实／「我们认为…」＝判断；非自算数字跟来源与时点）",
+          "去口号化、去八股（不用「赋能／抓手／闭环／生态位／组合拳」式套话）",
+          "给可证伪的条件句（「若 X 则 Y」，与闸门 A 同源）",
+          "术语规范：外文术语首现给中文；中文为主，行业惯用缩写 PE／IR／IC／BR 等保留"
+        ],
+        "antiPatterns": [
+          "「重磅利好来袭」",
+          "「XX 概念全线爆发」",
+          "「未来可期」",
+          "以刊名充当权威背书",
+          "「赋能／抓手／闭环」式套话"
+        ],
+        "wiring": {
+          "semantic": true,
+          "reason": "文风是表达层的人工/语义判据（本包无执行器；判据为 8 条清单 + 反例清单），由文风渲染专家出 style-report.json 自证、复核者抽查；其中「刊名不可见」可事后机检（对产物做刊名词表扫描），故 config 给出 reference 与 footnoteSourceAllowed 供扫描器取用"
         }
       }
     }

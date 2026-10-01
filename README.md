@@ -2,13 +2,24 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.13-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.14-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
 </p>
 
 > 一个以「智见专家库 Expert Profile v2（schemaVersion 2）」格式组织的**个人专家开源包**。参考智见专家 Agent 的领域包规范，但**独立自主发布**，不依赖任何平台评审。
+
+## 专家条（roster）
+
+本包含**两位专家**，一个负责判断、一个负责表达，后者排在流水线**最末**：
+
+| 专家 | 内部名 | 对外称谓 | 职责 | 在流水线中的位置 |
+|:---|:---|:---|:---|:---|
+| `macro-capital-analyst` | 观澜 | 宏观派 G 分析师 | 十三层能力 + 两道闸门，产出判断与 E[R_A] | 主体（首） |
+| `style-renderer` | 砚边 | 文风派 E 编辑 | 文风渲染：对标 The Economist 与财新（内化、刊名不可见），只改表达、不动事实 | **末位（发表前必过）** |
+
+**每次发表前必须跑文风渲染**：定稿后由 `style-renderer` 按 `method-packs/style-render-pipeline.json` 改写一遍，出 `style-report.json`；门禁 `style-render` 对交付物强制生效。
 
 ## 这是什么
 
@@ -139,6 +150,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.8.14**（2026-10-01）：**新增第二位专家「文风渲染」+ 文风对标 The Economist 与财新（末位工序，发表前必过）** —— ① **专家条由 1 位增至 2 位**：新增 `experts/style-renderer.json`（内部名**砚边**／对外匿名「**文风派 E 编辑**」），自带完整 profile——persona（style／tone／bias／values／taste／voice／mentalModels／blindSpots／signaturePhrases／antiPatterns）、methodProfile、emm（6 条 vetoRules）、constraints、outputSchema、modelPolicy、compliance；能力 4 项（`style.render`／`prose.edit`／`terminology.normalize`／`register.enforce`）。职责边界写死在 profile 里：**只对表达负责，不介入判断**；不取数、不核数、不改数。② **文风对标规则（用户指令）**：文字表达对标 **The Economist 与财新**的写作风格与语言习惯，8 条要点——开门见山／短句一句一事／具体压过抽象／克制修辞／**主张带归因且事实与判断分句式**／去口号化去八股／**给可证伪的条件句**／术语规范；并列反例清单（出现即返工）。**处理方式与书目痕迹同源：文风内化、刊名不可见**——产出中不得出现刊名，也不得写「仿某刊风格」式表述（`财新` 仅可作被引用的数据／报道来源出现在脚注）。③ **功能排在流水线最末（用户指令）**：新增 `method-packs/style-render-pipeline.json`（6 步，`order: last`）——冻结事实层 → 逐段改写 → 删减收紧 → 逐条自检 → 出渲染报告 → 重出渲染产物。两个组队模板各新增槽位 `style-editor` 与**末位任务** `style-render`（a-share-outlook：`fusion-render` → `style-render`，产出 `final.md`／`style-report.json`／`index.html`；cycle-positioning：`net-alpha` → `style-render`，产出 `final.md`／`style-report.json`），两个场景各追加末位任务并登记 `style-renderer`。④ **新增门禁 `style-render`**（semantic／hard，含 `config.wiring`，两个组队模板均已绑定）：要求发表前由文风渲染专家过一次、**事实层冻结**（数字／口径与数据期／结论方向／E[R_A] 两版／脚注与来源／强制章节一律不得改动）、**渲染证据是 `style-report.json`（8 条逐条结果 + 反例命中数须 0 + 刊名出现次数须 0），缺报告视同未渲染**、渲染后须重出 HTML 使产物与定稿一致。⑤ 同时把规则写进 `skills/macro-capital-framework/SKILL.md`（§6 更名「语言与文风硬规则」并新增第 6 条；§1 新增第 9 条「文风渲染是末位工序」）、两个 `output-templates` 的 `register.twoLayers.规则` 与 `dataRules.writingRules`、`experts/macro-capital-analyst.json` 的 persona（写作者一侧）。⑥ **实现取舍（如实说明）**：文风是表达层的**语义判据**，故门禁声明为 `semantic` 并附 `wiring.reason`——本包无执行器，靠 8 条清单 + 反例清单 + `style-report.json` 自证、复核者抽查；其中「刊名不可见」可在产物上事后机检，故 `config` 保留了 `reference` 与 `footnoteSourceAllowed` 供扫描器取用。⑦ 本版**不新增知识源**（46 源 / 54 份精读不变）；实体数 **43 → 45**（+2）；方法包 **3 → 4**；门禁 **13 → 14**。
 
 - **2.8.13**（2026-10-01）：**修掉复审指出的三处「loaded vs in-effect」残余与文档卫生 + 立「复核期间冻结修订」规则** —— ① `audit-mobile.py` 的 `bodyFontNeedSource` **未加载策略时仍报 `policy`**（无参运行三档全报 policy 而 `policySource=None`）：现改为**三态如实**（键来自声明＝`policy`；该视口未声明、取内置默认＝`builtin-default`），实测无参运行三档均为 `builtin-default`。② `check-wind-provenance.py` 的 `load_policy` **只接受目录**，传单文件会**静默回退**且不披露（与 `audit-mobile.py` 同一 flag 行为不一致）：现两种入参都接受，并在报告里新增 `policyFallback` 与 `warnings`（显式给了 `--policy-dir` 却没解析到本门 config ⇒ 披露而非静默）。③ 文档卫生：`mobile-readability.criteria.bodyFontMinPx` 映射内混着的说明键 `note` 已移出到同级 `bodyFontMinPxNote`（映射只放 `<视口>:<像素下限>`，解析器并对非数值项显式忽略）。④ **立规**（写进 `RELEASING.md`）：给复核任务下达时**必须写明被复核的包修订号**并在窗口内冻结包改动；确需并行推进须在结论里注明整包重发，且不得据过期钉扎写现值 —— 动因是一次复核期间包从 2.8.11 重发到 2.8.12（30+ 文件），复核方只能改用「可归属钉扎」才使结论站得住。⑤ 自校准回归：移动端 7/7、Wind 6/6、接线 5/5。纯增量：产物侧与既有判据语义零变更。
 

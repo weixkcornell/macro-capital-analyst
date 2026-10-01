@@ -1,6 +1,6 @@
 {
   "id": "cycle-positioning-team",
-  "version": "2.8.13",
+  "version": "2.8.14",
   "schemaVersion": 2,
   "parameters": {
     "type": "object",
@@ -22,6 +22,19 @@
         "macro.cycle",
         "equity.strategy",
         "factor.attribution"
+      ],
+      "cardinality": {
+        "min": 1,
+        "max": 1
+      }
+    },
+    {
+      "id": "style-editor",
+      "capabilities": [
+        "style.render",
+        "prose.edit",
+        "terminology.normalize",
+        "register.enforce"
       ],
       "cardinality": {
         "min": 1,
@@ -98,6 +111,25 @@
       "deliverablePaths": [
         "net-alpha.json",
         "net-alpha.md"
+      ]
+    },
+    {
+      "id": "style-render",
+      "role": "style-editor",
+      "dependsOn": [
+        "net-alpha"
+      ],
+      "inputs": [],
+      "allowedCapabilities": [
+        "style.render",
+        "prose.edit",
+        "terminology.normalize",
+        "register.enforce"
+      ],
+      "retryPolicy": "quality-repair",
+      "deliverablePaths": [
+        "final.md",
+        "style-report.json"
       ]
     }
   ],
@@ -185,6 +217,13 @@
       "appliesTo": [
         "deliverable"
       ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "style-render",
+      "appliesTo": [
+        "deliverable"
+      ]
     }
   ],
   "deliverables": [
@@ -195,7 +234,8 @@
         "factor-state",
         "expected-return",
         "style-attribution",
-        "net-alpha"
+        "net-alpha",
+        "style-render"
       ]
     }
   ],

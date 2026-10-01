@@ -1,7 +1,7 @@
 {
   "id": "a-share-outlook",
   "name": "中国 A 股市场观点看板",
-  "version": "2.8.13",
+  "version": "2.8.14",
   "schemaVersion": 2,
   "domain": "equity.strategy",
   "intents": [
@@ -31,7 +31,8 @@
     ]
   },
   "experts": [
-    "macro-capital-analyst"
+    "macro-capital-analyst",
+    "style-renderer"
   ],
   "outputTemplate": "a-share-outlook",
   "qualityPolicy": "baseline",
@@ -69,6 +70,15 @@
       "description": "生成自包含 HTML（浅色、学术排版，涨=红、跌=绿），含强制章节：摘要、分歧表、六步主体、上期判断回顾、方法可靠性声明、脚注与来源回链；文末固定「不构成投资建议」。",
       "expert": "macro-capital-analyst",
       "id": "fusion-render"
+    },
+    {
+      "id": "style-render",
+      "subject": "文风渲染（发表前必过）",
+      "dependsOn": [
+        3
+      ],
+      "description": "按 style-render-pipeline 对定稿做表达层改写（对标文风：开门见山／短句／具体压过抽象／克制修辞／主张带归因且事实与判断分句式／去口号化／可证伪条件句／术语规范）；**刊名不可见**；数字、口径、结论、脚注一律不得改动；产出 style-report.json 并重出 HTML。动手前完整阅读 skills/macro-capital-framework/SKILL.md §6 与 method-packs/style-render-pipeline.json。",
+      "expert": "style-renderer"
     }
   ],
   "deliverable": "A 股市场观点看板（HTML + markdown）+ 数据底座表 + GATE 验收文件",
