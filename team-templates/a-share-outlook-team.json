@@ -1,6 +1,6 @@
 {
   "id": "a-share-outlook-team",
-  "version": "2.8.14",
+  "version": "2.9.0",
   "schemaVersion": 2,
   "parameters": {
     "type": "object",
@@ -215,6 +215,13 @@
     {
       "policy": "baseline",
       "gate": "style-render",
+      "appliesTo": [
+        "deliverable"
+      ]
+    },
+    {
+      "policy": "baseline",
+      "gate": "data-quality-rule-version",
       "appliesTo": [
         "deliverable"
       ]

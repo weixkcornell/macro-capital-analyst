@@ -428,6 +428,40 @@ const CASES = [
       write(r, f, JSON.stringify(o, null, 2) + '\n')
     },
   },
+  {
+    // v2.9.0 新增门禁 data-quality-rule-version（闸门 C）带来的新失败模式①：
+    // 门禁声明了却没被任何 team-template 绑定 ⇒ 它永远跑不到（unbound-gate）。
+    // 理由：一道无人绑定的门禁与一道永远 PASS 的死门禁，观感完全一样。
+    name: '新增门禁未被任何组队模板绑定（永远跑不到）',
+    expectCode: 'unbound-gate',
+    mutate: r => {
+      // unbound-gate 的语义是「所有组队模板都不绑定它」⇒ 必须从每一个模板中摘除，
+      // 只摘一个时另一个仍绑定 ⇒ 门禁仍能跑到 ⇒ 不构成该失败模式（实测 exit=0）。
+      let touched = 0
+      for (const f of readdirSync(join(r, 'team-templates')).filter(n => n.endsWith('.json'))) {
+        const rel = `team-templates/${f}`
+        const o = JSON.parse(read(r, rel))
+        if (!o?.gates?.some(b => b.gate === 'data-quality-rule-version')) continue
+        o.gates = o.gates.filter(b => b.gate !== 'data-quality-rule-version')
+        write(r, rel, JSON.stringify(o, null, 2) + '\n')
+        touched++
+      }
+      if (!touched) throw new Error('注入失败：没有任何 team-template 绑定 data-quality-rule-version')
+    },
+  },
+  {
+    // v2.9.0 新增门禁 data-quality-rule-version 带来的新失败模式②：
+    // 门禁没有 config ⇒ 「纸上硬门」（structure-gate-no-config）。
+    name: '新增门禁没有 config（纸上硬门）',
+    expectCode: 'structure-gate-no-config',
+    mutate: r => {
+      const f = firstJson(r, 'quality-policies', o => o?.gates?.some(g => g.id === 'data-quality-rule-version'))
+      const o = JSON.parse(read(r, f))
+      const g = o.gates.find(x => x.id === 'data-quality-rule-version')
+      delete g.config
+      write(r, f, JSON.stringify(o, null, 2) + '\n')
+    },
+  },
 ]
 
 // 并发跑：每个样本要起一个 check-pack 子进程（现在 40+ 例），串行会跑成分钟级。

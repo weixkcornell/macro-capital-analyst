@@ -6,7 +6,7 @@
 本仓只公开「方法论内化摘要层」（观澜本人的提炼与框架，MIT）。
 
 所以 `source/SOURCE-MANIFEST.json` 里每一条 `materials[].fileRef` 在本仓**都解析不到** ——
-这是设计，不是缺文件（46/46 条 `distributable: false`）。解析根写在同文件的 `fileRefRoot` 字段里。
+这是设计，不是缺文件（51/51 条 `distributable: false`）。解析根写在同文件的 `fileRefRoot` 字段里。
 
 ## 为什么这样设计
 

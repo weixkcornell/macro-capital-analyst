@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.8.14-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.9.0-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -16,19 +16,19 @@
 
 | 专家 | 内部名 | 对外称谓 | 职责 | 在流水线中的位置 |
 |:---|:---|:---|:---|:---|
-| `macro-capital-analyst` | 观澜 | 宏观派 G 分析师 | 十三层能力 + 两道闸门，产出判断与 E[R_A] | 主体（首） |
+| `macro-capital-analyst` | 观澜 | 宏观派 G 分析师 | 十五层能力 + 三道闸门，产出判断与 E[R_A] | 主体（首） |
 | `style-renderer` | 砚边 | 文风派 E 编辑 | 文风渲染：对标 The Economist 与财新（内化、刊名不可见），只改表达、不动事实 | **末位（发表前必过）** |
 
 **每次发表前必须跑文风渲染**：定稿后由 `style-renderer` 按 `method-packs/style-render-pipeline.json` 改写一遍，出 `style-report.json`；门禁 `style-render` 对交付物强制生效。
 
 ## 这是什么
 
-「观澜」是一名宏观与资本市场的**独立分析师**。它融会 23 部专著（徐高×2、李奇霖、统计指标手册、李斌伍戈、Grinold&Kahn、钦塞瑞尼、Ilmanen、佩德森、石川、Andrew Ang、马克斯、劳顿、小哈斯莱特、Kerry Back、Karolyi、Bali 2016、Campbell、Paleologo、Falkenstein、Donnelly、Ferson、Kim & Brown、Costello）+ 2 套基础教材（CFA 2020 L1 六卷 / CFA 2025 L1-L3 十三卷）+ 2 份大类资产配置研报 + 18 篇学术论文，共 **46 源 / 54 份精读**，形成一套自己的分析框架：
+「观澜」是一名宏观与资本市场的**独立分析师**。它融会 28 部专著与教材（徐高×2、李奇霖、李斌伍戈、Grinold&Kahn、钦塞瑞尼、Ilmanen、佩德森、石川、Andrew Ang、马克斯、劳顿、小哈斯莱特、Kerry Back、Karolyi、Bali 2016、Campbell、Paleologo、Falkenstein、Donnelly、Ferson、Kim & Brown、Costello、Campbell/Lo/MacKinlay、Tsay、Meucci、Elliott & Timmermann、Sarno & Taylor）+ 1 部统计指标标准（中国主要统计指标诠释）+ 2 套基础教材（CFA 2020 L1 六卷 / CFA 2025 L1-L3 十三卷）+ 2 份大类资产配置研报 + 18 篇学术论文，共 **51 源 / 59 份精读**，形成一套自己的分析框架：
 
 - **第 0 层 · 基准与目标函数（总开关）**：基准=沪深300（价格指数口径）+ 绝对收益风险约束（回撤 −20%、现金 20%）+ 事前风控档位表 → 主动风险额度。
-- **十三层能力**：数据读数 → 货币信用 → 宏观骨架 → 金融定价 → 预期收益 → 组合管理 → 宏观因子周期 → 横截面因子 → 摩擦可执行 → 模型实证检验 → 风险边界与极端事件 → 信息不对称与微观结构 → 组合工程与生存约束。
+- **十五层能力**：数据读数 → 货币信用 → 宏观骨架 → 金融定价 → 预期收益 → 组合管理 → 宏观因子周期 → 横截面因子 → 摩擦可执行 → 模型实证检验 → 风险边界与极端事件 → 信息不对称与微观结构 → 组合工程与生存约束 → **预测工艺与实时评估** → **波动率、尾部与时序建模**。
 - **主动收益框架**：主动权重向量 w_a → σ_A（协方差口径）→ MCTR/CTR 欧拉分解 → E[R_A] 三项分解（carry／估值收敛／盈利差）→ IR=IC×√BR → IC*。
-- **两道横切闸门**：统计可信（t 阈值分档 + 多重检验校正 + Haircut/Deflated Sharpe **正反双校准**——发表偏误仅需收缩 10–15%，未过校正 ≠ 反向信号成立）+ 实施成本与可执行（E[R_A] − 实施成本 = 净预期主动收益，净额 ≤ 0 不发布）。
+- **三道横切闸门**：统计可信（t 阈值分档 + 多重检验校正 + Haircut/Deflated Sharpe **正反双校准**——发表偏误仅需收缩 10–15%，未过校正 ≠ 反向信号成立）+ 实施成本与可执行（E[R_A] − 实施成本 = 净预期主动收益，净额 ≤ 0 不发布）+ **数据质量与规则版本**（数据质检三件套 + 规则版本绑定 + 命中率账本对照 + 口径快照；不产出观点但决定长期可信度）。
 - **六步内化流程**：钱从哪来 → 钱变利润 → 价格装多少预期 → 结构定价自洽 → 周期定位风险归属 → 错了会怎样。
 - **分层凯利下注上限**：2P−1 中的 P 按可预测性聚类分层取用（高可预测聚类用实证分层 P，低可预测资产 P 收敛 0.50）。
 - **持续自主学习**：检测新资料 → 逐章精读 → 提炼方法论 → 整合进框架 → 知识账本登记。
@@ -39,7 +39,7 @@
 
 | 层 | 内容 | 授权 |
 |---|---|---|
-| ✅ 开放层 | 观澜自有方法论/工艺/配置（十三层能力、六步流程、两道闸门、主动收益三分解、输出规范、场景 DAG） | MIT |
+| ✅ 开放层 | 观澜自有方法论/工艺/配置（十五层能力、六步流程、三道闸门、主动收益三分解、输出规范、场景 DAG） | MIT |
 | ⛔ 受限层 | 原著/CFA 教材原文（PDF/EPUB） | 版权归原作者/出版方，**不随包分发** |
 
 详细溯源见 `source/SOURCE-MANIFEST.json`。**编造专家观点比不回答更严重**——本包所有观点均可溯源，无授权来源不入库。
@@ -59,7 +59,7 @@ macro-capital-analyst/
 ├── domain-knowledge/
 │   └── macro-capital-analyst-kb.json  # 领域本体（实体 / 关系 / 检索剖面）
 ├── knowledge-providers/
-│   └── macro-capital-analyst-library.json  # 知识供给声明（46 源 / 54 份精读）
+│   └── macro-capital-analyst-library.json  # 知识供给声明（51 源 / 59 份精读）
 ├── scenarios/
 │   ├── a-share-outlook.json           # 「A股观点看板」任务 DAG
 │   └── cycle-positioning.json         # 「周期定位与配置研判」任务 DAG
@@ -70,8 +70,8 @@ macro-capital-analyst/
 │   └── baseline.json                  # 起步门禁 10 道（含 gate-a-double-calibration / net-active-return-required / active-risk-budget）
 ├── method-packs/
 │   ├── six-step-internalization.json  # 六步内化流程（§0 权威步骤定义）
-│   ├── thirteen-layer-framework.json  # 十三层能力框架
-│   └── dual-gates.json                # 两道横切闸门
+│   ├── fifteen-layer-framework.json  # 十五层能力框架
+│   └── tri-gates.json                 # 三道横切闸门
 ├── team-templates/
 │   ├── a-share-outlook-team.json      # 看板组队模板（scenarios 引用）
 │   └── cycle-positioning-team.json    # 研判组队模板
@@ -111,7 +111,7 @@ macro-capital-analyst/
 
 > 「帮我更新今日『中国A股市场观点看板』」
 
-观澜会依次：跑自建数据引擎刷新四档分位 / 年化波动 / 最大回撤 → 检索近一周券商公开观点作对照组 → 按六步内化流程重构观点、过两道闸门（净预期主动收益 ≤ 0 不发布）→ 产出含「摘要 / 市场共识与我的分歧 / 六步主体 / 主动收益与净额 / 上期判断回顾 / 方法可靠性声明 / 脚注」的自包含 HTML（涨=红、跌=绿）。
+观澜会依次：跑自建数据引擎刷新四档分位 / 年化波动 / 最大回撤 → 检索近一周券商公开观点作对照组 → 按六步内化流程重构观点、过三道闸门（净预期主动收益 ≤ 0 不发布）→ 产出含「摘要 / 市场共识与我的分歧 / 六步主体 / 主动收益与净额 / 上期判断回顾 / 方法可靠性声明 / 脚注」的自包含 HTML（涨=红、跌=绿）。
 
 ### 示例二：周期定位与风格配置
 
@@ -123,7 +123,7 @@ macro-capital-analyst/
 
 > 「检查书籍库有没有新书，自主学习并更新分析框架」
 
-观澜会：列书籍目录比对已读清单 → 下载新增著作逐章五段式精读 → 提炼机制整合进十三层能力 → 记录学习日志。
+观澜会：列书籍目录比对已读清单 → 下载新增著作逐章五段式精读 → 提炼机制整合进十五层能力 → 记录学习日志。
 
 ### 作为系统提示词（最小用法）
 
@@ -151,7 +151,9 @@ macro-capital-analyst/
 ## 版本历史
 
 
-- **2.8.14**（2026-10-01）：**新增第二位专家「文风渲染」+ 文风对标 The Economist 与财新（末位工序，发表前必过）** —— ① **专家条由 1 位增至 2 位**：新增 `experts/style-renderer.json`（内部名**砚边**／对外匿名「**文风派 E 编辑**」），自带完整 profile——persona（style／tone／bias／values／taste／voice／mentalModels／blindSpots／signaturePhrases／antiPatterns）、methodProfile、emm（6 条 vetoRules）、constraints、outputSchema、modelPolicy、compliance；能力 4 项（`style.render`／`prose.edit`／`terminology.normalize`／`register.enforce`）。职责边界写死在 profile 里：**只对表达负责，不介入判断**；不取数、不核数、不改数。② **文风对标规则（用户指令）**：文字表达对标 **The Economist 与财新**的写作风格与语言习惯，8 条要点——开门见山／短句一句一事／具体压过抽象／克制修辞／**主张带归因且事实与判断分句式**／去口号化去八股／**给可证伪的条件句**／术语规范；并列反例清单（出现即返工）。**处理方式与书目痕迹同源：文风内化、刊名不可见**——产出中不得出现刊名，也不得写「仿某刊风格」式表述（`财新` 仅可作被引用的数据／报道来源出现在脚注）。③ **功能排在流水线最末（用户指令）**：新增 `method-packs/style-render-pipeline.json`（6 步，`order: last`）——冻结事实层 → 逐段改写 → 删减收紧 → 逐条自检 → 出渲染报告 → 重出渲染产物。两个组队模板各新增槽位 `style-editor` 与**末位任务** `style-render`（a-share-outlook：`fusion-render` → `style-render`，产出 `final.md`／`style-report.json`／`index.html`；cycle-positioning：`net-alpha` → `style-render`，产出 `final.md`／`style-report.json`），两个场景各追加末位任务并登记 `style-renderer`。④ **新增门禁 `style-render`**（semantic／hard，含 `config.wiring`，两个组队模板均已绑定）：要求发表前由文风渲染专家过一次、**事实层冻结**（数字／口径与数据期／结论方向／E[R_A] 两版／脚注与来源／强制章节一律不得改动）、**渲染证据是 `style-report.json`（8 条逐条结果 + 反例命中数须 0 + 刊名出现次数须 0），缺报告视同未渲染**、渲染后须重出 HTML 使产物与定稿一致。⑤ 同时把规则写进 `skills/macro-capital-framework/SKILL.md`（§6 更名「语言与文风硬规则」并新增第 6 条；§1 新增第 9 条「文风渲染是末位工序」）、两个 `output-templates` 的 `register.twoLayers.规则` 与 `dataRules.writingRules`、`experts/macro-capital-analyst.json` 的 persona（写作者一侧）。⑥ **实现取舍（如实说明）**：文风是表达层的**语义判据**，故门禁声明为 `semantic` 并附 `wiring.reason`——本包无执行器，靠 8 条清单 + 反例清单 + `style-report.json` 自证、复核者抽查；其中「刊名不可见」可在产物上事后机检，故 `config` 保留了 `reference` 与 `footnoteSourceAllowed` 供扫描器取用。⑦ 本版**不新增知识源**（46 源 / 54 份精读不变）；实体数 **43 → 45**（+2）；方法包 **3 → 4**；门禁 **13 → 14**。
+- **2.9.0**（2026-10-22）：**同步 macro-capital-market-analysis v40 —— 能力层扩至十五层 + 闸门增至三道 + 知识底座 46 → 51 源** —— ① **能力层 13 → 15 层**：新增 **⑭ 预测工艺与实时评估**（回答「预测这个动作本身是怎么生产、又是怎么被评估的」——状态分离原则：多数模型在衰退期预测产出很差、考虑扩张/衰退不对称性的非线性动态因子/马尔可夫转换在衰退期实时精度最好并优于 Blue Chip；nowcasting 实时数据流（vintage）纪律：动态因子模型/混频 VAR 为主流框架、桥方程只捕捉有限侧面，高频-低频映射取决于流量/存量与变换方式；评估口径分家：学术双边汇率面板用 t 统计 vs 投资者实现收益横截面用 IR（偏离 PPP 的 G10 多空零和组合 1981:1–2010:12 全样本 IR=0.5、t=0.5×√30=2.7）；变量选择先决纪律：AIC/FPE（E[(y_{T+h}-ŷ)²]≈(1+(p+1)/T)σ²）与一般到特殊；加总方向不可互换（预测加总 ≠ 加总预测）；隐含信息两步分家（先从价格提取、再用提取量预测）；商品价格可预测性默认不可预测（名义油价 1973 后）。**v40 增补预测登记与校准工作台**：每期核心判断须以**概率形式登记**（标的/方向/期限/as-of/操作化判定规则五要素，未登记不得计入命中率）、Brier 分数与校准曲线、**至少两个基准对照**（无条件基准率 + 恒定基准，无对照的命中率不构成证据）、预测组合须不劣于最好单一源、技能 vs 运气的二项检验且 ≥10 年样本；并新增**事件研究范式**六项固定格式（事件 + 估计窗/事件窗含次日溢出 + 正常收益模型 + CAR + J₁ + 是否已被预期，已被定价者标「无法识别」））与 **⑮ 波动率、尾部与时序建模**（回答「当概率可以赋值时，波动率与尾部该怎么建模」——波动率＝条件标准差而非无条件方差；ARCH 家族谱系与选择 ARCH/GARCH/EGARCH/TGARCH/CHARMA；非线性的统一分解 μt=g(F)、σt²=h(F)（改 g 还是改 h 的二选一，诊断顺序**先 h 后 g**）；因子模型三类不可混谈（宏观计量因子/基本面/统计 PCA，**PCA 解释度必然更高、不得当作宏观因子更有效的证据**）；多元条件协方差 Σt 的时变（DCC/正交 GARCH 起点）；极值与 VaR 独立于二阶矩（**GARCH 不覆盖突变与跳跃**）；状态空间与 Kalman 为不可观测状态的标准载体）。② **闸门 2 → 3 道**：新增 **闸门 C · 数据质量与规则版本**（**不产出观点，但决定长期可信度**——闸门 A 管「数字可不可信」、闸门 B 管「扣掉摩擦值不值」，但两者都默认「输入数据是对的、规则是稳定的」，而实测中这两件事都会破：单一厂商接口的分位与自算分位会背离、序列会停在 2016/2021 年仍返回数据、复权口径会随数据源改变、规则会在版本演进中静默变更）。四条判据：**数据质检三件套**（断点检测——水平跳变 + 尾部停滞，**静默陈旧比缺数据更危险**；复权校验——前复权/后复权/不复权口径跨期不得改变；跨源对账——单一厂商接口分位必须与自算分位对账，**只用单一厂商接口分位而不做对账 = 未通过本条**）、**规则版本绑定**（每次规则变更须在 CHANGELOG 留痕且当期看板单列「本期规则变更」，无变更也须写「本期无规则变更」，**禁止静默变更**；账本每条记录带 `skill_version`，**跨版本累计命中率必须分组呈现**，不得跨版本直接加总期数）、**命中率账本的对照与自评约束**（须附无条件基准率 + 恒定基准，无对照的累计命中率不得进正文；「部分验证」类模糊判定须给操作化规则，给不出规则的记 `indeterminate` 并**排除在分母之外**；判定标准须事前登记）、**口径快照**（同表同类同日，跨源拼装须显式声明且不得用于精度要求高的结论）。不过怎么办：数据未质检 → 该数据不得进入正文；规则静默变更 → 当期须补登 CHANGELOG 并说明影响范围；账本跨版本未分组 → 累计命中率不得展示。③ **实体改名**（同步全部引用点）：`method-packs/thirteen-layer-framework.json` → **`fifteen-layer-framework.json`**（id 同步改名，13 → 15 层）；`method-packs/dual-gates.json` → **`tri-gates.json`**（id 同步改名，2 → 3 道闸门）—— 改名后 `skill-packages.contributions.methodPacks`、`experts/*`、`domain-knowledge` 本体与关系、`skills/.../SKILL.md` §0 模板引用、`README` 目录树与 `README.en.md` 全部同批更新，**不留悬空引用**（`check-pack` 的 ref-integrity 与 skill-contribution-target-missing 对此把关）。④ **新增门禁 `data-quality-rule-version`**（semantic／hard，含 `config` 与 `config.wiring`，**两个组队模板均已绑定**——否则 unbound-gate 会拦下）：把闸门 C 的四条判据登记为可核对的包侧声明（`dataQcTriad` / `ruleVersionBinding` / `hitRateDiscipline` / `sameDaySnapshot`），并声明其载体为 `data_qc_out.json` 与 `attribution_ledger.json` 的 `skill_version` 字段；**如实说明**闸门 C 含可机检部分（产物侧证据）与人工/语义部分，**本包无独立执行器**，故声明为 semantic 并附 `wiring.reason`——不假装它是可执行硬门。⑤ **知识底座 46 → 51 源 / 54 → 59 份精读**：新增 5 本服务于 ⑭⑮ 层——计量金融教材（事件研究范式）、时间序列分析教材（波动率与尾部建模）、风险与资产配置专著、预测学手册（状态分离/vintage 纪律）、汇率经济学专著；`source/SOURCE-MANIFEST.json` 逐条登记（**`distributable: false`，只存方法论内化摘要层，原著原文不随包分发**）；**禁例表同步补 13 条词干**（题名与作者），使 `banned-tokens-gap` 的 strict 缺口保持 **0**（否则包侧门禁会当场报缺口——这是「新增源 ⇒ 必须同步禁例」这条纪律的强制点）。⑥ **本体同步**：`domain-knowledge` 补 `gate-c`、`layer-14-forecasting`、`layer-15-volatility` 三个实体与三条关系（源材料→⑭⑮、⑭→⑮ 的延伸、闸门 C 对源材料的横向治理）；`thirteen-layer` 实体与关系 id 同步改为 `fifteen-layer`。⑦ **SKILL.md 同步**：§0 模板引用、§1 验收标准（「十五层并用」「三道闸门任一不过 = 不合格」，按需层由 ⑩⑪⑫⑬ 扩为 ⑩⑪⑫⑬⑭⑮）、§3 质量门禁**补入闸门 C 四条判据全文**、§4 折中依据、§7 按需层标题；**版本号与 digest 同批重钉**（`bump-version.mjs` 自动完成，SHA-256 因行尾敏感由 `.gitattributes` 的 `eol=lf` 钉住）。⑧ **如实声明三处未变与一处限制**：**本版未新增任何知识源以外的能力来源**、**未改动 A 股取数优先级（Wind CLI 仍为第 1 档）**、**未改动 E[R_A] 基本成分三分解与「含③/不含③」两版并列的现行唯一口径**；⑭⑮ 两层的底本实证均为**海外样本**（美国宏观/G10 货币/国际油价/美股标的），**机制通用但参数须本地重标定**——A 股涨跌停、T+1、停牌结构性改变波动率持续性，**禁止直接沿用海外 GARCH 参数**；A 股本地**尚无**对应的模型竞赛基准表，引用模型相对表现须标「未获取本地基准」；A 股宏观数据修订史（vintage）未获取，实时数据流纪律在本地只能作原则要求。⑨ 本版**未新增 check-pack 判据**，故判据登记表 `CRITERIA.md` 的逐字比对不漂移（仍由 `criteria-doc` 判据把关）。⑩ **本轮复核中一并修掉的口径漂移**（非能力变更，但属「声明与实物不符」）：`pack.json`／README 的专著计数原写「29 部」——按 `source/SOURCE-MANIFEST.json` 实际分类应为 **28 部**（book 25 + textbook 2 + handbook 1；新 5 源中 2 部为教材类、1 部为手册类，不能都算「专著」），已改为「28 部专著与教材」并补全作者清单；`knowledge-providers` 的知识底座描述自 v2.6.0 起一直停留在「38 源 / 43 份精读」，本次同步为 **51 源 / 59 份精读**；`README.en.md` 的「two cross-cutting gates」「10 deliverable quality gates」「46 source materials」「46 injected-defect cases」四处过期数字同步为 three / 15 / 51 / 49；`SOURCE-MANIFEST.json` 的 `fileRefNote` 由「46/46 条」改为「51/51 条」、`note` 的对应技能版本由 v35 改为 **v40**；因改动 `SOURCE-MANIFEST.json` 触发 `digest-mismatch`，已用 `repin-digests.mjs` 重钉并复验。
+
+- **2.8.14**（2026-10-01）：**新增第二位专家「文风渲染」+ 文风对标 The Economist 与财新（末位工序，发表前必过）** —— ① **专家条由 1 位增至 2 位**：新增 `experts/style-renderer.json`（内部名**砚边**／对外匿名「**文风派 E 编辑**」），自带完整 profile——persona（style／tone／bias／values／taste／voice／mentalModels／blindSpots／signaturePhrases／antiPatterns）、methodProfile、emm（6 条 vetoRules）、constraints、outputSchema、modelPolicy、compliance；能力 4 项（`style.render`／`prose.edit`／`terminology.normalize`／`register.enforce`）。职责边界写死在 profile 里：**只对表达负责，不介入判断**；不取数、不核数、不改数。② **文风对标规则（用户指令）**：文字表达对标 **The Economist 与财新**的写作风格与语言习惯，8 条要点——开门见山／短句一句一事／具体压过抽象／克制修辞／**主张带归因且事实与判断分句式**／去口号化去八股／**给可证伪的条件句**／术语规范；并列反例清单（出现即返工）。**处理方式与书目痕迹同源：文风内化、刊名不可见**——产出中不得出现刊名，也不得写「仿某刊风格」式表述（`财新` 仅可作被引用的数据／报道来源出现在脚注）。③ **功能排在流水线最末（用户指令）**：新增 `method-packs/style-render-pipeline.json`（6 步，`order: last`）——冻结事实层 → 逐段改写 → 删减收紧 → 逐条自检 → 出渲染报告 → 重出渲染产物。两个组队模板各新增槽位 `style-editor` 与**末位任务** `style-render`（a-share-outlook：`fusion-render` → `style-render`，产出 `final.md`／`style-report.json`／`index.html`；cycle-positioning：`net-alpha` → `style-render`，产出 `final.md`／`style-report.json`），两个场景各追加末位任务并登记 `style-renderer`。④ **新增门禁 `style-render`**（semantic／hard，含 `config.wiring`，两个组队模板均已绑定）：要求发表前由文风渲染专家过一次、**事实层冻结**（数字／口径与数据期／结论方向／E[R_A] 两版／脚注与来源／强制章节一律不得改动）、**渲染证据是 `style-report.json`（8 条逐条结果 + 反例命中数须 0 + 刊名出现次数须 0），缺报告视同未渲染**、渲染后须重出 HTML 使产物与定稿一致。⑤ 同时把规则写进 `skills/macro-capital-framework/SKILL.md`（§6 更名「语言与文风硬规则」并新增第 6 条；§1 新增第 9 条「文风渲染是末位工序」）、两个 `output-templates` 的 `register.twoLayers.规则` 与 `dataRules.writingRules`、`experts/macro-capital-analyst.json` 的 persona（写作者一侧）。⑥ **实现取舍（如实说明）**：文风是表达层的**语义判据**，故门禁声明为 `semantic` 并附 `wiring.reason`——本包无执行器，靠 8 条清单 + 反例清单 + `style-report.json` 自证、复核者抽查；其中「刊名不可见」可在产物上事后机检，故 `config` 保留了 `reference` 与 `footnoteSourceAllowed` 供扫描器取用。⑦ 本版**不新增知识源**（51 源 / 59 份精读不变）；实体数 **43 → 45**（+2）；方法包 **3 → 4**；门禁 **13 → 14**。
 
 - **2.8.13**（2026-10-01）：**修掉复审指出的三处「loaded vs in-effect」残余与文档卫生 + 立「复核期间冻结修订」规则** —— ① `audit-mobile.py` 的 `bodyFontNeedSource` **未加载策略时仍报 `policy`**（无参运行三档全报 policy 而 `policySource=None`）：现改为**三态如实**（键来自声明＝`policy`；该视口未声明、取内置默认＝`builtin-default`），实测无参运行三档均为 `builtin-default`。② `check-wind-provenance.py` 的 `load_policy` **只接受目录**，传单文件会**静默回退**且不披露（与 `audit-mobile.py` 同一 flag 行为不一致）：现两种入参都接受，并在报告里新增 `policyFallback` 与 `warnings`（显式给了 `--policy-dir` 却没解析到本门 config ⇒ 披露而非静默）。③ 文档卫生：`mobile-readability.criteria.bodyFontMinPx` 映射内混着的说明键 `note` 已移出到同级 `bodyFontMinPxNote`（映射只放 `<视口>:<像素下限>`，解析器并对非数值项显式忽略）。④ **立规**（写进 `RELEASING.md`）：给复核任务下达时**必须写明被复核的包修订号**并在窗口内冻结包改动；确需并行推进须在结论里注明整包重发，且不得据过期钉扎写现值 —— 动因是一次复核期间包从 2.8.11 重发到 2.8.12（30+ 文件），复核方只能改用「可归属钉扎」才使结论站得住。⑤ 自校准回归：移动端 7/7、Wind 6/6、接线 5/5。纯增量：产物侧与既有判据语义零变更。
 
@@ -179,7 +181,7 @@ macro-capital-analyst/
 - **2.8.1**（2026-09-30）：**移动端可读性入包 + Wind 取数档位可执行化（在 2.8.0 取数优先级之上叠加）** —— ① **新增门 `mobile-readability`（visual/hard）**：375 主视口（覆盖 320/390）正文 ≥17px、图内文字**等效字号** ≥11px 或提供放大入口、触控目标 ≥44px、宽表卡片堆叠或受控横滚、页面级 0 溢出与 0 裁切重叠；`render-overflow` 视口补 **375×812**。② **新增门 `wind-provenance`（deterministic/hard）**：在 2.8.0 的「取数档位链（Wind→westock→公开→外部）」之上，把**凭据缺失 fail-closed、禁止重装/绕走、降级须逐项标注**落成可执行检查；`tool-providers` 增 `dataChannels.wind-edb` 声明（命令/三级凭据阶梯/失败语义/`lastProbe` 实测 `AUTH_ERROR`），`data-contracts` 增 `wind.edb.query` 与 `wind.edb.metadata`。③ **两个门禁执行工具**：`scripts/audit-mobile.py`（playwright 实测 computed style，含 `sr-only` 排除，避免把无障碍 skip-link 误报为裁切/小触控目标）与 `scripts/check-wind-provenance.py`（含 `--selftest`：2 正向 + 3 反向 —— 其 v1 曾因裸正则把纪律句「未绕走 analytics_data」判违规而**不可满足**，由正向对照抓出并修复）；`scripts/audit-delivery.sh` 由 5 件扩为 **7 件**（RELEASING.md 门禁表同步）。④ **包自带渲染器补齐移动端**：`scripts/render-report.mjs` 增桌面 rail → 窄屏顶部粘性目录条（h2 自动建目录、触控 ≥44px）、窄屏宽表卡片堆叠（`data-label` 逐格回填）、`tabular-nums`、`env(safe-area-inset-*)`、`@media print`；实测 `render-overflow` 六视口 0 溢出 + 对比度 **958/958**、`mobile-readability` 320/375/390 全 PASS —— 『声明移动端规格』与『工具能实现该规格』对齐。⑤ 与 2.8.0 的关系：**取数优先级规则保留上游原文并叠加**，不重复也不改写；本版为**纯增量**（上游 20 个文件的 2.8.0 改动全部保留）。⑥ 本版不新增知识源、不新增能力层。
 
 
-- **2.8.0**（2026-09-30）：**同步 macro-capital-market-analysis v37 —— 取数优先级：Wind CLI 优先** —— ① **新增强制规则（取数优先级）**：**任何数据一律先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败 / 超时）**再退回其他方式**，退回顺序为 **westock CLI → 公开接口自算（新浪 / 腾讯 fqkline / 中证 `index-perf` / 东财）→ 外部口径（须标来源与 as-of）**。**禁止跳过 Wind CLI 直接走公开接口**；**本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明**。② **落地位置**：`pack.json` 的口径声明把 Wind 由「可选主定量源」升为「**取数优先级第 1 档**」；`experts` 的 `methodProfile.dataPreference` 置顶该规则，并补 1 条 `mentalModel`、2 条 `antiPattern`、1 条 `vetoRule`，`blindSpots` 由「本机无 Wind/iFinD」改为「Wind 不可用时的缺口」；`quality-policies/baseline.json` 的 `number-consistency` 门禁新增「取数档位声明」判据（`dataSourcePriority = [wind, westock, public-selfcompute, external-with-citation]`）；两个 scenario 的 `description`、`tool-providers` 的 `description` 与 `note`、包内 `skills/macro-capital-framework/SKILL.md` 的 §2 均写入该优先级。③ **同步全文因该规则而不成立的绝对陈述**（skill 侧 10 处、包侧 2 处）：「本机无 Wind/iFinD，forward EPS 与盈利预测修正层缺失」→「取数先试 Wind CLI，取不到再退回；实际档位须声明」；汇率与美元指数历史序列由「本机无历史」改为「先试 Wind CLI，不可用时自建序列」；附录 B gap-003 的补齐路径改为 Wind CLI 优先。④ **一处如实提示（非本包可解）**：规则是策略性的、自带退回条款；**本机当前未解析到 Wind CLI**（PATH 无 `wind`、无 Wind 安装目录），故在 Wind 就绪前所有运行都会落到退回档，此时「方法可靠性声明」须写明实际档位与原因。⑤ 本版**不新增知识源**（46 源 / 54 份精读不变）、**不新增实体**（43 个不变）；能力层、两道闸门判据的**内容**零变更。
+- **2.8.0**（2026-09-30）：**同步 macro-capital-market-analysis v37 —— 取数优先级：Wind CLI 优先** —— ① **新增强制规则（取数优先级）**：**任何数据一律先试 Wind CLI**；Wind 取不到（未安装 / 无权限 / 无该字段 / 调用失败 / 超时）**再退回其他方式**，退回顺序为 **westock CLI → 公开接口自算（新浪 / 腾讯 fqkline / 中证 `index-perf` / 东财）→ 外部口径（须标来源与 as-of）**。**禁止跳过 Wind CLI 直接走公开接口**；**本期实际落在哪一档、以及未走 Wind 的原因，须在「方法可靠性声明」写明**。② **落地位置**：`pack.json` 的口径声明把 Wind 由「可选主定量源」升为「**取数优先级第 1 档**」；`experts` 的 `methodProfile.dataPreference` 置顶该规则，并补 1 条 `mentalModel`、2 条 `antiPattern`、1 条 `vetoRule`，`blindSpots` 由「本机无 Wind/iFinD」改为「Wind 不可用时的缺口」；`quality-policies/baseline.json` 的 `number-consistency` 门禁新增「取数档位声明」判据（`dataSourcePriority = [wind, westock, public-selfcompute, external-with-citation]`）；两个 scenario 的 `description`、`tool-providers` 的 `description` 与 `note`、包内 `skills/macro-capital-framework/SKILL.md` 的 §2 均写入该优先级。③ **同步全文因该规则而不成立的绝对陈述**（skill 侧 10 处、包侧 2 处）：「本机无 Wind/iFinD，forward EPS 与盈利预测修正层缺失」→「取数先试 Wind CLI，取不到再退回；实际档位须声明」；汇率与美元指数历史序列由「本机无历史」改为「先试 Wind CLI，不可用时自建序列」；附录 B gap-003 的补齐路径改为 Wind CLI 优先。④ **一处如实提示（非本包可解）**：规则是策略性的、自带退回条款；**本机当前未解析到 Wind CLI**（PATH 无 `wind`、无 Wind 安装目录），故在 Wind 就绪前所有运行都会落到退回档，此时「方法可靠性声明」须写明实际档位与原因。⑤ 本版**不新增知识源**（51 源 / 59 份精读不变）、**不新增实体**（43 个不变）；能力层、两道闸门判据的**内容**零变更。
 
 - **2.7.0**（2026-09-29）：**同步 macro-capital-market-analysis v29–v35 —— 能力层扩至十三层 + 主动收益模块整体替换 + 语言硬规则（跨 7 个版本）** —— ① **能力层 9 → 13 层**：新增 ⑩ 资产定价模型的实证检验与诊断（主方程 E_t(mR)=1；α 必须绑定模型；triality 三路等价；宏观因子须先造因子模拟组合；HJ 界为排除工具）、⑪ 风险边界、破产约束与极端事件治理（概率不可赋值区域；VaR 操作性定义；凯利永不清零约束；压力测试反推法；黑洞扫描；极端动作须在平静日预设写死）、⑫ 信息不对称、微观结构与激励传导（三均衡阶梯；无交易定理；卖空约束的涨跌不对称；CGW 交易量-反转；DHS 有偏自我归因；激励→行为→价格）、⑬ 组合工程与生存约束（仓位规则即 alpha；Jagannathan-Ma 非负约束；杠杆地板与天花板；止损 efficiency 表；崩盘=跨投资者去杠杆）。② **主动收益模块整体替换（现行唯一口径）**：先按主动管理基础法则试 α=IC·z，本机实测 29 条行业指数的有效独立标的数只有 6.2（ρ̄=0.132、BR≈25）、三个估值口径 IC 全为负且 BH-FDR 与 Bonferroni 存活均 0 ⇒ **指数层面无法产出 α，该口径否决**；改用**基本成分三分解**——总收益 = ① 支付收益率（股息率＋净回购率）+ ② 预期现金流增长率（EPS）+ ③ 预期估值变化（P/E 均值回归）。三项均可观测，故不要求过 IC 显著性检验；**「含③／不含③」两版并列强制，只有两版同号的方向才可建仓**；③ 的收敛速度不假定、由年度采样 AR(1) 估 ρ 与半衰期，ρ ≥ 1 一律记 0。③ **失效条款重述与新增**：C 重述——原结论否证的是「① 项单独作为唯一来源」而非「股息不被支付」（用价格比值回归失败去否决股息支付属对象替换）；新增 D——③ 的准入与两版建仓规则。④ **闸门 A/B 扩充**：闸门 A 增至**七条**（新增第 7 条「收益口径折减与 p-hacking 拦截」——算术口径须扣方差/2、A 股禁沿用海外 2% 锚；须披露调参次数与阈值档位；少于 30 个观测不单独下结论）；闸门 B 增至**六条**（新增第 6 条「杠杆水位与生存约束」——含仓位/杠杆的结论须声明自身杠杆上限（κ 取 2–3）、触发式止损在极端时的失效、「正确但被强平」风险与缓冲额度；崩盘识别用杠杆水位而非价格跌幅）。⑤ **新增/扩充数据源**：接入 westock CLI（申万行业估值／一致预期／财报 TTM、外汇历史）、北向持仓、**个股级横截面因子**，并新接**中证官网 index-perf 一手面板**（价格 + 滚动 PE + 全收益，2015 起，覆盖 20 个行业）——使 ① 项从「代理检验」升级为一手可观测分量。⑥ **知识底座 38 → 46 源 / 43 → 54 份精读**：新增 8 本著作（Miranda-Agrippino & Rey 2021 GFC、Campbell、Paleologo、Falkenstein、Donnelly、Ferson、Kim & Brown、Costello）+ 2 份内部综合（周期定位专题、跨著作比对协议）。⑦ **语言硬规则（v35）**：产出与内部文档一律不得用「腿」这一比喻称呼头寸、标的或口径，拥挤度统一称「三条口径」；加粗只给数字与关键术语、破折号只作「即/也就是」补充、长句拆短。⑧ **元判据增补**：新增「三问定位」（结构定方向 → 时钟定状态 → 情绪定仓位），并把有效独立标的数 N_eff 与 ρ̄ 列为「值不值得下注」的必报量。⑨ 实体侧同步：`nine-layer-framework` 更名并扩为 **`thirteen-layer-framework`**；本体补 9 实体 + 10 关系；禁例 token 由 90 增至 106（含 8 本新著作题名/作者词干与语言硬规则）。
 

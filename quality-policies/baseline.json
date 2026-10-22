@@ -1,6 +1,6 @@
 {
   "id": "baseline",
-  "version": "2.8.14",
+  "version": "2.9.0",
   "schemaVersion": 2,
   "name": "五道起步门禁",
   "description": "合作伙伴起步门禁基线（五道）：禁例 token、数字一致、渲染溢出、排版审计、章节大纲。",
@@ -123,7 +123,20 @@
           "Kim & Brown",
           "The Front Office",
           "Tom Costello",
-          "腿"
+          "腿",
+          "The Econometrics of Financial Markets",
+          "Campbell",
+          "MacKinlay",
+          "Analysis of Financial Time Series",
+          "Tsay",
+          "Risk and Asset Allocation",
+          "Meucci",
+          "Handbook of Economic Forecasting",
+          "Elliott",
+          "Timmermann",
+          "The Economics of Exchange Rates",
+          "Sarno",
+          "Taylor"
         ],
         "bannedTokensAllowlist": [
           "国家统计局",
@@ -524,8 +537,8 @@
         ],
         "criteria": {
           "bodyFontMinPx": {
-            "375": 17,
-            "320": 16
+            "320": 16,
+            "375": 17
           },
           "figureLabelMinEffectivePx": {
             "min": 11,
@@ -660,7 +673,49 @@
           "reason": "文风是表达层的人工/语义判据（本包无执行器；判据为 8 条清单 + 反例清单），由文风渲染专家出 style-report.json 自证、复核者抽查；其中「刊名不可见」可事后机检（对产物做刊名词表扫描），故 config 给出 reference 与 footnoteSourceAllowed 供扫描器取用"
         }
       }
+    },
+    {
+      "id": "data-quality-rule-version",
+      "name": "数据质量与规则版本（横切闸门 C）",
+      "kind": "semantic",
+      "severity": "hard",
+      "appliesTo": [
+        "markdown",
+        "html",
+        "pdf"
+      ],
+      "description": "闸门 C · 数据质量与规则版本：不产出观点，但决定长期可信度。闸门 A 管「数字可不可信」、闸门 B 管「扣掉摩擦值不值」，但两者都默认「输入数据是对的、规则是稳定的」——实测中这两件事都会破（单一厂商接口的分位与自算分位会背离、序列会停在 2016/2021 年仍返回数据、复权口径会随数据源改变、规则会在版本演进中静默变更）。数据未质检 → 该数据不得进入正文；规则静默变更 → 当期须补登 CHANGELOG 并说明影响范围；账本跨版本未分组 → 累计命中率不得展示；陈旧但可返回的幻觉式数据比明确缺失更严重。",
+      "config": {
+        "dataQcTriad": [
+          "断点检测：序列须检水平跳变（结构断点）与尾部停滞（最后交易日距当期 > 阈值即判陈旧）——静默陈旧比缺数据更危险",
+          "复权校验：价格序列须声明前复权/后复权/不复权口径，同一序列跨期口径不得改变；跨源比对须先统一复权口径",
+          "跨源对账：单一厂商接口的分位必须与自算分位对账，偏离超阈值须在正文标注并说明取用哪一口径"
+        ],
+        "requiresQcReport": true,
+        "qcReportArtifact": "data_qc_out.json",
+        "ruleVersionBinding": {
+          "changelogRequired": true,
+          "requiresSkillVersionOnLedgerEntry": true,
+          "forbidSilentRuleChange": true,
+          "crossVersionAggregation": "按 skill_version 分组呈现，禁止跨版本直接加总期数"
+        },
+        "hitRateDiscipline": {
+          "requiresBaselineComparison": true,
+          "requiredBaselines": [
+            "无条件基准率",
+            "恒定基准"
+          ],
+          "indeterminateExcludedFromDenominator": true,
+          "requiresPreexistingCriteria": true
+        },
+        "sameDaySnapshot": true,
+        "crossSourceAssemblyMustDeclare": true,
+        "wiring": {
+          "semantic": true,
+          "reason": "闸门 C 的判据含「数据质检报告是否齐备、规则变更是否留痕、账本是否绑定版本、命中率是否附基准对照」四项；可机检部分由 skills 侧数据引擎产出的 data_qc_out.json 与 attribution_ledger.json 的 skill_version 字段承载（属产物侧证据，包内无独立执行器），其余为人工/语义判据。本键为判据登记说明，不参与机器判定。"
+        }
+      }
     }
   ],
-  "notes": "硬门未过 → 完成被阻断并返回修正指引；软门 → 警告放行（gate_warnings）；通过后产出 0-100 质量分烙进任务标题（质 NN）。建议落盘 GATE 文件（哈希 + 抽样截图）。 v2.7.0：禁例 token 同步至 46 源派生词干 + 语言硬规则（禁「腿」）；gate-a-double-calibration 补收益口径折减与 p-hacking 拦截两项交付侧判据。"
+  "notes": "硬门未过 → 完成被阻断并返回修正指引；软门 → 警告放行（gate_warnings）；通过后产出 0-100 质量分烙进任务标题（质 NN）。建议落盘 GATE 文件（哈希 + 抽样截图）。 v2.7.0：禁例 token 同步至 46 源派生词干 + 语言硬规则（禁「腿」）；gate-a-double-calibration 补收益口径折减与 p-hacking 拦截两项交付侧判据。 v2.9.0：新增门禁 data-quality-rule-version（semantic／hard，闸门 C 四条判据：数据质检三件套／规则版本绑定／命中率账本对照／口径快照），两个组队模板均已绑定；禁例 token 同步至 51 源派生词干。"
 }
