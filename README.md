@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.11.0-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.12.0-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -150,6 +150,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.12.0**（2026-11-21）：**同步技能 v42（执行闭环止血 WP-1~5）——两闸字段进引擎、预测评估器建成、漂移报告器全绿（治理轮，判据零变更）** —— ① 技能侧 v42 五项：C1c 两级阈值进 `data_qc.py` 执行器（0.5 背离须标注/10.0 硬漂移 fail，与 §4 声明值逐字一致）；carry 拆闸两字段进 `ilmanen_decomp.py` 输出（carry_gate 24/30、convergence_gate 26/30、4 标的 ③ 记 0）；新建 `forecast_eval.py` 预测评估器（**当场抓出登记侧两笔手算 Brier 错误**——账面 0.1522 vs 重算 0.3722，真实校准远差于账面）；usage_ledger.jsonl 首次落盘（W45：10 层触发/6 层零产出被数据点名）；最小可发布集（数据断供降级路径）入 §8；USDCNY 历史序列落本机（gap-003 partial-resolved）。② **登记载体契约统一**：预测登记为独立 `forecast_register.json`，不再挂在 attribution_ledger.json 下——领域包侧十五层 ⑭ 的 mechanism 表述经查不含旧契约表述，无需改判据文本。③ VERSIONS.json 技能版本 41→42、账本 14→15；闸门 9/7/4 与源数 51 经 sync-from-skill.mjs 漂移报告器实检一致。④ 引擎均在技能目录之外的工作区（dlq database\workspace），本仓承载的是方法规范与判据——执行侧产物不随包分发。v2.11.0 → **v2.12.0**。
 
 - **2.11.0**（2026-11-21）：**补齐闸门判据本体——v39/v40 漏同步的 2 条 + 计数口径全面对齐（治理轮，方法论零变更）** —— ① **如实更正**：2.9.0 发布说明声称「同步 macro-capital-market-analysis v40」，但技能侧闸门判据本体只同步了一部分——技能 §4.1 的 **⑧ 检验阶梯与功效披露（Campbell-Lo-MacKinlay）**、**⑨ ML 时代扩展（v40 新增）**与闸门 B 的 **⑦ 实施成本作为建模输入（Meucci）**三条判据**未搬入本包**，tri-gates.json 实为 8/6/4。本轮补齐 ⇒ **gate-a 9 / gate-b 7 / gate-c 4**（gate-a 的双锚子句并入 haircut 条以对齐技能 §4.1 的九条编号）。② **计数口径全面对齐**：pack.json 描述、experts aggregationLogic、SKILL.md §3 闸门 condensed 行全部改「A 九条 / B 七条 / C 四条」——原「七条/六条」与自家 tri-gates 实体对不上（发现于本轮深度审查 H3）。③ **发布说明纪律**：本轮把「同步 v40」的漏搬写进版本史——**声明同步就必须逐条核对判据本体**，今后技能侧加判据时须在同步 PR 里逐条搬运并在发布说明列出条目号。④ 方法论零变更：判据全文逐字取自技能 v41 §4，未改语义；knowledge-ledger 与 SOURCE-MANIFEST 不变。v2.10.0 → **v2.11.0**。
 

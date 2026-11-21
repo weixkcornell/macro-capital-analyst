@@ -5,18 +5,18 @@
   "carriers": {
     "skill": {
       "name": "macro-capital-market-analysis",
-      "version": 41,
+      "version": 42,
       "versioning": "整数递增（内容每次变更 +1）",
       "location": "本地技能目录（不在任何仓内；插件包内为逐字节快照，指纹见 plugin.json.sourceSha256）"
     },
     "pack": {
       "name": "macro-capital-analyst",
-      "version": "2.11.0",
+      "version": "2.12.0",
       "location": "github.com/weixkcornell/macro-capital-analyst"
     },
     "ch": {
       "name": "macro-capital-ch",
-      "version": "2.11.0",
+      "version": "2.12.0",
       "location": "github.com/weixkcornell/macro-capital-ch"
     },
     "plugin": {
@@ -26,7 +26,7 @@
       "location": "CodeBuddy 插件包（本地分发，不在仓内）"
     },
     "ledger": {
-      "version": 14,
+      "version": 15,
       "location": "本地技能 knowledge-ledger.json（领域包侧同内容表达为 source/SOURCE-MANIFEST.json）"
     }
   },
@@ -42,6 +42,13 @@
     "note": "51 = 29 部书类著作（含一部统计指标标准）+ 2 套 CFA 基础教材 + 2 份大类资产配置研报 + 18 篇论文；领域包 SOURCE-MANIFEST 的分类（book 25 + textbook 2 + handbook 1 + standard 1）与本口径兼容（书类 29 = 28 + 1）"
   },
   "history": [
-    {"date": "2026-11-21", "change": "建表。技能 v41 ↔ pack/ch 2.11.0 ↔ plugin 1.1.0 ↔ ledger 14；闸门 9/7/4；源 51"}
+    {
+      "date": "2026-11-21",
+      "change": "建表。技能 v41 ↔ pack/ch 2.11.0 ↔ plugin 1.1.0 ↔ ledger 14；闸门 9/7/4；源 51"
+    },
+    {
+      "date": "2026-11-21",
+      "change": "技能 v42（执行闭环止血 WP-1~5）+ 账本 v15；pack/ch 同步升 2.12.0"
+    }
   ]
 }
