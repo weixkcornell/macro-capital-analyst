@@ -5,18 +5,18 @@
   "carriers": {
     "skill": {
       "name": "macro-capital-market-analysis",
-      "version": 42,
+      "version": 43,
       "versioning": "整数递增（内容每次变更 +1）",
       "location": "本地技能目录（不在任何仓内；插件包内为逐字节快照，指纹见 plugin.json.sourceSha256）"
     },
     "pack": {
       "name": "macro-capital-analyst",
-      "version": "2.12.0",
+      "version": "2.13.0",
       "location": "github.com/weixkcornell/macro-capital-analyst"
     },
     "ch": {
       "name": "macro-capital-ch",
-      "version": "2.12.0",
+      "version": "2.13.0",
       "location": "github.com/weixkcornell/macro-capital-ch"
     },
     "plugin": {
@@ -26,7 +26,7 @@
       "location": "CodeBuddy 插件包（本地分发，不在仓内）"
     },
     "ledger": {
-      "version": 15,
+      "version": 16,
       "location": "本地技能 knowledge-ledger.json（领域包侧同内容表达为 source/SOURCE-MANIFEST.json）"
     }
   },
@@ -49,6 +49,10 @@
     {
       "date": "2026-11-21",
       "change": "技能 v42（执行闭环止血 WP-1~5）+ 账本 v15；pack/ch 同步升 2.12.0"
+    },
+    {
+      "date": "2026-11-21",
+      "change": "技能 v43（模块提升二三批 WP-6~12）+ 账本 v16（gaps 至 024）"
     }
   ]
 }

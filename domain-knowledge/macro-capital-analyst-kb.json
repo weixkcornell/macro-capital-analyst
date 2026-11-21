@@ -1,6 +1,6 @@
 {
   "id": "macro-capital-analyst-kb",
-  "version": "2.12.0",
+  "version": "2.13.0",
   "schemaVersion": 2,
   "name": "观澜宏观与资本市场本体",
   "domain": "macro.capital",
@@ -333,7 +333,7 @@
     "id": "source-manifest-46",
     "renamedFrom": "source-manifest-2.3.0",
     "takenAt": "2026-09-29",
-    "digest": "660ad0123655b768a743f2b794236613a68d8dc1e08607f0488bfd6ce08bb196",
+    "digest": "826def539309fbde096626b7669d05499dd820faef64b5cb6f090b39e59c3847",
     "digestAlgorithm": "sha256",
     "digestTarget": "source/SOURCE-MANIFEST.json",
     "digestNote": "digest = sha256(原文件字节)。id 只写内容特征（46 份材料），不写包版本号 —— 包版本会随每次发布漂移，写进 id 会让同一个快照在下一版里显示成「过期快照」。",

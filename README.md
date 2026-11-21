@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <img alt="Version" src="https://img.shields.io/badge/Version-2.12.0-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/Version-2.13.0-brightgreen">
   <img alt="schemaVersion" src="https://img.shields.io/badge/schemaVersion-2-orange">
   <img alt="Expert Profile v2" src="https://img.shields.io/badge/Expert%20Profile-v2-9cf">
   <img alt="领域" src="https://img.shields.io/badge/%E9%A2%86%E5%9F%9F-%E9%87%91%E8%9E%8D%E6%8A%95%E8%B5%84-red">
@@ -150,6 +150,8 @@ macro-capital-analyst/
 
 ## 版本历史
 
+
+- **2.13.0**（2026-11-21）：**同步技能 v43（模块提升二三批 WP-6~12）——⑧ 代理级基线复核管道、⑩ 层首次 A 股运行、机构级元层三件、③ 层扩容，判据零变更** —— ① `baseline_rollover.py` 指数代理级复核（2020-01→2026-09，81 月）：规模/价值/行业动量三代理 t 值 0.63/−0.30/0.50 **全部未达时序阈值** ⇒ 「证据不足，两个方向都不支持」——**基线结论不自动延续**（诚实边界：代理≠股票级，盈利/换手因子无代理不输出，gap-020 登记）。② `model_testing_a_share.py` —— ⑩ 层首次 A 股运行（10 行业 × 3 代理因子 × 69 月，FM + GRS 对角近似）：10 行业 alpha 全不显著（|t|≤1.48）、FM 溢价 size t=0.06 / value t=−0.06 / 动量 t=2.63（<3.4）——全部证据不足。③ `leading_indicators.py` 领先指标引擎骨架：5 候选序列实测 **0/5 可用**（PMI 报表最新样本停 2023-09 静默陈旧），gap-024 如实 blocked。④ 技能侧机构级元层：§7 **结论适用范围声明**四要素强制字段、§8 **最强反方**强制段（红队单人替代）、references 61 份 **as_of 三字段 frontmatter**（gap-019 收敛，3 已知/58 unknown）。⑤ SOURCE-MANIFEST 增 year/vendor/fallback（49/51 已知年份）；引擎工作区 models.json（22 模型）与 negative_results.jsonl（neg-001）落盘——载体在技能目录之外的工作区，不随包分发。⑥ ③ 层扩容四则 2016 后结构案例（面板一手可复算）+ ③ 层专属硬边界（gap-018 ③ 部分）；`gao_shanwen_economic_logic.md` 框架级摘要入库（**诚实降级：非精读、无实证段、闸门 A 第 9 条处置**，gap-012 open）；references_count 61→62 三处一致。⑦ Veronesi 未入库（gap-008 open）；闸门 9/7/4 一字未动；VERSIONS.json skill 43 / ledger 16。v2.12.0 → **v2.13.0**。
 
 - **2.12.0**（2026-11-21）：**同步技能 v42（执行闭环止血 WP-1~5）——两闸字段进引擎、预测评估器建成、漂移报告器全绿（治理轮，判据零变更）** —— ① 技能侧 v42 五项：C1c 两级阈值进 `data_qc.py` 执行器（0.5 背离须标注/10.0 硬漂移 fail，与 §4 声明值逐字一致）；carry 拆闸两字段进 `ilmanen_decomp.py` 输出（carry_gate 24/30、convergence_gate 26/30、4 标的 ③ 记 0）；新建 `forecast_eval.py` 预测评估器（**当场抓出登记侧两笔手算 Brier 错误**——账面 0.1522 vs 重算 0.3722，真实校准远差于账面）；usage_ledger.jsonl 首次落盘（W45：10 层触发/6 层零产出被数据点名）；最小可发布集（数据断供降级路径）入 §8；USDCNY 历史序列落本机（gap-003 partial-resolved）。② **登记载体契约统一**：预测登记为独立 `forecast_register.json`，不再挂在 attribution_ledger.json 下——领域包侧十五层 ⑭ 的 mechanism 表述经查不含旧契约表述，无需改判据文本。③ VERSIONS.json 技能版本 41→42、账本 14→15；闸门 9/7/4 与源数 51 经 sync-from-skill.mjs 漂移报告器实检一致。④ 引擎均在技能目录之外的工作区（dlq database\workspace），本仓承载的是方法规范与判据——执行侧产物不随包分发。v2.11.0 → **v2.12.0**。
 
