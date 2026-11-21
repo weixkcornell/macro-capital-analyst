@@ -345,6 +345,16 @@ const CASES = [
     },
   },
   {
+    // v2.11.0：VERSIONS.json 版本映射与实物不一致（版本漂移）。
+    name: 'VERSIONS.json 版本映射与实物不符',
+    expectCode: 'version-map-mismatch',
+    mutate: r => {
+      const o = JSON.parse(read(r, 'VERSIONS.json'))
+      o.carriers.pack.version = '9.9.9'
+      write(r, 'VERSIONS.json', JSON.stringify(o, null, 2) + '\n')
+    },
+  },
+  {
     name: 'CRITERIA.md 缺失',
     expectCode: 'criteria-doc-missing',
     mutate: r => rm(r, 'CRITERIA.md'),

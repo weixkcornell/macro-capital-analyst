@@ -47,6 +47,7 @@ bash scripts/release-check.sh
 | ⑦ | `check-template-conformance.mjs --selftest` | 输出模板一致性门自身的**负向对照**（2 正向 + 7 负向，必须 9/9）—— 与 ② 同理由：门禁不校准等于没门禁 |
 | ⑧ | `audit-mobile.py --selftest` ＋ `check-wind-provenance.py --selftest` | **判据来源自校准**：用**故意偏离内置默认**的合成策略跑一遍，断言声明的判据**真的生效**（移动端 7 项 / Wind 6 项）。理由：v2.8.10 之前 `mobile` 与 `wind` 两道门的声明判据根本没被加载/消费，而门禁照样 PASS —— **「加载了策略」与「策略生效」是两件事**，只有偏离默认的对照才能分辨 |
 | ⑨ | `check-gate-wiring.mjs`（＋`--selftest` 1 正向 4 负向） | **门禁接线检查**：每道有 `config` 的门必须声明 `config.wiring` —— `executor`＋`consumesKeys`（键名须在执行器源码里按**独立标识符**出现）/ `builtin` / `semantic`（后两者须给 reason），文档性键须入 `notConsumed`，声明了 `selfTest` 的脚本须真被 `release-check.sh` 调用。理由：本包一天内连踩三例**「声明被加载 ≠ 声明生效」**（mobile 加载器、wind 未消费、mobile 正文字号键类型），此检查把这件事变成**事前可机检** |
+| ⑩ | `scripts/sync-from-skill.mjs` | **技能漂移报告**：本地技能可得时实检（技能版本 ↔ VERSIONS.json；技能 §4 闸门判据条数 ↔ tri-gates rules 数；技能账本源数 ↔ SOURCE-MANIFEST materials 数；--plugin-dir 时逐字节指纹比对），不可得则 skip note 后照跑。理由：v2.9.0 曾声称「同步 v40」而实际漏搬 2 条闸门判据——把「同步」从人工声明变成机检比对 |
 
 **任何一项红：不要发布。**
 

@@ -1,0 +1,47 @@
+{
+  "id": "version-map",
+  "updatedAt": "2026-11-21",
+  "purpose": "五套版本号（技能 v41 / 领域包 2.11.0 / 新仓 2.11.0 / 插件包 1.1.0 / 账本 14）的唯一权威映射。check-pack 的 version-map 判据校验本表与仓内实物的的一致性；技能侧与插件包侧不在仓内，由 scripts/sync-from-skill.mjs 报告。",
+  "carriers": {
+    "skill": {
+      "name": "macro-capital-market-analysis",
+      "version": 41,
+      "versioning": "整数递增（内容每次变更 +1）",
+      "location": "本地技能目录（不在任何仓内；插件包内为逐字节快照，指纹见 plugin.json.sourceSha256）"
+    },
+    "pack": {
+      "name": "macro-capital-analyst",
+      "version": "2.11.0",
+      "location": "github.com/weixkcornell/macro-capital-analyst"
+    },
+    "ch": {
+      "name": "macro-capital-ch",
+      "version": "2.11.0",
+      "location": "github.com/weixkcornell/macro-capital-ch"
+    },
+    "plugin": {
+      "name": "macro-capital-market-analysis",
+      "version": "1.1.0",
+      "skillVersion": 41,
+      "location": "CodeBuddy 插件包（本地分发，不在仓内）"
+    },
+    "ledger": {
+      "version": 14,
+      "location": "本地技能 knowledge-ledger.json（领域包侧同内容表达为 source/SOURCE-MANIFEST.json）"
+    }
+  },
+  "gateCounts": {
+    "gateA": 9,
+    "gateB": 7,
+    "gateC": 4,
+    "note": "与技能 SKILL.md §4 编号一一对应；tri-gates.json 的 rules 数须与本表一致（gate-a 的双锚子句并入 haircut 条以对齐技能九条编号）"
+  },
+  "sourceCounts": {
+    "total": 51,
+    "books": 29,
+    "note": "51 = 29 部书类著作（含一部统计指标标准）+ 2 套 CFA 基础教材 + 2 份大类资产配置研报 + 18 篇论文；领域包 SOURCE-MANIFEST 的分类（book 25 + textbook 2 + handbook 1 + standard 1）与本口径兼容（书类 29 = 28 + 1）"
+  },
+  "history": [
+    {"date": "2026-11-21", "change": "建表。技能 v41 ↔ pack/ch 2.11.0 ↔ plugin 1.1.0 ↔ ledger 14；闸门 9/7/4；源 51"}
+  ]
+}
